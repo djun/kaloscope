@@ -1,6 +1,7 @@
 import asyncio
 import mimetypes
 import os
+import stat
 from contextlib import suppress
 from datetime import UTC, datetime
 from pathlib import Path
@@ -8,19 +9,24 @@ from typing import Any, cast
 from uuid import uuid4
 
 import aiofiles
+from jinja2 import TemplateError
 from lxml import etree
 from sanic.log import logger
+from tortoise.exceptions import ValidationError
 from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from app.core.constants import ENCODING, NFO_MIME_TYPE
 from app.core.flow.context import RETVAL_KEY, Context
+from app.core.media.common import ContentError
 from app.core.media.coordination import library_lock, notify_media_events
 from app.core.media.handlers.base import MediaMeta, get_handler
+from app.core.media.metadata import METADATA_BYTES
 from app.core.renderer import render
 from app.models.media import LibType, MediaEvent, MediaItem, MediaLib, NFOType
 from app.utils.disk import rename_exclusive
 from app.utils.extractor import extract_title
+from app.utils.xml import get_text
 
 # the path to the NFO templates
 TEMPLATES_PATH = Path(__file__).resolve().parents[3] / "static/templates"
@@ -149,6 +155,7 @@ async def gen_nfo(
         `True` if the NFO file is generated successfully, `False` otherwise.
 
     Raises:
+        ContentError: If the candidate cannot be rendered as valid metadata.
         OrganizePendingError: If pending organization cannot finish safely.
     """
     if item_id is not None:
@@ -207,7 +214,7 @@ async def gen_nfo(
 async def _write_nfo(
     nfo_type: str, nfo_path: str, data: dict, *, overwrite: bool
 ) -> bool:
-    """Publish an NFO file atomically.
+    """Validate rendered NFO metadata before publishing the file atomically.
 
     Args:
         nfo_type: The NFO template type.
@@ -216,18 +223,18 @@ async def _write_nfo(
         overwrite: Whether to replace an existing NFO.
 
     Returns:
-        `True` on success; `False` for invalid input or a name conflict.
+        `True` on success; `False` when an existing file prevents publication.
 
     Raises:
+        ContentError: If rendered metadata is invalid or cannot be read back.
         OSError: If file I/O fails without cancellation.
         asyncio.CancelledError: If cancelled, after active publication stops.
     """
     # validate the parameters
     if not nfo_type or not nfo_path or not data:
-        return False
+        raise ContentError("invalid_metadata")
     if nfo_type not in NFOType:
-        logger.error("Invalid NFO type: %s", nfo_type)
-        return False
+        raise ContentError("invalid_metadata")
 
     # check if NFO file already exists
     path = Path(nfo_path)
@@ -243,11 +250,29 @@ async def _write_nfo(
     async with aiofiles.open(tmpl_path, encoding=ENCODING) as f:
         template = await f.read()
 
+    try:
+        if not isinstance(data.get("title"), str) or not data["title"].strip():
+            raise ContentError("invalid_metadata")
+        for name in ("year", "season"):
+            _nfo_integer(name, data.get(name))
+        rendered = render(template, context=data)
+        _, invalid = _parse_nfo_data(
+            LibType.MOVIE if nfo_type == NFOType.MOVIE else LibType.TV_SHOW,
+            rendered.encode(ENCODING),
+            str(path),
+        )
+        if invalid:
+            raise ContentError("invalid_metadata")
+    except ContentError:
+        raise
+    except (TemplateError, TypeError, ValueError) as error:
+        raise ContentError("invalid_metadata") from error
+
     temporary = path.with_name(f".nfo-{uuid4().hex}.tmp")
     cancelled = False
     try:
         async with aiofiles.open(temporary, "x", encoding=ENCODING) as f:
-            await f.write(render(template, context=data))
+            await f.write(rendered)
         if overwrite and path.exists() and not path.is_symlink():
             temporary.chmod(path.stat().st_mode & 0o777)
         publication = asyncio.create_task(
@@ -284,38 +309,140 @@ async def _write_nfo(
     return True
 
 
-def parse_nfo(lib_type: LibType, path: Path | str) -> MediaMeta | None:
-    """Parse current NFO fields without recovering malformed XML.
+def _nfo_integer(name: str, value: Any) -> int | None:
+    """Validate numeric summary fallbacks even when the NFO template omits them.
+
+    Args:
+        name: The `year` or `season` field selecting the accepted range.
+        value: A candidate integer or decimal string; empty values mean absent.
+
+    Returns:
+        The normalized integer, or `None` for an absent value.
+
+    Raises:
+        ContentError: If the value is malformed or exceeds the field's range.
+    """
+    if value is None or not (text := str(value).strip()):
+        return None
+    if not text.isdecimal():
+        raise ContentError("invalid_metadata")
+    try:
+        number = int(text)
+    except ValueError as error:
+        raise ContentError("invalid_metadata") from error
+    minimum, maximum = (1, 9999) if name == "year" else (0, 2**31 - 1)
+    if not minimum <= number <= maximum:
+        raise ContentError("invalid_metadata")
+    return number
+
+
+def _parse_nfo_data(
+    lib_type: LibType, content: bytes, path: str
+) -> tuple[MediaMeta, tuple[str, ...]]:
+    """Parse bounded NFO bytes and identify unusable persisted fields.
+
+    Args:
+        lib_type: The video library type selecting the supported XML roots.
+        content: Current XML bytes, including an optional encoding declaration.
+        path: The file identity attached to the parsed metadata.
+
+    Returns:
+        Parsed metadata and the names of invalid fields omitted from it.
+
+    Raises:
+        ContentError: If the document is too large, malformed or unsupported.
+    """
+    if len(content) > METADATA_BYTES:
+        raise ContentError("media_limit_exceeded")
+    try:
+        root = etree.fromstring(
+            content, parser=etree.XMLParser(resolve_entities=False, no_network=True)
+        )
+    except etree.XMLSyntaxError as error:
+        raise ContentError("invalid_metadata") from error
+    roots = ("movie",) if lib_type == LibType.MOVIE else ("tvshow", "episodedetails")
+    data = root.getroottree()
+    if root.tag not in roots or data.docinfo.doctype:
+        raise ContentError("invalid_metadata")
+    meta = get_handler(lib_type).extract_meta(data)
+    meta.nfo_path = path
+    invalid = []
+    for name in ("rating", "year", "season", "episode"):
+        raw = get_text(root, name)
+        value = getattr(meta, name)
+        if not raw:
+            continue
+        valid = value is not None
+        if valid and name == "rating":
+            valid = 0 <= value <= 10
+        elif valid and name == "year":
+            valid = 1 <= value <= 9999
+        elif valid and name in ("season", "episode"):
+            valid = 0 <= value <= 2**31 - 1
+        if not valid:
+            invalid.append(name)
+            setattr(meta, name, None)
+    for name, field in {
+        "title": "title",
+        "site": "nfo_source",
+        "id": "unique_id",
+        "aired": "aired",
+        "poster": "poster",
+        "backdrop": "backdrop",
+    }.items():
+        try:
+            MediaItem._meta.fields_map[field].to_db_value(
+                getattr(meta, name), MediaItem
+            )
+        except (ValidationError, TypeError, ValueError):
+            invalid.append(name)
+            setattr(meta, name, None)
+    return meta, tuple(invalid)
+
+
+def read_nfo(
+    lib_type: LibType, path: Path | str | None
+) -> tuple[MediaMeta | None, str | None, tuple[str, ...]]:
+    """Read regular NFO files with separate missing and failure outcomes.
 
     Args:
         lib_type: The media library type.
-        path: The path to the NFO file.
+        path: The NFO file path, or `None` when no file is registered.
 
     Returns:
-        Parsed metadata, or None when the file is missing or cannot be parsed.
+        Metadata, a controlled read error and invalid field names. A missing file
+        returns no metadata and no error; failures never expose raw I/O messages.
     """
-    path = Path(path)
+    if path is None:
+        return None, None, ()
     try:
-        if not path.is_file():
-            return None
+        path = Path(path)
+        if not stat.S_ISREG(path.stat().st_mode):
+            return None, "media_source_unavailable", ()
         with path.open("rb") as file:
-            data = etree.parse(
-                file, parser=etree.XMLParser(resolve_entities=False, no_network=True)
+            meta, invalid = _parse_nfo_data(
+                lib_type, file.read(METADATA_BYTES + 1), str(path)
             )
-    except (OSError, etree.XMLSyntaxError):
-        logger.warning("Failed to parse NFO file: %s", path, exc_info=True)
-        return None
+        return meta, None, invalid
+    except FileNotFoundError:
+        return None, None, ()
+    except OSError:
+        return None, "media_source_unavailable", ()
+    except ContentError as error:
+        return None, error.code, ()
 
-    root = data.getroot()
-    roots = ("movie",) if lib_type == LibType.MOVIE else ("tvshow", "episodedetails")
-    if root is None or root.tag not in roots:
-        return None
 
-    meta = get_handler(lib_type).extract_meta(data)
-    meta.nfo_path = str(path)
-    if meta.rating is not None and not 0 <= meta.rating <= 10:
-        meta.rating = None
-    return meta
+def parse_nfo(lib_type: LibType, path: Path | str) -> MediaMeta | None:
+    """Read usable NFO metadata for existing synchronization callers.
+
+    Args:
+        lib_type: The video library type.
+        path: The current NFO file path.
+
+    Returns:
+        Parsed metadata, or `None` for a missing or unreadable document.
+    """
+    return read_nfo(lib_type, path)[0]
 
 
 async def update_metadata(
@@ -331,6 +458,9 @@ async def update_metadata(
     Returns:
         The IDs of the updated media items, or an empty list if the NFO cannot be
         parsed or no matching items exist.
+
+    Raises:
+        ContentError: If a numeric summary fallback cannot be stored safely.
     """
     # parse the NFO file to get the metadata
     if not isinstance(path, Path):
@@ -341,12 +471,23 @@ async def update_metadata(
     if meta is not None:
         # helper function to get the value from the fallback metadata
         def _fallback(key: str) -> Any:
+            """Read a parsed field before consulting the save candidate.
+
+            Args:
+                key: The field name to resolve.
+
+            Returns:
+                The current value, or `None` when both sources omit it.
+
+            Raises:
+                ContentError: If the numeric fallback is invalid.
+            """
             value = None
             if hasattr(meta, key):
                 value = getattr(meta, key)
             if value is not None:
                 return value
-            return fallback.get(key) if fallback else None
+            return _nfo_integer(key, fallback.get(key)) if fallback else None
 
         # prepare the data to update the media item
         data = {
@@ -358,9 +499,8 @@ async def update_metadata(
             "rating": meta.rating,
             "poster": meta.poster,
             "backdrop": meta.backdrop,
+            "year": _fallback("year"),
         }
-        if (year := _fallback("year")) is not None:
-            data["year"] = year
         if (season := _fallback("season")) is not None:
             data["season"] = season
         if (episode := meta.episode) is not None:

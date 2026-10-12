@@ -1305,7 +1305,17 @@ def test_video_details_http(tmp_path, lib_type, root):
                 response = await client.get(url)
                 assert response.status_code == 200, response.text
                 data = response.json()["data"]
-                assert data["title"] == "Old database title"
+                assert data["title"] == "Video metadata"
+                assert data["metadata_state"] == "ready"
+                assert data["metadata_issues"] == []
+                assert (
+                    data["year"]
+                    is data["rating"]
+                    is data["poster"]
+                    is data["backdrop"]
+                    is None
+                )
+                assert (await MediaItem.get(id=item.id)).title == "Old database title"
                 assert "role" not in data
                 assert data["metadata"]["title"] == "Video metadata"
                 assert data["metadata"]["plot"] == "NFO plot"
@@ -1329,9 +1339,18 @@ def test_video_details_http(tmp_path, lib_type, root):
                 assert response.status_code == 200, response.text
                 data = response.json()["data"]
                 assert data["metadata"]["title"] == "Fresh metadata"
+                assert data["title"] == "Fresh metadata"
                 assert data["metadata"]["plot"] == "New plot"
                 assert data["metadata"]["rating"] is None
                 assert data["metadata"]["year"] is None
+                assert data["year"] is data["rating"] is None
+                assert data["metadata_issues"] == [
+                    {
+                        "source": "external",
+                        "error": None,
+                        "invalid_fields": ["rating", "year"],
+                    }
+                ]
 
                 # malformed NFO contributes no detail fields
                 damaged = f"<{root}><title>Recovered</title><plot>Partial plot</plot>"
@@ -1340,6 +1359,8 @@ def test_video_details_http(tmp_path, lib_type, root):
                 assert response.status_code == 200, response.text
                 data = response.json()["data"]
                 assert data["metadata"] is None
+                assert data["metadata_state"] == "error"
+                assert data["metadata_issues"][0]["error"] == "invalid_metadata"
                 assert path.read_text() == damaged
 
                 path.unlink()
@@ -1347,6 +1368,8 @@ def test_video_details_http(tmp_path, lib_type, root):
                     await MediaItem.filter(id=item.id).update(nfo_path=nfo_path)
                     data = (await client.get(url)).json()["data"]
                     assert data["metadata"] is None
+                    assert data["metadata_state"] == "missing"
+                    assert data["metadata_issues"] == []
                     assert data["title"] == "Old database title"
                 await item.refresh_from_db()
                 assert item.title == "Old database title" and item.year == 1980

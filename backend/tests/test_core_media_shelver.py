@@ -3,6 +3,7 @@
 import asyncio
 import hashlib
 import mimetypes
+import os
 import sqlite3
 import threading
 from contextlib import closing
@@ -19,6 +20,7 @@ from tortoise import Tortoise
 from app.core.config import KaloscopeConfig
 from app.core.constants import NFO_MIME_TYPE
 from app.core.media import organizer, shelver, watcher
+from app.core.media.common import ContentError
 from app.core.media.coordination import library_lock
 from app.models.media import (
     LibType,
@@ -82,6 +84,88 @@ def test_nfo_empty_fields(tmp_path):
     assert result.season == 0 and result.episode == 0
 
 
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        (None, None),
+        (b"broken", "invalid_metadata"),
+        (
+            b'<!DOCTYPE movie [<!ENTITY x "test">]><movie><title>&x;</title></movie>',
+            "invalid_metadata",
+        ),
+        (b"x" * (shelver.METADATA_BYTES + 1), "media_limit_exceeded"),
+    ],
+)
+def test_nfo_diagnostics(tmp_path, content, expected):
+    path = tmp_path / "movie.nfo"
+    if content is not None:
+        path.write_bytes(content)
+
+    metadata, error, invalid = shelver.read_nfo(LibType.MOVIE, path)
+
+    assert metadata is None and error == expected and invalid == ()
+
+
+def test_nfo_permission(tmp_path, monkeypatch):
+    path = tmp_path / "movie.nfo"
+    path.write_text("<movie><title>Title</title></movie>")
+    monkeypatch.setattr(Path, "open", Mock(side_effect=PermissionError))
+
+    assert shelver.read_nfo(LibType.MOVIE, path) == (
+        None,
+        "media_source_unavailable",
+        (),
+    )
+
+
+@pytest.mark.parametrize("kind", ["directory", "fifo"])
+def test_nfo_nonregular(tmp_path, monkeypatch, kind):
+    path = tmp_path / "movie.nfo"
+    if kind == "directory":
+        path.mkdir()
+    else:
+        os.mkfifo(path)
+    open_file = Mock(side_effect=AssertionError("Nonregular NFO must not be opened"))
+    monkeypatch.setattr(Path, "open", open_file)
+
+    assert shelver.read_nfo(LibType.MOVIE, path) == (
+        None,
+        "media_source_unavailable",
+        (),
+    )
+    open_file.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {"title": "Bad\x01title"},
+        {"title": " "},
+        {"title": "New", "rating": "NaN"},
+        {"title": "New", "rating": 11},
+        {"title": "New", "year": "unknown"},
+        {"title": "x" * 256},
+        {"title": "New", "poster": "https://example.com/" + "x" * 256},
+        {"title": "New", "site": "x" * 65, "id": "123"},
+    ],
+)
+@pytest.mark.parametrize("existing", [False, True])
+def test_nfo_validation(tmp_path, metadata, existing):
+    path = tmp_path / "movie.nfo"
+    original = b"<movie><title>Original</title></movie>"
+    if existing:
+        path.write_bytes(original)
+
+    async def run():
+        with pytest.raises(ContentError, match="invalid_metadata"):
+            await shelver.gen_nfo(NFOType.MOVIE, str(path), metadata, overwrite=True)
+
+    asyncio.run(run())
+
+    assert path.read_bytes() == original if existing else not path.exists()
+    assert not list(tmp_path.glob(".nfo-*.tmp"))
+
+
 def test_nfo_publish(tmp_path, monkeypatch):
     path = tmp_path / "movie.nfo"
     publish = shelver.rename_exclusive
@@ -140,7 +224,7 @@ def test_publication_failure(tmp_path, monkeypatch, overwrite):
     monkeypatch.setattr(shelver, "render", failed_render)
 
     async def run():
-        with pytest.raises(ValueError, match="Render failed"):
+        with pytest.raises(ContentError, match="invalid_metadata"):
             await shelver.gen_nfo(
                 NFOType.MOVIE, str(path), {"title": "Updated"}, overwrite=overwrite
             )
@@ -434,6 +518,74 @@ def test_metadata_fallback(tmp_path, monkeypatch, written, refresh):
                 assert item.title == "Original"
             assert not (tmp_path / "Old").exists()
             assert not await MediaEvent.all().exists()
+        finally:
+            await Tortoise.close_connections()
+
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize(
+    ("fields", "valid", "season"),
+    [
+        ({"season": "invalid"}, False, 2),
+        ({"season": -1}, False, 2),
+        ({"season": 2**63}, False, 2),
+        ({"season": " 3 "}, True, 3),
+        ({"season": ""}, True, 2),
+        ({"year": ""}, True, 2),
+    ],
+)
+def test_fallback_validation(tmp_path, fields, valid, season):
+    async def run():
+        await Tortoise.init(
+            db_url="sqlite://:memory:", modules={"models": ["app.models"]}
+        )
+        await Tortoise.generate_schemas()
+        try:
+            lib = await MediaLib.create(
+                name="Shows", dir=str(tmp_path), lib_type=LibType.TV_SHOW, priority=1
+            )
+            show = tmp_path / "Show"
+            show.mkdir()
+            nfo = show / "Show.nfo"
+            original = b"<tvshow><title>Original</title><year>2000</year></tvshow>"
+            nfo.write_bytes(original)
+            item = await MediaItem.create(
+                lib=lib,
+                path=str(show),
+                dir=str(show),
+                name="Show",
+                title="Original",
+                year=2000,
+                season=2,
+                nfo_path=str(nfo),
+            )
+            candidate = {"title": "Updated", **fields}
+            if valid:
+                assert await shelver.gen_nfo(
+                    NFOType.TV_SHOW,
+                    str(nfo),
+                    candidate,
+                    overwrite=True,
+                    item_id=item.id,
+                    refresh=True,
+                )
+            else:
+                with pytest.raises(ContentError, match="invalid_metadata"):
+                    await shelver.gen_nfo(
+                        NFOType.TV_SHOW,
+                        str(nfo),
+                        candidate,
+                        overwrite=True,
+                        item_id=item.id,
+                        refresh=True,
+                    )
+                assert nfo.read_bytes() == original
+
+            await item.refresh_from_db()
+            assert item.title == ("Updated" if valid else "Original")
+            assert item.year == (None if valid else 2000)
+            assert item.season == season
         finally:
             await Tortoise.close_connections()
 

@@ -303,6 +303,7 @@ export type MediaItem = {
   media_type?: 'video' | 'text' | 'image';
   role?: 'book' | 'collection' | 'chapter';
   metadata_state?: 'ready' | 'missing' | 'error';
+  metadata_task?: { state: 'pending' | 'error'; error: string | null } | null;
   metadata_issues?: {
     source: 'source' | 'external' | 'embedded' | 'parent';
     error: string | null;

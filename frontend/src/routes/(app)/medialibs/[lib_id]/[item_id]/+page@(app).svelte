@@ -648,6 +648,54 @@
     _meta = selected?.metadata ?? null;
   }
 
+  /**
+   * Refresh pending metadata silently without replacing newer details.
+   *
+   * @param item - The current work or selected chapter awaiting metadata.
+   * @param signal - Cancellation when the item changes or the page is destroyed.
+   * @returns A promise that resolves after the refresh attempt.
+   */
+  async function refreshPendingMetadata(item: MediaItem, signal: AbortSignal): Promise<void> {
+    try {
+      const { data } = await api
+        .get(`media/${item.id}`, { signal, context: { silentErrors: true } })
+        .json<Resp<MediaItem>>();
+      if (signal.aborted) return;
+      if (_media === item) {
+        _media = data;
+        _meta = data.metadata ?? null;
+      } else if (media === item) {
+        media = data;
+        meta = data.metadata ?? null;
+      }
+    } catch (error) {
+      if (!signal.aborted) console.error(error);
+    }
+  }
+
+  $effect(() => {
+    const item = _media ?? media;
+    if (item?.metadata_task?.state !== 'pending') return;
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+
+    /**
+     * Retry pending metadata reads after transient failures without overlapping requests.
+     *
+     * @returns A promise that resolves after the next refresh is scheduled or cancelled.
+     */
+    const refresh = async () => {
+      await refreshPendingMetadata(item, controller.signal);
+      if (!controller.signal.aborted) timer = setTimeout(refresh, 3000);
+    };
+
+    timer = setTimeout(refresh, 3000);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  });
+
   beforeNavigate(({ from, to }) => {
     if (from && (from.url.origin !== to?.url.origin || from.url.pathname !== to?.url.pathname)) {
       chaptersController?.abort();

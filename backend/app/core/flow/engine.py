@@ -159,6 +159,22 @@ class NodeWrapper:
         return self.input_handle.loop_id if self.input_handle else None
 
 
+async def _finish_media_ingest(
+    bootparams: Mapping[str, Any] | None, error: Exception | None = None
+) -> None:
+    """Report correlated reading workflow outcomes without changing branch execution.
+
+    Args:
+        bootparams: Original task parameters, optionally identifying a media event.
+        error: A branch or task failure, or `None` after task cleanup.
+    """
+    if bootparams is None or type(bootparams.get("$media_ingest_event")) is not int:
+        return
+    from app.services.media import MediaItemService
+
+    await MediaItemService.finish_ingest(bootparams["$media_ingest_event"], error)
+
+
 class FlowEngine:
     """The flow engine for managing the flow execution and scheduling."""
 
@@ -387,6 +403,10 @@ class FlowEngine:
 
         Returns:
             The execution result.
+
+        Raises:
+            Exception: If synchronous task setup or execution fails. Individual
+                branch failures retain their existing continue-and-log behavior.
         """
         event = EventWrapper(
             "immediate",
@@ -396,6 +416,7 @@ class FlowEngine:
             recoverable=recoverable,
             recovery_id=recovery_id,
         )
+        failure = None
         try:
             # run the task in the background
             if asynchronous:
@@ -418,7 +439,8 @@ class FlowEngine:
                     id(event),
                 )
                 return await task.retval()
-        except Exception:
+        except Exception as error:
+            failure = error
             if asynchronous is False:
                 raise
             else:
@@ -429,6 +451,8 @@ class FlowEngine:
                     exc_info=True,
                 )
         finally:
+            if asynchronous is not True:
+                await _finish_media_ingest(bootparams, failure)
             if asynchronous is not None and recovery_id is not None:
                 # execute the next flow instance if it exists
                 next = await FlowInstance.get_or_none(prev_id=recovery_id)
@@ -442,6 +466,46 @@ class FlowEngine:
                         recovery_id=next.id,
                         asynchronous=next.asynchronous,
                     )
+
+    async def prepare_batch(
+        self,
+        graph_ids: list[GraphRef],
+        bootparams: Mapping[str, Any] | None = None,
+        *,
+        repeatable: bool = True,
+    ) -> FlowInstance | None:
+        """Persist a recoverable workflow batch without starting its execution.
+
+        Join the caller's transaction when present so an originating durable task
+        can be reserved atomically. Execution must start after that transaction and
+        any domain locks are released.
+
+        Args:
+            graph_ids: The ordered graphs and their asynchronous execution flags.
+            bootparams: The original parameters shared by every graph in the batch.
+            repeatable: Whether concurrent execution of identical tasks is allowed.
+
+        Returns:
+            The first persisted instance, or `None` for an empty batch.
+        """
+        first = None
+        prev_id = None
+        async with in_transaction("default"):
+            for ref in graph_ids:
+                graph = await FlowGraph.get(id=ref.graph_id)
+                inst = await FlowInstance.create(
+                    graph_id=graph.id,
+                    definition=graph.definition,
+                    bootparams=bootparams,
+                    context={},
+                    repeatable=repeatable,
+                    asynchronous=ref.asynchronous,
+                    prev_id=prev_id,
+                )
+                prev_id = inst.id
+                if first is None:
+                    first = inst
+        return first
 
     async def execute_batch(
         self,
@@ -472,24 +536,9 @@ class FlowEngine:
                 )
         else:
             # execute the flow graphs with recovery
-            first: FlowInstance | None = None
-            prev_id: int | None = None
-            async with in_transaction("default"):
-                # persist the flow instances before execution
-                for ref in graph_ids:
-                    graph = await FlowGraph.get(id=ref.graph_id)
-                    inst = await FlowInstance.create(
-                        graph_id=graph.id,
-                        definition=graph.definition,
-                        bootparams=bootparams,
-                        context={},
-                        repeatable=repeatable,
-                        asynchronous=ref.asynchronous,
-                        prev_id=prev_id,
-                    )
-                    prev_id = inst.id
-                    if first is None:
-                        first = inst
+            first = await self.prepare_batch(
+                graph_ids, bootparams, repeatable=repeatable
+            )
             if first is not None:
                 # execute the first flow instance
                 await self.execute(
@@ -702,7 +751,8 @@ class FlowTask(ABC):
             node: The node data wrapper.
 
         Raises:
-            Any exception raised during the node execution.
+            Exception: If node execution fails, after logging and recording any
+                correlated media task failure.
 
         Yields:
             The context for the node execution.
@@ -721,6 +771,7 @@ class FlowTask(ABC):
         except Exception as e:
             if not isinstance(e, CancellationSignal):
                 await self.log_error(node, traceback.format_exc())
+                await _finish_media_ingest(self.bootparams, e)
             raise
         finally:
             if ctx is not None and started_at is not None:

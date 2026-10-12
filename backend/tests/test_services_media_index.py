@@ -6101,7 +6101,9 @@ def test_reading_ingest_workflow(tmp_path, monkeypatch, format, chapter, asynchr
             assert len(events) == len(items)
             for event in events:
                 assert await asyncio.wait_for(media_watcher.consume_event(event), 5)
-            assert not await MediaEvent.exists()
+            assert await MediaEvent.all().count() == (
+                len(items) if asynchronous and format != MediaFormat.EPUB else 0
+            )
             if asynchronous and format != MediaFormat.EPUB:
                 assert await FlowInstance.all().count() == len(items)
                 instances = await FlowInstance.all()
@@ -6130,6 +6132,7 @@ def test_reading_ingest_workflow(tmp_path, monkeypatch, format, chapter, asynchr
                         recovery_id=instance.id,
                         asynchronous=None,
                     )
+            assert not await MediaEvent.exists()
             assert not await FlowInstance.exists()
             for item in await MediaItem.all():
                 target = Path(item.dir) / (
@@ -6287,16 +6290,17 @@ def test_reading_ingest_current(tmp_path, monkeypatch, change):
     asyncio.run(run())
 
 
-@pytest.mark.parametrize("phase", ["before", "after", "failed"])
+@pytest.mark.parametrize("phase", ["before", "prepared", "after", "failed"])
 def test_reading_ingest_interrupted(tmp_path, monkeypatch, phase):
     async def run():
         async with _database():
             lib, source = await _source(tmp_path, MediaFormat.TXT)
             await _ingest_trigger(lib)
-            _ingest_engine(monkeypatch)
+            engine = _ingest_engine(monkeypatch)
             await MediaItemService.ingest_reading_work(lib.id, source.directory)
             event = await MediaEvent.get(event_type="ingest")
-            fire = media_service.FlowTriggerService.fire
+            method = "execute" if phase == "after" else "prepare_batch"
+            fire = getattr(engine, method)
 
             async def interrupt(*args, **kwargs):
                 """Interrupt dispatch before or after the real workflow writes.
@@ -6309,19 +6313,20 @@ def test_reading_ingest_interrupted(tmp_path, monkeypatch, phase):
                     RuntimeError: For a controlled dispatch failure.
                     asyncio.CancelledError: To simulate process interruption.
                 """
-                if phase == "after":
+                if phase in ("prepared", "after"):
                     await fire(*args, **kwargs)
                 if phase == "failed":
                     raise RuntimeError("dispatch failed")
                 raise asyncio.CancelledError
 
             with monkeypatch.context() as patcher:
-                patcher.setattr(media_service.FlowTriggerService, "fire", interrupt)
+                patcher.setattr(engine, method, interrupt)
                 with pytest.raises(
                     RuntimeError if phase == "failed" else asyncio.CancelledError
                 ):
                     await media_watcher.consume_event(event)
-            assert await MediaEvent.filter(id=event.id).exists()
+            assert await MediaEvent.filter(id=event.id).exists() == (phase != "after")
+            assert not await FlowInstance.exists()
             target = source.directory / "metadata.opf"
             before = target.read_bytes() if target.exists() else None
             if phase == "failed":
@@ -6331,7 +6336,7 @@ def test_reading_ingest_interrupted(tmp_path, monkeypatch, phase):
                 ] == "workflow_failed"
                 assert not target.exists()
             else:
-                assert await media_watcher.consume_event(event)
+                assert await media_watcher.consume_event(event) == (phase != "after")
                 assert parse_opf(target.read_bytes()).data.title == "Scraped"
                 if before:
                     assert target.read_bytes() == before

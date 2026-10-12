@@ -1,13 +1,39 @@
-"""Validate candidates and resolve targets for reading metadata nodes."""
+"""Validate metadata candidates and resolve automatic publication targets."""
 
 from typing import Literal
 from uuid import UUID
 
-from app.core.flow.context import MANUAL_KEY, Context
+from app.core.flow.context import MANUAL_KEY, RETVAL_KEY, Context
 from app.core.media.common import ContentError
 from app.core.media.metadata import METADATA_BYTES, ReadingMetadata, render_metadata
 from app.models.media import LibType, MediaItem
 from app.utils import json
+
+
+async def publish_video(context: Context) -> None:
+    """Publish automatic video candidates while keeping manual previews read-only.
+
+    Args:
+        context: The workflow context containing parsed candidates and target fields.
+
+    Raises:
+        ContentError: If automatic output is invalid. Existing NFO files and removed
+            targets retain their successful-skip behavior.
+    """
+    from app.core.media.shelver import gen_nfo, nfo_context
+
+    manual = context.bootparams.get(MANUAL_KEY)
+    if not manual and not context.bootparams.get("nfo_type"):
+        return
+    candidates = context.get(RETVAL_KEY)
+    if not isinstance(candidates, list) or any(
+        not isinstance(candidate, dict) for candidate in candidates
+    ):
+        raise ContentError("invalid_metadata")
+    if manual or not candidates:
+        return
+    item_id = context.bootparams.get("item_id")
+    await gen_nfo(*nfo_context(context), item_id=item_id)
 
 
 def parse_candidates(response: str, format: Literal["opf", "comicinfo"]) -> list[dict]:

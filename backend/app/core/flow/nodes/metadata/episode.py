@@ -5,6 +5,7 @@ from app.core.flow.fields import ToggleField
 from app.core.flow.fields.code import CodeField
 from app.core.flow.handles import InputHandle
 from app.core.flow.nodes.base import CancellationSignal, Node, end_node
+from app.core.flow.nodes.metadata.common import publish_video
 from app.models.flow import GraphCategory
 from app.utils import json
 
@@ -40,16 +41,15 @@ class EpisodeNode(Node):
             **kwargs: Additional execution arguments.
 
         Raises:
+            ContentError: If the automatic candidate or publication is invalid.
             CancellationSignal: If the node is configured to end the workflow.
         """
-        from app.core.media.shelver import gen_nfo, nfo_context
-
         # extract the response
         context[RETVAL_KEY] = json.try_loads(
             cls.response.extract(node_data, context=context), with_comments=True
         )
         # generate NFO file
-        await gen_nfo(*nfo_context(context), item_id=context.bootparams.get("item_id"))
+        await publish_video(context)
         # force end the flow if required
         if cls.force_end.extract(node_data):
             raise CancellationSignal

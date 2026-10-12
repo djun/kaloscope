@@ -52,7 +52,7 @@ from app.core.media.organizer import (
     organize_items,
     recover_organizing,
 )
-from app.models.flow import FlowTrigger, GraphCategory
+from app.models.flow import FlowInstance, FlowTrigger, GraphCategory, GraphRef
 from app.models.media import (
     ContentChapter,
     EpubContent,
@@ -96,6 +96,61 @@ if TYPE_CHECKING:
     from app.core.media.writer import MetadataWrite
 
 type _SourceStates = dict[Path, tuple[int, ...]]
+
+
+def _metadata_item_id(event: MediaEvent) -> int | None:
+    """Identify reading scrape and metadata-save tasks without including organization.
+
+    Args:
+        event: The persisted media event to inspect.
+
+    Returns:
+        Its single item ID, or `None` for another task or malformed payload.
+    """
+    payload = event.payload or {}
+    if event.event_type == "metadata":
+        value = payload.get("item_id")
+    elif event.event_type == "ingest" and "organize_ids" not in payload:
+        params = payload.get("bootparams")
+        if (
+            not isinstance(params, list)
+            or len(params) != 1
+            or not isinstance(params[0], dict)
+        ):
+            return None
+        value = params[0].get("item_id")
+    else:
+        return None
+    return value if type(value) is int and value > 0 else None
+
+
+async def _running_ingests() -> tuple[set[int], set[int]]:
+    """Find automatic ingest events and items with queued or running workflows.
+
+    Returns:
+        Event IDs and item IDs carried by existing workflow instances. Item IDs
+        also protect workflows created before media-event correlation was added.
+        Manual previews do not reserve an automatic publication target.
+    """
+    instances = [
+        params
+        for params in await FlowInstance.filter(
+            graph__category=GraphCategory.INGEST
+        ).values_list("bootparams", flat=True)
+        if isinstance(params, dict) and params.get("$manual") is not True
+    ]
+    return (
+        {
+            params["$media_ingest_event"]
+            for params in instances
+            if type(params.get("$media_ingest_event")) is int
+        },
+        {
+            params["item_id"]
+            for params in instances
+            if type(params.get("item_id")) is int and params["item_id"] > 0
+        },
+    )
 
 
 def _reading_role(item: MediaItem) -> Literal["book", "collection", "chapter"]:
@@ -1687,13 +1742,47 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
             return candidate
 
     @classmethod
+    async def finish_ingest(cls, event_id: int, error: Exception | None = None) -> None:
+        """Retain asynchronous scrape failures and retire completed workflow chains.
+
+        Args:
+            event_id: The originating media event carried by workflow boot parameters.
+            error: The execution failure, or `None` for successful completion.
+        """
+        event = await MediaEvent.get_or_none(
+            id=event_id, event_type="ingest"
+        ).select_related("lib")
+        if event is None or event.lib.lib_type not in (LibType.NOVEL, LibType.COMIC):
+            return
+        async with library_lock(event.lib.dir):
+            current = await MediaEvent.get_or_none(id=event_id, event_type="ingest")
+            if current is None or _metadata_item_id(current) is None:
+                return
+            if error is not None:
+                current.payload = {
+                    **(current.payload or {}),
+                    "error_code": error.code
+                    if isinstance(error, ContentError)
+                    else "workflow_failed",
+                }
+                await current.save(update_fields=["payload"])
+            elif not (current.payload or {}).get("error_code"):
+                active, _ = await _running_ingests()
+                if event_id not in active:
+                    await current.delete()
+        notify_media_events(event.lib_id)
+
+    @classmethod
     async def consume_ingest(cls, id: int) -> bool:
-        """Dispatch first reading ingestion or organize a successfully saved result.
+        """Dispatch queued reading ingestion or organize a successfully saved result.
 
         Reuse the workflow engine's durable execution and current library bindings.
-        Ordinary source changes do not create these events. Workflow failures stop
-        without blocking manual scraping; organization waits for unfinished transfers
-        and interrupted plans. Both tasks remain available after a process restart.
+        Workflow failures remain recorded until a successful manual metadata save;
+        organization waits for unfinished transfers and interrupted plans. Retain
+        events while asynchronous workflow chains run, including across restarts.
+        Reserve the event and its workflow instances together before releasing the
+        library lock. Completed batches are retired without dispatching them again.
+        Mark existing legacy workflows as dispatched even if they return no metadata.
 
         Args:
             id: The persisted ingest event ID selected by the library consumer.
@@ -1715,6 +1804,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         if event is None or event.lib.lib_type not in (LibType.NOVEL, LibType.COMIC):
             return False
         directory = event.lib.dir
+        expected_payload = event.payload
         try:
             async with library_lock(directory):
                 event = await MediaEvent.get_or_none(
@@ -1722,6 +1812,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
                 ).select_related("lib")
                 if event is None:
                     return False
+                expected_payload = event.payload
                 if event.lib.dir != directory or event.lib.lib_type not in (
                     LibType.NOVEL,
                     LibType.COMIC,
@@ -1757,17 +1848,36 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
                 item = await MediaItem.get_or_none(
                     id=pending[0]["item_id"], lib_id=event.lib_id
                 ).select_related("lib", "parent")
+                active, active_items = await _running_ingests()
+                if id in active or (item is not None and item.id in active_items):
+                    if not payload.get("dispatched"):
+                        event.payload = {**payload, "dispatched": True}
+                        await event.save(update_fields=["payload"])
+                    return False
                 if (
                     item is None
                     or not item.visible
                     or (item.parent is not None and not item.parent.visible)
-                    or not await FlowTriggerService.get_triggers(
-                        GraphCategory.INGEST, event.lib_id
-                    )
                 ):
                     await event.delete()
                     return True
-                if (event.payload or {}).get("error_code"):
+                if payload.get("error_code"):
+                    return False
+                if payload.get("dispatched"):
+                    await event.delete()
+                    return True
+                triggers = await FlowTriggerService.get_triggers(
+                    GraphCategory.INGEST, event.lib_id
+                )
+                if not triggers:
+                    await event.delete()
+                    return True
+                if any(
+                    _metadata_item_id(task) == item.id
+                    for task in await MediaEvent.filter(
+                        lib_id=event.lib_id, event_type="metadata"
+                    )
+                ):
                     return False
                 # wait for first readability without binding scraping to a cache version
                 if item.index_state != IndexState.READY:
@@ -1790,6 +1900,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
                     raise ContentError(error)
                 fields = metadata.data
                 params = {
+                    "$media_ingest_event": event.id,
                     "item_id": item.id,
                     "path": item.path,
                     "name": item.name,
@@ -1810,29 +1921,51 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
                     "page_num": 1,
                     "page_size": 1,
                 }
-                event.payload = {"bootparams": [params]}
-                await event.save(update_fields=["payload"])
+                engine = FlowTriggerService.app_ctx().flow_engine
+                async with in_transaction():
+                    first = await engine.prepare_batch(
+                        [
+                            GraphRef(
+                                graph_id=trigger["graph_id"],
+                                asynchronous=trigger["asynchronous"],
+                            )
+                            for trigger in triggers
+                        ],
+                        params,
+                        repeatable=False,
+                    )
+                    event.payload = {"bootparams": [params], "dispatched": True}
+                    await event.save(update_fields=["payload"])
+                expected_payload = event.payload
             # workflow nodes acquire the same library lock when saving their result
-            await FlowTriggerService.fire(
-                GraphCategory.INGEST, event.lib_id, bootparams=params
-            )
-            await event.delete()
+            if first is not None:
+                await engine.execute(
+                    first.graph_id,
+                    first.bootparams,
+                    repeatable=first.repeatable,
+                    recoverable=True,
+                    recovery_id=first.id,
+                    asynchronous=first.asynchronous,
+                )
+            await cls.finish_ingest(event.id)
             return True
         except (OrganizePendingError, OrganizeDeferredError):
             # keep resumable organization separate from failed workflow dispatch
             raise
         except Exception as error:
             if event is not None:
-                await MediaEvent.filter(id=event.id).update(
-                    payload={
-                        **(event.payload or {}),
-                        "error_code": error.code
-                        if isinstance(error, ContentError)
-                        else "invalid_metadata"
-                        if isinstance(error, ValueError)
-                        else "workflow_failed",
-                    }
-                )
+                async with library_lock(directory):
+                    current = await MediaEvent.get_or_none(id=event.id)
+                    if current is not None and current.payload == expected_payload:
+                        current.payload = {
+                            **(current.payload or {}),
+                            "error_code": error.code
+                            if isinstance(error, ContentError)
+                            else "invalid_metadata"
+                            if isinstance(error, ValueError)
+                            else "workflow_failed",
+                        }
+                        await current.save(update_fields=["payload"])
             raise
 
     @classmethod
@@ -2524,6 +2657,9 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
     ) -> bool:
         """Publish a candidate and complete its summary under the library lock.
 
+        Clear the item's previous ingest failure only after an explicit save has
+        published metadata and synchronized its summary successfully.
+
         Args:
             event: The current save task, loaded again by the caller holding the lock.
             item: The current item in the task's library, with its parent loaded.
@@ -2592,6 +2728,14 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
                 error = await _save_summary(current, metadata, source_error)
                 if error:
                     raise ContentError(error)
+                if written and task.overwrite:
+                    for pending in await MediaEvent.filter(
+                        lib_id=current.lib_id, event_type="ingest"
+                    ):
+                        if _metadata_item_id(pending) == current.id and (
+                            pending.payload or {}
+                        ).get("error_code"):
+                            await pending.delete()
                 if written and current.lib.rename_template:
                     await MediaEvent.create(
                         lib_id=current.lib_id,
@@ -2970,6 +3114,9 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
     async def get_details(cls, id: int, user: UserInfo) -> dict[str, Any]:
         """Build accessible details from current NFO, OPF or ComicInfo metadata.
 
+        Keep reading tasks pending while any save or ingest workflow remains active,
+        even when an earlier workflow in the same chain has failed.
+
         Args:
             id: The media item ID.
             user: The authenticated user with loaded library permissions.
@@ -2985,6 +3132,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         reading = item.lib.lib_type in (LibType.NOVEL, LibType.COMIC)
         metadata = None
         nfo = None
+        invalid_fields = ()
         source_error = None
 
         # read current metadata before assembling the shared details
@@ -2997,14 +3145,15 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
                 source_error = error.code
                 item = await cls.get_accessible(id, user)
         else:
-            from app.core.media.shelver import parse_nfo
+            from app.core.media.shelver import read_nfo
 
-            nfo = (
-                await to_thread(parse_nfo, item.lib.lib_type, item.nfo_path)
-                if item.nfo_path
-                else None
+            nfo, source_error, invalid_fields = await to_thread(
+                read_nfo, item.lib.lib_type, item.nfo_path
             )
-            await cls.get_accessible(id, user)
+            current = await cls.get_accessible(id, user)
+            if (current.path, current.nfo_path) != (item.path, item.nfo_path):
+                nfo, source_error, invalid_fields = None, "content_changed", ()
+            item = current
 
         data = await cls.dump(item, exclude={"parent", "children"})
         data["parent"] = (
@@ -3028,8 +3177,52 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         )
         if not reading:
             data["metadata"] = asdict(nfo) if nfo is not None else None
+            if nfo is not None:
+                for key in ("title", "year", "rating", "poster", "backdrop"):
+                    data[key] = getattr(nfo, key)
+                data["title"] = nfo.title or item.name
+            data["metadata_state"] = (
+                "error" if source_error else "ready" if nfo is not None else "missing"
+            )
+            data["metadata_issues"] = (
+                [
+                    {
+                        "source": "external",
+                        "error": source_error,
+                        "invalid_fields": invalid_fields,
+                    }
+                ]
+                if source_error or invalid_fields
+                else []
+            )
             return data
         data["role"] = _reading_role(item)
+        tasks = [
+            event
+            for event in await MediaEvent.filter(
+                lib_id=item.lib_id, event_type__in=["ingest", "metadata"]
+            )
+            if _metadata_item_id(event) == item.id
+        ]
+        task_error = next(
+            (
+                (event.payload or {}).get("error_code")
+                for event in tasks
+                if (event.payload or {}).get("error_code")
+            ),
+            None,
+        )
+        if task_error:
+            _, active_items = await _running_ingests()
+            if item.id in active_items or any(
+                not (event.payload or {}).get("error_code") for event in tasks
+            ):
+                task_error = None
+        data["metadata_task"] = (
+            {"state": "error" if task_error else "pending", "error": task_error}
+            if tasks
+            else None
+        )
         path = Path(item.path)
         fields = (
             metadata.data
