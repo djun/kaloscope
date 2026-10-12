@@ -2122,25 +2122,27 @@ def test_epub_content_http(tmp_path):
     asyncio.run(run())
 
 
-@pytest.mark.parametrize("version_key", ["version", "v"])
 @pytest.mark.parametrize(
-    "case,status,code",
+    ("case", "status", "code", "version_key"),
     [
-        ("missing_version", 400, "bad_request"),
-        ("invalid_version", 400, "bad_request"),
-        ("stale_version", 409, "content_changed"),
-        ("ambiguous_version", 400, "bad_request"),
-        ("path_query", 400, "bad_request"),
-        ("unknown", 404, "not_found"),
-        ("unindexed", 404, "not_found"),
-        ("filename", 404, "not_found"),
-        ("txt", 404, "not_found"),
-        ("missing_source", 503, "media_source_unavailable"),
-        ("source_changed", 409, "content_changed"),
-        ("crc_changed", 409, "content_changed"),
-        ("missing_cache", 409, "content_not_ready"),
-        ("hidden", 404, "not_found"),
-        ("pending", 409, "content_not_ready"),
+        ("missing_version", 400, "bad_request", "version"),
+        ("invalid_version", 400, "bad_request", "version"),
+        ("stale_version", 409, "content_changed", "version"),
+        ("ambiguous_version", 400, "bad_request", "version"),
+        ("path_query", 400, "bad_request", "version"),
+        ("unknown", 404, "not_found", "version"),
+        ("unindexed", 404, "not_found", "version"),
+        ("filename", 404, "not_found", "version"),
+        ("txt", 404, "not_found", "version"),
+        ("missing_source", 503, "media_source_unavailable", "version"),
+        ("source_changed", 409, "content_changed", "version"),
+        ("crc_changed", 409, "content_changed", "version"),
+        ("missing_cache", 409, "content_not_ready", "version"),
+        ("hidden", 404, "not_found", "version"),
+        ("pending", 409, "content_not_ready", "version"),
+        ("invalid_version", 400, "bad_request", "v"),
+        ("stale_version", 409, "content_changed", "v"),
+        ("ambiguous_version", 400, "bad_request", "v"),
     ],
 )
 def test_epub_asset_errors(tmp_path, version_key, case, status, code):

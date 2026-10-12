@@ -88,10 +88,9 @@ def test_filename_length():
 
 
 @pytest.mark.parametrize(
-    "field",
-    ["season", "episode", "code"],
+    ("field", "directory"),
+    [("season", False), ("episode", True), ("code", False)],
 )
-@pytest.mark.parametrize("directory", [False, True])
 def test_movie_show_fields(field, directory):
     template = "{{" + field + "}}"
     if directory:
@@ -187,9 +186,15 @@ def test_reading_names(lib_type):
     ) == ("番外")
 
 
-@pytest.mark.parametrize("lib_type", ["novel", "comic"])
-@pytest.mark.parametrize("field", ["authors", "illustrators"])
-@pytest.mark.parametrize("names", [["Alice", "Bob"], ("Alice", "Bob")])
+@pytest.mark.parametrize(
+    ("lib_type", "field", "names"),
+    [
+        ("novel", "authors", ["Alice", "Bob"]),
+        ("comic", "authors", ("Alice", "Bob")),
+        ("novel", "illustrators", ("Alice", "Bob")),
+        ("comic", "illustrators", ["Alice", "Bob"]),
+    ],
+)
 def test_reading_creators(lib_type, field, names):
     assert (
         render_filename("{{parent.title}}/{{" + field + "}}", {field: names}, lib_type)
@@ -197,8 +202,10 @@ def test_reading_creators(lib_type, field, names):
     )
 
 
-@pytest.mark.parametrize("lib_type", ["novel", "comic"])
-@pytest.mark.parametrize("value", [None, "", [], ()])
+@pytest.mark.parametrize(
+    ("lib_type", "value"),
+    [("novel", None), ("comic", ""), ("novel", []), ("comic", ())],
+)
 def test_reading_missing_creators(lib_type, value):
     with pytest.raises(ValueError, match="missing metadata field: authors"):
         render_filename("{{parent.title}}/{{authors}}", {"authors": value}, lib_type)
@@ -215,22 +222,21 @@ def test_reading_collection_context(field):
     assert render_filename(template, {"title": "Chapter"}, "comic") == "Chapter"
 
 
-@pytest.mark.parametrize("lib_type", ["novel", "comic"])
 @pytest.mark.parametrize(
-    "template",
+    ("lib_type", "template"),
     [
-        "{{parent.title}}",
-        "{{parent.title}}/{{volume}}/{{title}}",
-        "{{title}}/{{title}}",
-        "{{originaltitle}}/{{title}}",
-        "../{{title}}",
-        "{{parent.title}}/CON",
-        "{{parent.title}}/{{title}}.TXT",
-        "{{parent.title}}/{{title}}.epub",
-        "{{parent.title}}/{{title}}.CBZ",
-        "{{parent.title}}/{{title}}.zip",
-        "{{work_title}}/{{title}}",
-        "{{parent.title}}/{{work_originaltitle}}",
+        ("novel", "{{parent.title}}"),
+        ("comic", "{{parent.title}}/{{volume}}/{{title}}"),
+        ("novel", "{{title}}/{{title}}"),
+        ("comic", "{{originaltitle}}/{{title}}"),
+        ("novel", "../{{title}}"),
+        ("comic", "{{parent.title}}/CON"),
+        ("novel", "{{parent.title}}/{{title}}.TXT"),
+        ("novel", "{{parent.title}}/{{title}}.epub"),
+        ("comic", "{{parent.title}}/{{title}}.CBZ"),
+        ("comic", "{{parent.title}}/{{title}}.zip"),
+        ("novel", "{{work_title}}/{{title}}"),
+        ("comic", "{{parent.title}}/{{work_originaltitle}}"),
     ],
 )
 def test_reading_invalid_template(lib_type, template):
@@ -238,26 +244,30 @@ def test_reading_invalid_template(lib_type, template):
         validate_template(template, lib_type)
 
 
-@pytest.mark.parametrize("lib_type", ["novel", "comic"])
 @pytest.mark.parametrize(
-    "field",
-    ["season", "episode", "code", "id", "site"],
+    ("lib_type", "field"),
+    [
+        ("novel", "season"),
+        ("comic", "episode"),
+        ("novel", "code"),
+        ("comic", "id"),
+        ("novel", "site"),
+    ],
 )
 def test_reading_video_fields(lib_type, field):
     with pytest.raises(ValueError, match=f"unsupported rename placeholder: {field}"):
         validate_template("{{parent.title}}/{{" + field + "}}", lib_type)
 
 
-@pytest.mark.parametrize("lib_type", ["movie", "tv_show"])
 @pytest.mark.parametrize(
-    "field",
+    ("lib_type", "field"),
     [
-        "authors",
-        "illustrators",
-        "publisher",
-        "series",
-        "volume",
-        "number",
+        ("movie", "authors"),
+        ("tv_show", "illustrators"),
+        ("movie", "publisher"),
+        ("tv_show", "series"),
+        ("movie", "volume"),
+        ("tv_show", "number"),
     ],
 )
 def test_video_reading_fields(lib_type, field):

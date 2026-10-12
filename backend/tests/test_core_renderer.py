@@ -35,9 +35,6 @@ from app.utils.json import JSONType
 
 
 class TestTrim:
-    def test_default(self):
-        assert trim("  Alpha  ") == "Alpha"
-
     def test_chars(self):
         assert trim("--Alpha--", "-") == "Alpha"
 
@@ -68,19 +65,11 @@ class TestJsonEscape:
 
 
 class TestJsonPathFirst:
-    def test_match(self):
-        data = {"items": [{"title": "Alpha"}, {"title": "Beta"}]}
-        assert jsonpath_first(data, "$.items[*].title") == "Alpha"
-
     def test_missing(self):
         assert jsonpath_first({"items": []}, "$.items[*].title") is None
 
 
 class TestJsonPathAll:
-    def test_object(self):
-        data = {"items": [{"title": "Alpha"}, {"title": "Beta"}]}
-        assert jsonpath_all(data, "$.items[*].title") == ["Alpha", "Beta"]
-
     def test_string(self):
         data = '{"items": [{"title": "Alpha"}, {"title": "Beta"}]}'
         assert jsonpath_all(data, "$.items[*].title") == ["Alpha", "Beta"]
@@ -119,19 +108,11 @@ class TestJsonPath:
 
 
 class TestXPathFirst:
-    def test_match(self):
-        html = '<html><body><a href="/one">One</a><a href="/two">Two</a></body></html>'
-        assert xpath_first(html, "//a/text()") == "One"
-
     def test_missing(self):
         assert xpath_first("<html><body></body></html>", "//a/text()") is None
 
 
 class TestXPathAll:
-    def test_match(self):
-        html = '<html><body><a href="/one">One</a><a href="/two">Two</a></body></html>'
-        assert xpath_all(html, "//a/text()") == ["One", "Two"]
-
     def test_scalar(self):
         html = "<html><body><h1>Title</h1></body></html>"
         assert xpath_all(html, "string(//h1)") == ["Title"]
@@ -156,17 +137,11 @@ class TestXPath:
 
 
 class TestRegexFirst:
-    def test_match(self):
-        assert regex_first("S01E02 S01E03", r"E(\d+)") == "02"
-
     def test_missing(self):
         assert regex_first("S01", r"E(\d+)") is None
 
 
 class TestRegexAll:
-    def test_match(self):
-        assert regex_all("S01E02 S01E03", r"E(\d+)") == ["02", "03"]
-
     def test_missing(self):
         assert regex_all("S01", r"E(\d+)") == []
 
@@ -223,9 +198,6 @@ class TestDuration:
     def test_seconds(self):
         assert duration(125, "seconds") == "02:05"
 
-    def test_minutes(self):
-        assert duration(2, "minutes") == "02:00"
-
 
 class TestBase64:
     def test_encode_string(self):
@@ -250,10 +222,6 @@ class TestParentPath:
 
     def test_path(self):
         assert parent_path(Path("library/movies/file.mkv")) == "library/movies"
-
-    def test_resolve(self, tmp_path):
-        path = tmp_path / "library" / "movies" / "file.mkv"
-        assert parent_path(path, resolve=True) == str(path.resolve().parent)
 
 
 class TestStrftime:

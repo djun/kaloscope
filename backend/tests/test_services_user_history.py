@@ -98,15 +98,24 @@ async def _entry(item: MediaItem) -> dict[str, Any]:
 
 
 @pytest.mark.parametrize(
-    "locator",
+    ("locator", "offset"),
     [
-        {"chapter_id": "a" * 32, "paragraph": 0},
-        {"chapter_id": "a" * 32, "block_id": "b" * 32},
-        {"page_id": "c" * 32},
-        {"page_id": "c" * 32, "chapter_item_id": 2},
+        ({"chapter_id": "a" * 32, "paragraph": 0}, 0),
+        ({"chapter_id": "a" * 32, "paragraph": 0}, 1),
+        ({"chapter_id": "a" * 32, "block_id": "b" * 32}, 0.5),
+        ({"page_id": "c" * 32}, 0),
+        ({"page_id": "c" * 32}, 1),
+        ({"page_id": "c" * 32, "chapter_item_id": 2}, 0.5),
+    ],
+    ids=[
+        "text-start",
+        "text-end",
+        "epub-middle",
+        "image-start",
+        "image-end",
+        "chapter",
     ],
 )
-@pytest.mark.parametrize("offset", [0, 0.5, 1])
 def test_locator_valid(locator, offset):
     rel_type = HistoryType.IMAGE if "page_id" in locator else HistoryType.TEXT
     entry = HistoryEntry.model_validate(

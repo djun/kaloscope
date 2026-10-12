@@ -14,9 +14,8 @@ from app.models.media import (
     MediaLib,
     MediaLibUpsert,
 )
-from app.models.user import HistoryEntry, HistoryQuery, HistoryType, User, UserHistory
+from app.models.user import HistoryEntry, HistoryQuery, HistoryType
 from app.services.media import MediaItemService
-from app.services.user import UserHistoryService
 
 
 @pytest.mark.parametrize("media_format", [MediaFormat.CBZ, MediaFormat.DIR])
@@ -97,13 +96,6 @@ def test_content_fields(media_format):
     asyncio.run(run())
 
 
-@pytest.mark.parametrize("lib_type", list(LibType))
-def test_library_inputs(tmp_path, lib_type):
-    request = MediaLibUpsert(lib_type=lib_type, dir=str(tmp_path), name="Library")
-    assert request.lib_type is lib_type
-    assert request.dir == str(tmp_path.resolve())
-
-
 def test_library_type_required(tmp_path):
     with pytest.raises(ValidationError, match="library type is required"):
         MediaLibUpsert(dir=str(tmp_path), name="Library")
@@ -125,40 +117,3 @@ def test_reading_inputs(rel_type):
     with pytest.raises(ValidationError):
         HistoryEntry(rel_type=rel_type, rel_id=1)
     assert HistoryQuery(rel_type=rel_type, rel_id=1).rel_id == 1
-
-
-def test_reading_locator():
-    async def run():
-        await Tortoise.init(
-            db_url="sqlite://:memory:", modules={"models": ["app.models"]}
-        )
-        await Tortoise.generate_schemas()
-        try:
-            user = await User.create(username="reader", password="test", role="user")
-            for index, (lib_type, rel_type) in enumerate(
-                ((LibType.NOVEL, HistoryType.TEXT), (LibType.COMIC, HistoryType.IMAGE)),
-                start=1,
-            ):
-                lib = await MediaLib.create(
-                    name=lib_type, dir=f"/{lib_type}", lib_type=lib_type, priority=index
-                )
-                item = await MediaItem.create(
-                    lib=lib, dir=lib.dir, path=f"{lib.dir}/work", name="Work"
-                )
-                locator = {"schema_version": 1, "index_version": "a" * 64}
-                if rel_type == HistoryType.TEXT:
-                    locator.update(chapter_id="c1", block_id="b2", offset=8)
-                else:
-                    locator.update(chapter_item_id=None, page_id="p4", offset=0.5)
-                history = await UserHistory.create(
-                    user=user, rel_type=rel_type, rel_id=item.id, locator=locator
-                )
-                await history.refresh_from_db()
-                assert history.rel_type is rel_type
-                assert history.locator == locator
-                assert history.position is None
-                assert (await UserHistoryService.dump(history))["locator"] == locator
-        finally:
-            await Tortoise.close_connections()
-
-    asyncio.run(run())

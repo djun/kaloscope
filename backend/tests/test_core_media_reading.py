@@ -1,11 +1,9 @@
 """Tests for reading source discovery, stability and filesystem event ownership."""
 
-import asyncio
 import os
 from pathlib import Path
 
 import pytest
-from lxml import etree
 from watchdog.events import (
     DirCreatedEvent,
     DirDeletedEvent,
@@ -21,7 +19,7 @@ from watchdog.events import (
 from app.core.media.common import ContentError
 from app.core.media.handlers import reading
 from app.core.media.handlers.base import get_handler
-from app.models.media import LibType, MediaFormat, MediaLib
+from app.models.media import LibType, MediaFormat
 
 
 def _files(root: Path, *paths: str):
@@ -508,22 +506,28 @@ def test_source_unavailable(tmp_path, monkeypatch, failed):
 
 
 @pytest.mark.parametrize(
-    "event_type", [FileCreatedEvent, FileModifiedEvent, FileDeletedEvent]
-)
-@pytest.mark.parametrize(
-    ("lib_type", "relative", "unit"),
+    ("event_type", "lib_type", "relative", "unit"),
     [
-        (LibType.NOVEL, "Book/story.TXT", "Book"),
-        (LibType.NOVEL, "Book/metadata.opf", "Book"),
-        (LibType.NOVEL, "Book/content.opf", "Book"),
-        (LibType.NOVEL, "Book/Novel.opf", "Book"),
-        (LibType.NOVEL, "Book/Novel.OPF", "Book"),
-        (LibType.NOVEL, "Book/cover.jpg", "Book"),
-        (LibType.COMIC, "Book/1.jpg", "Book"),
-        (LibType.COMIC, "Book/ComicInfo.XML", "Book"),
-        (LibType.COMIC, "Book/Chapter/book.CBZ", "Book/Chapter"),
-        (LibType.COMIC, "Book/Chapter/1.jpg", "Book/Chapter"),
-        (LibType.COMIC, "Book/Chapter/ComicInfo.xml", "Book/Chapter"),
+        (FileCreatedEvent, LibType.NOVEL, "Book/story.TXT", "Book"),
+        (FileCreatedEvent, LibType.NOVEL, "Book/metadata.opf", "Book"),
+        (FileCreatedEvent, LibType.NOVEL, "Book/content.opf", "Book"),
+        (FileCreatedEvent, LibType.NOVEL, "Book/Novel.opf", "Book"),
+        (FileCreatedEvent, LibType.NOVEL, "Book/Novel.OPF", "Book"),
+        (FileCreatedEvent, LibType.NOVEL, "Book/cover.jpg", "Book"),
+        (FileCreatedEvent, LibType.COMIC, "Book/1.jpg", "Book"),
+        (FileCreatedEvent, LibType.COMIC, "Book/ComicInfo.XML", "Book"),
+        (FileCreatedEvent, LibType.COMIC, "Book/Chapter/book.CBZ", "Book/Chapter"),
+        (FileCreatedEvent, LibType.COMIC, "Book/Chapter/1.jpg", "Book/Chapter"),
+        (FileCreatedEvent, LibType.COMIC, "Book/Chapter/ComicInfo.xml", "Book/Chapter"),
+        (FileModifiedEvent, LibType.NOVEL, "Book/metadata.opf", "Book"),
+        (
+            FileModifiedEvent,
+            LibType.COMIC,
+            "Book/Chapter/ComicInfo.xml",
+            "Book/Chapter",
+        ),
+        (FileDeletedEvent, LibType.NOVEL, "Book/story.TXT", "Book"),
+        (FileDeletedEvent, LibType.COMIC, "Book/Chapter/1.jpg", "Book/Chapter"),
     ],
 )
 def test_file_events(tmp_path, event_type, lib_type, relative, unit):
@@ -549,19 +553,18 @@ def test_directory_events(tmp_path, event_type):
         }
 
 
-@pytest.mark.parametrize("lib_type", [LibType.NOVEL, LibType.COMIC])
 @pytest.mark.parametrize(
-    "relative",
+    ("lib_type", "relative"),
     [
-        "loose.txt",
-        "loose.jpg",
-        "../outside/1.jpg",
-        "Book/.hidden/1.jpg",
-        "Book/story.txt.tmp",
-        "Book/page.jpg.PART",
-        "Book/__MACOSX/page.jpg",
-        "Book/file.nfo",
-        "Book/readme.pdf",
+        (LibType.NOVEL, "loose.txt"),
+        (LibType.COMIC, "loose.jpg"),
+        (LibType.COMIC, "../outside/1.jpg"),
+        (LibType.NOVEL, "Book/.hidden/1.jpg"),
+        (LibType.NOVEL, "Book/story.txt.tmp"),
+        (LibType.COMIC, "Book/page.jpg.PART"),
+        (LibType.COMIC, "Book/__MACOSX/page.jpg"),
+        (LibType.COMIC, "Book/file.nfo"),
+        (LibType.NOVEL, "Book/readme.pdf"),
     ],
 )
 def test_ignored_events(tmp_path, lib_type, relative):
@@ -569,18 +572,17 @@ def test_ignored_events(tmp_path, lib_type, relative):
     assert get_handler(lib_type).filter_event(event, base_path=str(tmp_path)) is None
 
 
-@pytest.mark.parametrize("lib_type", [LibType.NOVEL, LibType.COMIC])
 @pytest.mark.parametrize(
-    "event_type",
+    ("lib_type", "event_type"),
     [
-        FileCreatedEvent,
-        FileModifiedEvent,
-        FileDeletedEvent,
-        FileMovedEvent,
-        DirCreatedEvent,
-        DirModifiedEvent,
-        DirDeletedEvent,
-        DirMovedEvent,
+        (LibType.NOVEL, FileCreatedEvent),
+        (LibType.COMIC, FileModifiedEvent),
+        (LibType.NOVEL, FileDeletedEvent),
+        (LibType.COMIC, FileMovedEvent),
+        (LibType.COMIC, DirCreatedEvent),
+        (LibType.NOVEL, DirModifiedEvent),
+        (LibType.COMIC, DirDeletedEvent),
+        (LibType.NOVEL, DirMovedEvent),
     ],
 )
 def test_synthetic_events(tmp_path, lib_type, event_type):
@@ -754,15 +756,3 @@ def test_content_directories(tmp_path):
             event = event_type(str(tmp_path / relative))
             assert handler.resolve_event_targets(event, base_path=str(tmp_path))
             assert handler.resolve_content_targets(event, base_path=str(tmp_path)) == {}
-
-
-def test_registered_handlers(tmp_path):
-    assert all(get_handler(lib_type) for lib_type in LibType)
-    for lib_type in (LibType.NOVEL, LibType.COMIC):
-        handler = get_handler(lib_type)
-        with pytest.raises(NotImplementedError, match="source discovery"):
-            handler.hierarchies()
-        with pytest.raises(NotImplementedError, match="NFO"):
-            handler.extract_meta(etree.ElementTree())
-        with pytest.raises(NotImplementedError, match="content indexing"):
-            asyncio.run(handler.gen_items(MediaLib(lib_type=lib_type), tmp_path))

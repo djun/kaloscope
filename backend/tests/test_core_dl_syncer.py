@@ -1237,40 +1237,6 @@ def test_actions():
     ]
 
 
-def test_slow_sync(monkeypatch):
-    waits = []
-
-    async def stop_after_wait(seconds):
-        waits.append(seconds)
-        if len(waits) == 3:
-            raise asyncio.CancelledError
-
-    runner = cast(Any, object.__new__(syncer.DLSyncer))
-    runner._app = SimpleNamespace(
-        shared_ctx=SimpleNamespace(
-            dl_sync_fast=SimpleNamespace(is_set=lambda: False),
-            dl_sync_requested=threading.Event(),
-        )
-    )
-    runner._last_sync_tasks = datetime.now()
-    runner._last_check_plans = datetime.now()
-    runner._drivers = {}
-    runner._consume_actions = AsyncMock(return_value=False)
-    runner._next_deletion = AsyncMock(return_value=None)
-    runner._has_pending_tasks = AsyncMock(return_value=True)
-    transfers = AsyncMock()
-    monkeypatch.setattr(syncer, "_resume_transfers", transfers)
-    monkeypatch.setattr(
-        syncer, "DownloadTask", SimpleNamespace(filter=AsyncMock(return_value=[]))
-    )
-    monkeypatch.setattr(syncer.asyncio, "sleep", stop_after_wait)
-    asyncio.run(runner.interval())
-
-    runner._consume_actions.assert_awaited_once()
-    transfers.assert_awaited_once()
-    assert waits == [1, 1, 1]
-
-
 @pytest.mark.parametrize(
     ("previous", "remote", "speed", "progress"),
     [

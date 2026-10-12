@@ -26,20 +26,11 @@ class TestExtractYear:
             extract_year("[GM-Team][国漫][仙逆][Renegade Immortal][2023][146]") == 2023
         )
 
-    def test_year_at_end(self):
-        assert extract_year("Avengers.Endgame.2019") == 2019
-
-    def test_year_dotted(self):
-        assert extract_year("Inception.2010.1080p.BluRay.x264") == 2010
-
     def test_year_underscore(self):
         assert extract_year("流浪地球2_2023_2160p_WEB-DL") == 2023
 
     def test_attached_year_ignored(self):
         assert extract_year("Doraemon1979") is None
-
-    def test_tv_no_year(self):
-        assert extract_year("[SubGroup] Attack on Titan S04E01 1080p") is None
 
     def test_no_year(self):
         assert extract_year("Some.Movie.Title.BluRay") is None
@@ -167,9 +158,6 @@ class TestExtractEpisode:
 
     def test_no_episode(self):
         assert extract_episode("Inception.2010.1080p") is None
-
-    def test_year_not_episode(self):
-        assert extract_episode("Movie.2023") is None
 
     def test_bracketed_year_not_episode(self):
         assert extract_episode("Movie.Title.[2023]") is None

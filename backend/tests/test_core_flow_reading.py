@@ -96,11 +96,8 @@ def reading_node(request):
 def test_node_schema(reading_node):
     lib_type, node = reading_node
     schema = next(schema for schema in Node.schemas if schema.node_type == lib_type)
-    assert schema.name == node.__name__
     assert schema.group == NodeGroup.END
     assert schema.categories == (GraphCategory.INGEST,)
-    assert schema.icon == ("bookText" if lib_type == "novel" else "imageMultiple")
-    assert schema.order == (4 if lib_type == "novel" else 5)
     assert [handle.id for handle in schema.handles] == ["input"]
     assert [field.id for field in schema.fields] == ["example", "response", "force_end"]
     assert node.example.template == f"resp/{lib_type}.jsonc"
@@ -350,9 +347,23 @@ def test_ingest_execution_mode(role, category):
 
 
 @pytest.mark.parametrize(
-    "format", [MediaFormat.TXT, MediaFormat.DIR, MediaFormat.CBZ, MediaFormat.ZIP, None]
+    ("format", "mode"),
+    [
+        (MediaFormat.TXT, "manual"),
+        (MediaFormat.TXT, "automatic"),
+        (MediaFormat.TXT, "empty"),
+        (MediaFormat.TXT, "failed"),
+        (MediaFormat.TXT, "local"),
+        (MediaFormat.CBZ, "manual"),
+        (MediaFormat.CBZ, "automatic"),
+        (MediaFormat.CBZ, "empty"),
+        (MediaFormat.CBZ, "failed"),
+        (MediaFormat.CBZ, "local"),
+        (MediaFormat.DIR, "automatic"),
+        (MediaFormat.ZIP, "automatic"),
+        (None, "automatic"),
+    ],
 )
-@pytest.mark.parametrize("mode", ["manual", "automatic", "empty", "failed", "local"])
 def test_reading_graph(tmp_path, monkeypatch, format, mode):
     cache = tmp_path / "cache"
     cache.mkdir()

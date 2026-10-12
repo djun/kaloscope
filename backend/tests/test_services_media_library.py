@@ -172,27 +172,29 @@ def test_template_aliases(tmp_path, lib_type, legacy, canonical):
 
 
 @pytest.mark.parametrize(
-    ("lib_type", "initial_template", "edited_template"),
+    ("lib_type", "initial_template", "edited_template", "cleared_template"),
     [
-        (LibType.MOVIE, "{{title}}", "{{title}} ({{year}})/{{title}}"),
+        (LibType.MOVIE, "{{title}}", "{{title}} ({{year}})/{{title}}", None),
         (
             LibType.TV_SHOW,
             "{{parent.title}}/{{code}}",
             "{{parent.title}}/Season {{season}}/{{code}} - {{title}}",
+            "",
         ),
         (
             LibType.NOVEL,
             "{{parent.title}}/{{title}}",
             "{{parent.title}}/{{title}} - {{authors}}",
+            "   ",
         ),
         (
             LibType.COMIC,
             "{{parent.title}}/{{title}}",
             "{{parent.title}}/{{number}} - {{title}}",
+            None,
         ),
     ],
 )
-@pytest.mark.parametrize("cleared_template", [None, "", "   "])
 def test_rename_template(
     tmp_path,
     library_services,

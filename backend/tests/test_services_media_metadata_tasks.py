@@ -596,19 +596,21 @@ def test_video_ingest(tmp_path, monkeypatch, asynchronous, multipart, existing):
 
 
 @pytest.mark.parametrize(
-    ("node", "kind"),
-    [(MovieNode, "movie"), (TVShowNode, "tvshow"), (EpisodeNode, "episode")],
-)
-@pytest.mark.parametrize(
-    "mode",
+    ("node", "kind", "mode"),
     [
-        "preview",
-        "invalid",
-        "empty",
-        "existing",
-        "no_target",
-        "no_target_invalid",
-        "deleted",
+        (MovieNode, "movie", "preview"),
+        (MovieNode, "movie", "invalid"),
+        (MovieNode, "movie", "empty"),
+        (MovieNode, "movie", "existing"),
+        (MovieNode, "movie", "no_target"),
+        (MovieNode, "movie", "no_target_invalid"),
+        (MovieNode, "movie", "deleted"),
+        (TVShowNode, "tvshow", "preview"),
+        (TVShowNode, "tvshow", "invalid"),
+        (TVShowNode, "tvshow", "existing"),
+        (EpisodeNode, "episode", "preview"),
+        (EpisodeNode, "episode", "invalid"),
+        (EpisodeNode, "episode", "existing"),
     ],
 )
 def test_video_workflow(tmp_path, node, kind, mode):

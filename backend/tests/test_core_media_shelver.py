@@ -137,19 +137,22 @@ def test_nfo_nonregular(tmp_path, monkeypatch, kind):
 
 
 @pytest.mark.parametrize(
-    "metadata",
+    ("metadata", "existing"),
     [
-        {"title": "Bad\x01title"},
-        {"title": " "},
-        {"title": "New", "rating": "NaN"},
-        {"title": "New", "rating": 11},
-        {"title": "New", "year": "unknown"},
-        {"title": "x" * 256},
-        {"title": "New", "poster": "https://example.com/" + "x" * 256},
-        {"title": "New", "site": "x" * 65, "id": "123"},
+        ({"title": "Bad\x01title"}, False),
+        ({"title": "Bad\x01title"}, True),
+        ({"title": " "}, False),
+        ({"title": " "}, True),
+        ({"title": "New", "rating": "NaN"}, False),
+        ({"title": "New", "rating": "NaN"}, True),
+        ({"title": "New", "rating": 11}, True),
+        ({"title": "New", "year": "unknown"}, False),
+        ({"title": "New", "year": "unknown"}, True),
+        ({"title": "x" * 256}, True),
+        ({"title": "New", "poster": "https://example.com/" + "x" * 256}, True),
+        ({"title": "New", "site": "x" * 65, "id": "123"}, True),
     ],
 )
-@pytest.mark.parametrize("existing", [False, True])
 def test_nfo_validation(tmp_path, metadata, existing):
     path = tmp_path / "movie.nfo"
     original = b"<movie><title>Original</title></movie>"

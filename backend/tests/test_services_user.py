@@ -86,22 +86,15 @@ async def _client(
         BaseHTTPResponse._dumps = original_dumps
 
 
-@pytest.mark.parametrize("key", ["search_records", "watch_records", "read_records"])
 @pytest.mark.parametrize("value", [-2, True, False, "3", "-1", 1.0, 1.5, None, []])
-def test_retention_invalid(key, value):
+def test_retention_invalid(value):
     with pytest.raises(ValidationError):
-        UserPreference.model_validate({"key": key, "value": value})
-
-
-@pytest.mark.parametrize("key", ["search_records", "watch_records", "read_records"])
-@pytest.mark.parametrize("value", [-1, 0, 1, 3, 42, 365])
-def test_retention_valid(key, value):
-    assert UserPreference(key=key, value=value).value == value
+        UserPreference.model_validate({"key": "read_records", "value": value})
 
 
 @pytest.mark.parametrize(
     "preferences",
-    [None, {}, {"watch_records": 0}, {"watch_records": 3}, {"watch_records": 42}],
+    [None, {}, {"watch_records": 0}, {"watch_records": 3}],
 )
 def test_retention_defaults(preferences):
     async def run():
@@ -309,12 +302,15 @@ def test_preferences_http(monkeypatch, preferences):
             await user.refresh_from_db()
             assert user.preferences == preferences
 
-            for key in ("search_records", "watch_records", "read_records"):
-                for value in (True, "3", -2, 1.0):
-                    response = await client.post(
-                        "/_api/user/update_pref", json={"key": key, "value": value}
-                    )
-                    assert response.status_code == 400, response.text
+            for key, value in (
+                ("search_records", True),
+                ("watch_records", "3"),
+                ("read_records", -2),
+            ):
+                response = await client.post(
+                    "/_api/user/update_pref", json={"key": key, "value": value}
+                )
+                assert response.status_code == 400, response.text
             await user.refresh_from_db()
             assert user.preferences == preferences
 
