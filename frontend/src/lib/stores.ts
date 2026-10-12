@@ -3,7 +3,8 @@ import { goto } from '$app/navigation';
 import { page } from '$app/state';
 import type { DataView } from '$lib/components';
 import type { ScrollPosition, Signpost, User } from '$lib/types';
-import { normalizePathname } from '$lib/utils';
+import { compactRecord } from '$lib/utils/object';
+import { normalizePathname } from '$lib/utils/url';
 import { tick } from 'svelte';
 import { get, writable, type Writable } from 'svelte/store';
 
@@ -48,16 +49,6 @@ export function persisted<T>(key: string, value: T | null = null): Writable<T | 
   }
 
   return store;
-}
-
-/**
- * Return a record only when it still has keys.
- *
- * @param record - The record to compact.
- * @returns The record, or null when empty.
- */
-export function compactRecord<T>(record: Record<string, T>): Record<string, T> | null {
-  return Object.keys(record).length ? record : null;
 }
 
 /**

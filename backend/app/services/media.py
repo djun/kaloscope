@@ -42,7 +42,6 @@ from app.core.media.coordination import (
     index_lock_path,
     library_lock,
     notify_media_events,
-    write_in_thread,
 )
 from app.core.media.metadata import ReadingMetadata, render_metadata
 from app.core.media.naming import validate_template
@@ -82,7 +81,9 @@ from app.models.user import (
 )
 from app.services.base import BaseService
 from app.services.flow import FlowTriggerService
+from app.utils.asyncio import write_in_thread
 from app.utils.disk import delete_path, rename_exclusive
+from app.utils.text import natural_key
 
 if TYPE_CHECKING:
     from app.core.media.cover import CoverImage
@@ -3399,8 +3400,6 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
             ContentError: If the selection is invalid, no chapter is ready,
                 the directory changes, or the selected source cannot be read.
         """
-        from app.core.media.handlers.reading import natural_key
-
         _resolve_source(item)
         children = MediaItem.filter(
             parent_id=item.id,

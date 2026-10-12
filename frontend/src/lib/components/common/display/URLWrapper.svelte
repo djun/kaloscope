@@ -19,27 +19,22 @@
 </script>
 
 <script lang="ts">
+  import { splitHttpUrl } from '$lib/utils/url';
+
   let { children, secure = $bindable(false), class: _class, onclick }: URLWrapperProps = $props();
 
   /**
    * Standardize the URL by trimming whitespace and removing the HTTP/HTTPS prefix.
    *
+   * Update the security toggle only when the URL includes an HTTP or HTTPS prefix.
+   *
    * @param url - The URL to standardize.
    * @returns The standardized URL.
    */
   export function standardize(url: string | null | undefined): string {
-    if (!url) {
-      return '';
-    }
-    url = url.trim();
-    if (url.toLowerCase().startsWith(HTTP)) {
-      secure = false;
-      return url.slice(7);
-    } else if (url.toLowerCase().startsWith(HTTPS)) {
-      secure = true;
-      return url.slice(8);
-    }
-    return url;
+    const parsed = splitHttpUrl(url);
+    secure = parsed.secure ?? secure;
+    return parsed.url;
   }
 
   /**

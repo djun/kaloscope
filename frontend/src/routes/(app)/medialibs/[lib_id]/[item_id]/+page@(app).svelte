@@ -44,7 +44,7 @@
     TextLocator,
     WatchHistory
   } from '$lib/types';
-  import { buildStreamUrl } from '$lib/utils';
+  import { buildStreamUrl } from '$lib/utils/media';
   import { isHTTPError } from 'ky';
   import { onDestroy, onMount, tick } from 'svelte';
   import { get } from 'svelte/store';

@@ -6,7 +6,7 @@
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import type { MediaLib, Resp } from '$lib/types';
-  import { debounce } from '$lib/utils';
+  import { debounce } from '$lib/utils/timing';
   import { onMount, tick } from 'svelte';
 
   let libs: MediaLib[] = $state([]);

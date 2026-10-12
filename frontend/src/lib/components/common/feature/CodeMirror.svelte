@@ -193,7 +193,7 @@
   import { Button, Modal } from '$lib/components';
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
-  import { debounce } from '$lib/utils';
+  import { debounce } from '$lib/utils/timing';
   import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
   import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
   import { json } from '@codemirror/lang-json';

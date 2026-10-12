@@ -1,4 +1,4 @@
-import { sniffer } from '$lib/utils';
+import { sniffer } from '$lib/utils/browser';
 import { appendCustomStyle } from 'iconify-icon';
 import { addMessages, getLocaleFromNavigator, init, register, waitLocale } from 'svelte-i18n';
 import tippy, { followCursor } from 'tippy.js';

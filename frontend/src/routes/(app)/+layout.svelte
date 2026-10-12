@@ -4,9 +4,10 @@
   import { api } from '$lib/api';
   import { Dock, Navbar } from '$lib/components';
   import { headTitle } from '$lib/i18n';
-  import { compactRecord, freeze, histories, positions, subroutes, urlparams, user } from '$lib/stores';
+  import { freeze, histories, positions, subroutes, urlparams, user } from '$lib/stores';
   import type { Resp, User } from '$lib/types';
-  import { normalizePathname } from '$lib/utils';
+  import { compactRecord } from '$lib/utils/object';
+  import { normalizePathname } from '$lib/utils/url';
   import { SvelteFlowProvider } from '@xyflow/svelte';
   import { untrack, type Snippet } from 'svelte';
   import { Spring } from 'svelte/motion';

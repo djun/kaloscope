@@ -1,6 +1,6 @@
 <script lang="ts" generics="T">
   import type { ScrollPosition, ViewMode, ViewModes } from '$lib/types';
-  import { throttle } from '$lib/utils';
+  import { throttle } from '$lib/utils/timing';
   import type { Snippet } from 'svelte';
   import { tick } from 'svelte';
   import { slide } from 'svelte/transition';

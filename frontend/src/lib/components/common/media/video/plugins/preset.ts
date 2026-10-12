@@ -1,5 +1,6 @@
 import { icons, iconToSVG } from '$lib/icons';
-import { isTranscodedStream, sniffer } from '$lib/utils';
+import { sniffer } from '$lib/utils/browser';
+import { isTranscodedStream } from '$lib/utils/media';
 import { I18N, type BasePlugin, type IPlayerOptions } from 'xgplayer';
 import type { IUrl } from 'xgplayer/es/defaultConfig';
 import FLV from 'xgplayer-flv';

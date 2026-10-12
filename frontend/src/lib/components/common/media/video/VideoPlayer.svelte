@@ -2,7 +2,7 @@
   import { api } from '$lib/api';
   import { MEDIA_STREAM_PREFIX } from '$lib/constants';
   import type { Chapter, Danmaku, Definition, MediaItem, Optional, Page, Resp } from '$lib/types';
-  import { extractStreamPath } from '$lib/utils';
+  import { extractStreamPath } from '$lib/utils/media';
   import type OptionsPlugin from 'xgplayer/es/plugins/common/optionsIcon';
   import type FullscreenPlugin from 'xgplayer/es/plugins/fullscreen';
   import type MobilePlugin from 'xgplayer/es/plugins/mobile';
@@ -148,7 +148,7 @@
 
 <script lang="ts">
   import { freeze, user } from '$lib/stores';
-  import { sniffer } from '$lib/utils';
+  import { sniffer } from '$lib/utils/browser';
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
   import { v4 as uuidv4 } from 'uuid';

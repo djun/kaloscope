@@ -17,7 +17,7 @@
 
 <script lang="ts">
   import { icons } from '$lib/icons';
-  import { fixedNumber } from '$lib/utils';
+  import { fixedNumber } from '$lib/utils/number';
 
   let { score: _score, min = 0, max = 10, decimals = 1, compact = false, class: _class }: RatingProps = $props();
 

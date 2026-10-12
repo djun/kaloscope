@@ -1,4 +1,4 @@
-import { debounce } from '$lib/utils';
+import { debounce } from '$lib/utils/timing';
 import Cropper from 'cropperjs';
 import type { ActionReturn } from 'svelte/action';
 import type { Instance, Props } from 'tippy.js';

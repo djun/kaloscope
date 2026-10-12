@@ -23,7 +23,8 @@
   import { icons } from '$lib/icons';
   import { captureScrollPosition, restorePosition } from '$lib/stores';
   import type { IndexerAuth, Page, Resource, Resp, ViewMode, ViewModes } from '$lib/types';
-  import { aspectRatio, sniffer } from '$lib/utils';
+  import { sniffer } from '$lib/utils/browser';
+  import { aspectRatio } from '$lib/utils/number';
   import { tick, untrack } from 'svelte';
   import { MediaQuery } from 'svelte/reactivity';
   import { queryParameters, ssp } from 'sveltekit-search-params';

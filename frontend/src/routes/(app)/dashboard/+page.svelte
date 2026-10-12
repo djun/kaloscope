@@ -28,7 +28,8 @@
     ViewModes,
     WatchHistory
   } from '$lib/types';
-  import { aspectRatio, buildStreamUrl } from '$lib/utils';
+  import { buildStreamUrl } from '$lib/utils/media';
+  import { aspectRatio } from '$lib/utils/number';
   import { onMount, tick, untrack } from 'svelte';
   import { flip } from 'svelte/animate';
   import { SvelteSet } from 'svelte/reactivity';

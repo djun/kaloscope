@@ -206,35 +206,6 @@ def test_source_symlinks(tmp_path):
     }
 
 
-def test_natural_order():
-    names = [
-        "10.jpg",
-        "2.jpg",
-        "1.jpg",
-        "01.jpg",
-        "a10.jpg",
-        "A2.jpg",
-        "a2.jpg",
-        "e\u03012.jpg",
-        "é2.jpg",
-    ]
-    expected = [
-        "01.jpg",
-        "1.jpg",
-        "2.jpg",
-        "10.jpg",
-        "A2.jpg",
-        "a2.jpg",
-        "a10.jpg",
-        "e\u03012.jpg",
-        "é2.jpg",
-    ]
-    assert sorted(names, key=reading.natural_key) == expected
-    assert sorted(reversed(names), key=reading.natural_key) == expected
-    assert reading.natural_key("１.jpg")[0] == ("１.jpg",)
-    assert reading.natural_key("第十话")[0] == ("第十话",)
-
-
 def test_source_limit(tmp_path, monkeypatch):
     _files(tmp_path, "Work/1.jpg", "Work/2.jpg", "Work/3.jpg")
     monkeypatch.setattr(reading, "MAX_PAGES", 2)

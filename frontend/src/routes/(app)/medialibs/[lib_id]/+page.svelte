@@ -16,8 +16,9 @@
   import { LibType } from '$lib/enums';
   import { createLoading } from '$lib/helpers';
   import { _ } from '$lib/i18n';
-  import { captureScrollPosition, compactRecord, restorePosition, subroutes, user } from '$lib/stores';
+  import { captureScrollPosition, restorePosition, subroutes, user } from '$lib/stores';
   import type { MediaItem, Page, Resp } from '$lib/types';
+  import { compactRecord } from '$lib/utils/object';
   import { tick, untrack } from 'svelte';
   import { MediaQuery } from 'svelte/reactivity';
   import { get } from 'svelte/store';

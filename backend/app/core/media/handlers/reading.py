@@ -3,9 +3,7 @@
 import hashlib
 import json
 import os
-import re
 import stat
-import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -22,6 +20,7 @@ from watchdog.events import (
 from app.core.media.common import ContentError, file_state
 from app.core.media.handlers.base import _HANDLERS, MediaHandler
 from app.models.media import LibType, MediaFormat
+from app.utils.text import natural_key
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 # preferred cover basenames, in fallback order
@@ -71,21 +70,6 @@ class SourceScan:
 
     sources: list[ReadingSource] = field(default_factory=list)
     issues: dict[Path, str] = field(default_factory=dict)
-
-
-def natural_key(name: str) -> tuple:
-    """Sort ASCII numbers naturally, breaking equal keys by the original name.
-
-    Args:
-        name: The filename or relative member path to compare.
-
-    Returns:
-        A normalized, case-insensitive key with a deterministic final tie-breaker.
-    """
-    parts = re.split(r"([0-9]+)", unicodedata.normalize("NFC", name).casefold())
-    return tuple(
-        int(part) if index % 2 else part for index, part in enumerate(parts)
-    ), name
 
 
 def is_ignored_name(name: str) -> bool:

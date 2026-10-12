@@ -59,22 +59,13 @@
     transmission: resolve('/icons/transmission.ico'),
     xunlei: resolve('/icons/xunlei.png')
   };
-
-  /**
-   * Extract the display initial character from the given string.
-   *
-   * @param str - The first unicode letter or number in the string.
-   */
-  function extractInitial(str: string): string {
-    const match = str.match(/[\p{L}\p{N}]/u);
-    return (match ? match[0] : str[0]).toLocaleUpperCase();
-  }
 </script>
 
 <script lang="ts">
   import { proxyImage } from '$lib/api';
   import { icons } from '$lib/icons';
-  import { debounce } from '$lib/utils';
+  import { extractInitial } from '$lib/utils/text';
+  import { debounce } from '$lib/utils/timing';
   import { fade } from 'svelte/transition';
 
   let {

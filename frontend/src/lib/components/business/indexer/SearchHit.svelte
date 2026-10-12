@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
   import type { Favorite, IndexerConfig, Page, Resource, Resp, ViewMode } from '$lib/types';
-  import { aspectRatio } from '$lib/utils';
+  import { aspectRatio } from '$lib/utils/number';
 
   type SearchHitProps = {
     indexerId?: string | number;

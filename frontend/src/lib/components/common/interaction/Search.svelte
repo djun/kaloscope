@@ -34,7 +34,7 @@
   import { Filters } from '$lib/components';
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
-  import { debounce } from '$lib/utils';
+  import { debounce } from '$lib/utils/timing';
 
   let {
     value = $bindable(),

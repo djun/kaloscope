@@ -2,7 +2,7 @@
   import { Overlay } from '$lib/components';
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
-  import { throttle } from '$lib/utils';
+  import { throttle } from '$lib/utils/timing';
   import type { Snippet } from 'svelte';
   import { flip } from 'svelte/animate';
   import { fade } from 'svelte/transition';

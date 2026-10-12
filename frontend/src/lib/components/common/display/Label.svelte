@@ -25,7 +25,7 @@
 <script lang="ts">
   import { tooltip } from '$lib/actions';
   import { icons } from '$lib/icons';
-  import { sniffer } from '$lib/utils';
+  import { sniffer } from '$lib/utils/browser';
 
   let {
     children,

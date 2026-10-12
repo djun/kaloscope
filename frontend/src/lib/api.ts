@@ -3,7 +3,7 @@ import { alert } from '$lib/components';
 import { UserRole } from '$lib/enums';
 import { token, user } from '$lib/stores';
 import type { BaseResp, Resp, User } from '$lib/types';
-import { sniffer } from '$lib/utils';
+import { sniffer } from '$lib/utils/browser';
 import ky, { isHTTPError } from 'ky';
 import { get } from 'svelte/store';
 

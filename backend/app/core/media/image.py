@@ -27,7 +27,6 @@ from app.core.media.handlers.reading import (
     identify_comic_source,
     is_ignored_name,
     list_source_entries,
-    natural_key,
 )
 from app.core.media.raster import (
     IMAGE_BYTES,
@@ -36,6 +35,7 @@ from app.core.media.raster import (
     read_image_file,
 )
 from app.models.media import MediaFormat
+from app.utils.text import natural_key
 
 _IMAGE_BYTES = IMAGE_BYTES
 

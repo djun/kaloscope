@@ -41,7 +41,7 @@
   import { createLoading } from '$lib/helpers';
   import { _, locales } from '$lib/i18n';
   import { icons } from '$lib/icons';
-  import { fixedNumber } from '$lib/utils';
+  import { fixedNumber } from '$lib/utils/number';
   import { onDestroy } from 'svelte';
 
   let { item: _item, onscrape }: MetadataScraperProps = $props();

@@ -2,7 +2,8 @@
   import { onNavigate } from '$app/navigation';
   import { Alerts, DownloadPrompt, Messages } from '$lib/components';
   import { user } from '$lib/stores';
-  import { sniffer, throttle } from '$lib/utils';
+  import { sniffer } from '$lib/utils/browser';
+  import { throttle } from '$lib/utils/timing';
   import type { Snippet } from 'svelte';
   import { pwaAssetsHead } from 'virtual:pwa-assets/head';
   import { pwaInfo } from 'virtual:pwa-info';

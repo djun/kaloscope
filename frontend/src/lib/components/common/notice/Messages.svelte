@@ -3,7 +3,8 @@
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import { freeze } from '$lib/stores';
-  import { italic, sniffer } from '$lib/utils';
+  import { sniffer } from '$lib/utils/browser';
+  import { italic } from '$lib/utils/text';
   import type { IconifyIcon } from 'iconify-icon';
   import { tick } from 'svelte';
   import { SvelteMap } from 'svelte/reactivity';

@@ -41,7 +41,8 @@
   import { Alerts } from '$lib/components';
   import { messages } from '$lib/components/common/notice/Messages.svelte';
   import { freeze } from '$lib/stores';
-  import { italic, sniffer } from '$lib/utils';
+  import { sniffer } from '$lib/utils/browser';
+  import { italic } from '$lib/utils/text';
   import { tick } from 'svelte';
   import { fade } from 'svelte/transition';
   import { v4 as uuidv4 } from 'uuid';

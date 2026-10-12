@@ -1,6 +1,6 @@
 import { icons, iconToSVG } from '$lib/icons';
 import type { Chapter } from '$lib/types';
-import { isTranscodedStream } from '$lib/utils';
+import { isTranscodedStream } from '$lib/utils/media';
 import OptionList from 'xgplayer/es/plugins/common/optionList';
 import OptionsIcon from 'xgplayer/es/plugins/common/optionsIcon';
 import './index.css';

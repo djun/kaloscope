@@ -18,7 +18,7 @@
   import { _, dateTime } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import type { FlowJob, OptionValue, Page, Resp } from '$lib/types';
-  import { toDatetimeLocal } from '$lib/utils';
+  import { toDatetimeLocal } from '$lib/utils/datetime';
   import { tick, untrack } from 'svelte';
 
   let jobs: FlowJob[] = $state([]);

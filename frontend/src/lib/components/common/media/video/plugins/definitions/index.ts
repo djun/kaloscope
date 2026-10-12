@@ -1,6 +1,6 @@
 import { icons, iconToSVG } from '$lib/icons';
 import type { Definition } from '$lib/types';
-import { isTranscodedStream } from '$lib/utils';
+import { isTranscodedStream } from '$lib/utils/media';
 import OptionsIcon from 'xgplayer/es/plugins/common/optionsIcon';
 import './index.css';
 

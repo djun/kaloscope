@@ -5,7 +5,7 @@
   import { alert, ImageViewer, Overlay, TextViewer, VideoPlayer } from '$lib/components';
   import { createLoading } from '$lib/helpers';
   import type { BaseResp, Chapter, Resource, Resp } from '$lib/types';
-  import { isDashSupported } from '$lib/utils';
+  import { isDashSupported } from '$lib/utils/media';
   import { isHTTPError } from 'ky';
   import { onDestroy, onMount, tick } from 'svelte';
   import { queryParameters, ssp } from 'sveltekit-search-params';

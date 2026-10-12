@@ -8,7 +8,7 @@
   import { icons } from '$lib/icons';
   import { mediaQuery } from '$lib/stores';
   import type { FlowGraph, FlowGraphContext, Resp } from '$lib/types';
-  import { debounce } from '$lib/utils';
+  import { debounce } from '$lib/utils/timing';
   import { MiniMap, useStore, type Edge, type Node } from '@xyflow/svelte';
   import { getContext, hasContext, onMount } from 'svelte';
   import { SvelteMap } from 'svelte/reactivity';

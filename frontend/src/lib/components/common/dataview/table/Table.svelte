@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import { sniffer } from '$lib/utils';
+  import { sniffer } from '$lib/utils/browser';
 
   const isSafari = sniffer.isSafari();
   const INTERACTIVE_SELECTOR = [

@@ -20,7 +20,7 @@
   import { createFormSchema, createLoading } from '$lib/helpers';
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
-  import { loadFile } from '$lib/utils';
+  import { loadFile } from '$lib/utils/browser';
 
   let { id, name, icon, description, category, onsave }: GraphEditorProps = $props();
 

@@ -19,7 +19,7 @@ from tortoise.exceptions import ValidationError
 from tortoise.transactions import in_transaction
 
 from app.core.media.common import original_file_info
-from app.core.media.coordination import notify_media_events, write_in_thread
+from app.core.media.coordination import notify_media_events
 from app.core.media.metadata import METADATA_BYTES, _read_xml, merge_metadata
 from app.core.media.naming import render_directory, render_filename, render_path
 from app.models.download import DownloadTask, OfflineDownloadJob
@@ -31,6 +31,7 @@ from app.models.media import (
     MediaItem,
     MediaLib,
 )
+from app.utils.asyncio import write_in_thread
 from app.utils.disk import rename_exclusive
 from app.utils.xml import get_integer
 

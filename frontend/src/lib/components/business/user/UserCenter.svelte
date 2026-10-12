@@ -38,7 +38,7 @@
   import { _, duration } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import { token, user } from '$lib/stores';
-  import { fullscreen } from '$lib/utils';
+  import { fullscreen } from '$lib/utils/browser';
   import { onMount } from 'svelte';
 
   let {

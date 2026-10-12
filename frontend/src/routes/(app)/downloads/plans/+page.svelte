@@ -17,7 +17,7 @@
   import { _, dateTime } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import type { DownloadPlan, FlowGraph, Page, Resp } from '$lib/types';
-  import { toDatetimeLocal } from '$lib/utils';
+  import { toDatetimeLocal } from '$lib/utils/datetime';
   import { onMount, tick, untrack } from 'svelte';
 
   let plans: DownloadPlan[] = $state([]);

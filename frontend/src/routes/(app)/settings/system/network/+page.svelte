@@ -16,7 +16,7 @@
   import { _, dateTime } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import type { DNSResolver, HTTPProxy, Resp, URLRule } from '$lib/types';
-  import { debounce } from '$lib/utils';
+  import { debounce } from '$lib/utils/timing';
   import { onMount, tick } from 'svelte';
 
   // URL rule states

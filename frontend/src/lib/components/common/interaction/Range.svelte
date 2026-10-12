@@ -22,7 +22,7 @@
 </script>
 
 <script lang="ts">
-  import { debounce } from '$lib/utils';
+  import { debounce } from '$lib/utils/timing';
 
   let {
     value = $bindable(),

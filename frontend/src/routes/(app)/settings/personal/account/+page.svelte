@@ -8,7 +8,7 @@
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import { token, user } from '$lib/stores';
-  import { loadFile } from '$lib/utils';
+  import { loadFile } from '$lib/utils/browser';
 
   let cropSrc: string | null = $state(null);
   let cropImg: Promise<Blob | null> | null = null;

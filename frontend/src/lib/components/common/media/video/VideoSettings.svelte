@@ -1,7 +1,7 @@
 <script lang="ts" module>
   import { persisted } from '$lib/stores';
   import type { Danmaku, DanmakuAnime, Definition, MediaProbe, Resp, Subtitle } from '$lib/types';
-  import { isWhite } from '$lib/utils';
+  import { isWhite } from '$lib/utils/color';
   import type { IconifyIcon } from 'iconify-icon';
   import { get } from 'svelte/store';
   import { v4 as uuidv4 } from 'uuid';
@@ -253,7 +253,8 @@
   import { createLoading } from '$lib/helpers';
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
-  import { extractStreamPath, isTranscodedStream, sniffer } from '$lib/utils';
+  import { sniffer } from '$lib/utils/browser';
+  import { extractStreamPath, isTranscodedStream } from '$lib/utils/media';
   import { tick } from 'svelte';
   import { fade } from 'svelte/transition';
   import { Events } from 'xgplayer';
