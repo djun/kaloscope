@@ -38,7 +38,7 @@ export { default as Setting, type SettingProps } from './layout/Setting.svelte';
 
 export { default as ImageViewer, type ImagePage, type ImageViewerOptions } from './media/image/ImageViewer.svelte';
 export { default as TextViewer, type TextViewerOptions } from './media/text/TextViewer.svelte';
-export { mediaTitle, default as VideoPlayer, type VideoPlayerOptions } from './media/video/VideoPlayer.svelte';
+export { default as VideoPlayer, type VideoPlayerOptions } from './media/video/VideoPlayer.svelte';
 
 export { default as Dock, type DockProps } from './navigation/Dock.svelte';
 export { default as Menu, type MenuProps } from './navigation/Menu.svelte';

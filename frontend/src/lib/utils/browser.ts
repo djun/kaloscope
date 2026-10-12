@@ -187,3 +187,24 @@ export function loadFile(target: EventTarget & HTMLInputElement): Promise<string
     }
   });
 }
+
+/**
+ * Download a blob through a temporary link and release its object URL.
+ *
+ * @param blob - The file contents to download.
+ * @param filename - The suggested filename, including its extension.
+ */
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  try {
+    document.body.appendChild(link);
+    link.click();
+  } finally {
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+}

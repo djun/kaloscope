@@ -55,22 +55,6 @@
   }>;
 
   /**
-   * Format the media title with season and episode if available.
-   *
-   * @param item - The media item.
-   */
-  export function mediaTitle(item: MediaItem | null | undefined): string {
-    if (!item) {
-      return '';
-    }
-    const title = item.title ?? item.name;
-    if (item.season !== null && item.episode !== null) {
-      return `S${item.season}E${item.episode} - ${title}`;
-    }
-    return title;
-  }
-
-  /**
    * Resolve playback URLs for `xgplayer`.
    *
    * Use absolute media proxy URLs so plugins can report network errors.

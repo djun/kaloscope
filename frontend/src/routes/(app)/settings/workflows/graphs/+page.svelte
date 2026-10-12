@@ -25,6 +25,7 @@
   import { _, dateTime, milliseconds } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import type { FlowGraph, FlowTemplate, OptionValue, Page, Resp } from '$lib/types';
+  import { downloadBlob } from '$lib/utils/browser';
   import { onMount, untrack } from 'svelte';
 
   let graphs: FlowGraph[] = $state([]);
@@ -134,15 +135,7 @@
           alert({ level: 'error', message: 'export_items_failed' });
           return;
         }
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${new Date().getTime()}.zip`;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        downloadBlob(blob, `${new Date().getTime()}.zip`);
       })
       .finally(() => loading.end());
   }

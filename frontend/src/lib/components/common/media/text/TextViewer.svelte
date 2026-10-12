@@ -1,6 +1,7 @@
 <script lang="ts" module>
   import { persisted } from '$lib/stores';
-  import type { Chapter, ChapterGroup, ContentBlock, ContentRun } from '$lib/types';
+  import type { Chapter, ContentBlock, ContentRun } from '$lib/types';
+  import { groupChapters, matchChapterId } from '$lib/utils/chapter';
 
   /** Delay in ms before auto-hiding the overlay controls. */
   const CONTROLS_HIDE_DELAY = 3000;
@@ -120,40 +121,6 @@
     paraSpacing: { i18n: 'media.text.para_spacing', min: 0, max: 2, step: 0.5, unit: 'em' },
     paddingX: { i18n: 'media.text.padding_x', min: 0, max: 4, step: 0.5, unit: 'rem' }
   };
-
-  /**
-   * Check whether two chapter ids refer to the same chapter.
-   *
-   * @param left - The first chapter id.
-   * @param right - The second chapter id.
-   * @returns Whether the ids match.
-   */
-  function matchChapterId(left: string | null | undefined, right: string | null | undefined) {
-    return !!left && left === right;
-  }
-
-  /**
-   * Group chapters by volume when every chapter has a volume.
-   *
-   * @param chapters - The chapters to group.
-   * @returns Ordered chapter groups.
-   */
-  function groupChapters(chapters: Chapter[]): ChapterGroup[] {
-    const grouped = chapters.length > 0 && chapters.every((chapter) => !!chapter.volume?.trim());
-    if (!grouped) {
-      return [{ volume: null, chapters }];
-    }
-    return chapters.reduce<ChapterGroup[]>((groups, chapter) => {
-      const volume = chapter.volume!.trim();
-      const group = groups.find((group) => group.volume === volume);
-      if (group) {
-        group.chapters.push(chapter);
-      } else {
-        groups.push({ volume, chapters: [chapter] });
-      }
-      return groups;
-    }, []);
-  }
 
   /**
    * Normalize text payloads into the viewer's paragraph-based rendering model.

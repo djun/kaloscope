@@ -16,7 +16,6 @@
     Image,
     ImageViewer,
     MediaActions,
-    mediaTitle,
     Rating,
     TextViewer,
     VideoPlayer,
@@ -44,7 +43,7 @@
     TextLocator,
     WatchHistory
   } from '$lib/types';
-  import { buildStreamUrl } from '$lib/utils/media';
+  import { buildStreamUrl, mediaTitle } from '$lib/utils/media';
   import { isHTTPError } from 'ky';
   import { onDestroy, onMount, tick } from 'svelte';
   import { get } from 'svelte/store';

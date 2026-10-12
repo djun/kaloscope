@@ -1,5 +1,5 @@
 import { MEDIA_STREAM_PREFIX } from '$lib/constants';
-import type { TranscodeOptions } from '$lib/types';
+import type { MediaItem, TranscodeOptions } from '$lib/types';
 import Shaka from 'xgplayer-shaka';
 import type { IUrl } from 'xgplayer/es/defaultConfig';
 
@@ -60,4 +60,21 @@ export function isDashSupported(): boolean {
   }
   const dashMediaTypes = ['video/mp4; codecs="avc1.640028"', 'audio/mp4; codecs="mp4a.40.2"'];
   return dashMediaTypes.every((type) => mediaSource.isTypeSupported(type));
+}
+
+/**
+ * Format the media title with season and episode if available.
+ *
+ * @param item - The media item, or null/undefined when unavailable.
+ * @returns The title with season and episode when present, or an empty string for a missing item.
+ */
+export function mediaTitle(item: MediaItem | null | undefined): string {
+  if (!item) {
+    return '';
+  }
+  const title = item.title ?? item.name;
+  if (item.season !== null && item.episode !== null) {
+    return `S${item.season}E${item.episode} - ${title}`;
+  }
+  return title;
 }

@@ -1,11 +1,12 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { api } from '$lib/api';
-  import { Modal, confirm, mediaTitle } from '$lib/components';
+  import { Modal, confirm } from '$lib/components';
   import { createLoading } from '$lib/helpers';
   import { _ } from '$lib/i18n';
   import { icons } from '$lib/icons';
   import type { MediaItem } from '$lib/types';
+  import { mediaTitle } from '$lib/utils/media';
 
   let { onconfirm }: { onconfirm?: () => void } = $props();
   let item: MediaItem | null = $state(null);

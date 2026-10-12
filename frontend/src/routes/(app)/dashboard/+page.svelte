@@ -8,7 +8,6 @@
     DataView,
     HCell,
     Image,
-    mediaTitle,
     SearchHit,
     VideoPlayer,
     ViewSwitcher
@@ -28,7 +27,7 @@
     ViewModes,
     WatchHistory
   } from '$lib/types';
-  import { buildStreamUrl } from '$lib/utils/media';
+  import { buildStreamUrl, mediaTitle } from '$lib/utils/media';
   import { aspectRatio } from '$lib/utils/number';
   import { onMount, tick, untrack } from 'svelte';
   import { flip } from 'svelte/animate';
