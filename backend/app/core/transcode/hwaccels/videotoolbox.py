@@ -11,7 +11,14 @@ class VideoToolbox(HWAccelStrategy):
     """Apple VideoToolbox H.264 encoding strategy."""
 
     def keep_hardware_frames(self, context: TranscodeContext) -> bool:
-        """Keep HDR frames on VideoToolbox even when scaling is required."""
+        """Keep HDR frames on VideoToolbox even when scaling is required.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Whether subsequent filters can use frames in device memory.
+        """
         if context.is_interlaced:
             return False
         if (
@@ -21,7 +28,14 @@ class VideoToolbox(HWAccelStrategy):
         return context.needs_tonemap or super().keep_hardware_frames(context)
 
     def transform_filters(self, context: TranscodeContext) -> list[str]:
-        """Build eligible VideoToolbox rotation and SDR scale filters."""
+        """Build eligible VideoToolbox rotation and SDR scale filters.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Ordered hardware filter expressions.
+        """
         if context.is_interlaced or (
             context.needs_tonemap and context.needs_square_pixels
         ):
@@ -38,7 +52,14 @@ class VideoToolbox(HWAccelStrategy):
         return filters
 
     def transform_filter_names(self, context: TranscodeContext) -> set[str]:
-        """Return filter names required by selected VideoToolbox transforms."""
+        """Return filter names required by selected VideoToolbox transforms.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Filter names required by the hardware transforms.
+        """
         filters = self.transform_filters(context)
         names: set[str] = set()
         if any(value.startswith("transpose_vt") for value in filters):
@@ -51,7 +72,7 @@ class VideoToolbox(HWAccelStrategy):
         """Build VideoToolbox or CPU filters and normalize output to NV12.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             Filters for the prepared frame-memory, HDR, and geometry path.
@@ -117,7 +138,7 @@ class VideoToolbox(HWAccelStrategy):
         """Build VideoToolbox bitrate and speed-priority options.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg options for bitrate-controlled VideoToolbox encoding.
@@ -128,7 +149,7 @@ class VideoToolbox(HWAccelStrategy):
         args = [
             "-b:v",
             bitrate,
-            # disable quantizer bounds so bitrate control acts alone
+            # disable quality bounds so bitrate control acts alone
             "-qmin",
             "-1",
             "-qmax",

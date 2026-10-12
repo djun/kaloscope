@@ -14,13 +14,14 @@ def entries[K, V](
     kfilter: Callable[[K], bool] | None = None,
     vfilter: Callable[[V], bool] | None = None,
 ) -> list[tuple[K, V]]:
-    """Get the entries of a dictionary.
+    """Get entries of a dictionary.
 
     Args:
-        d: The dictionary to get the entries from.
-        keys: A list of keys to include in the result.
-        kfilter: A function to filter keys.
-        vfilter: A function to filter values.
+        d: Dictionary to get the entries from.
+        keys: A list of keys to include in the result. `None` supplies no explicit key
+            selection.
+        kfilter: A function to filter keys. `None` adds no key filter.
+        vfilter: A function to filter values. `None` adds no value filter.
 
     Returns:
         A list of key-value pairs that satisfy the conditions.
@@ -43,13 +44,14 @@ def keys[K, V](
     kfilter: Callable[[K], bool] | None = None,
     vfilter: Callable[[V], bool] | None = None,
 ) -> list[K]:
-    """Get the keys of a dictionary.
+    """Get keys of a dictionary.
 
     Args:
-        d: The dictionary to get the keys from.
-        keys: A list of keys to include in the result.
-        kfilter: A function to filter keys.
-        vfilter: A function to filter values.
+        d: Dictionary to get the keys from.
+        keys: A list of keys to include in the result. `None` supplies no explicit key
+            selection.
+        kfilter: A function to filter keys. `None` adds no key filter.
+        vfilter: A function to filter values. `None` adds no value filter.
 
     Returns:
         A list of keys that satisfy the conditions.
@@ -64,13 +66,14 @@ def values[K, V](
     kfilter: Callable[[K], bool] | None = None,
     vfilter: Callable[[V], bool] | None = None,
 ) -> list[V]:
-    """Get the values of a dictionary.
+    """Get values of a dictionary.
 
     Args:
-        d: The dictionary to get the values from.
-        keys: A list of keys to include in the result.
-        kfilter: A function to filter keys.
-        vfilter: A function to filter values.
+        d: Dictionary to get the values from.
+        keys: A list of keys to include in the result. `None` supplies no explicit key
+            selection.
+        kfilter: A function to filter keys. `None` adds no key filter.
+        vfilter: A function to filter values. `None` adds no value filter.
 
     Returns:
         A list of values that satisfy the conditions.
@@ -89,11 +92,11 @@ def remove[K, V](
     """Remove entries from a dictionary.
 
     Args:
-        d: The dictionary to remove entries from.
-        key: A key to remove.
-        keys: A list of keys to remove.
-        kfilter: A function to filter keys.
-        vfilter: A function to filter values.
+        d: Dictionary to remove entries from.
+        key: A key to remove. `None` supplies no single-key selection.
+        keys: A list of keys to remove. `None` supplies no explicit key selection.
+        kfilter: A function to filter keys. `None` adds no key filter.
+        vfilter: A function to filter values. `None` adds no value filter.
     """
     popkeys = set()
     if key is not None:
@@ -109,7 +112,7 @@ def remove[K, V](
 
 
 class TrackableDict[K, V](dict[K, V]):
-    """A dictionary that tracks its modification status."""
+    """A dictionary that tracks write attempts."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -164,10 +167,10 @@ class TrackableDict[K, V](dict[K, V]):
         super().clear()
 
     def is_modified(self) -> bool:
-        """Check if the dictionary has been modified.
+        """Check whether a write method has been called since the last reset.
 
         Returns:
-            True if the dictionary has been modified, False otherwise.
+            True after a write attempt, False otherwise.
         """
         return self._modified
 
@@ -180,12 +183,12 @@ def get_raw(dictionary: dict, key: str, default: Any = None) -> Any:
     """Get a nested dictionary value using a dot-separated key.
 
     Args:
-        dictionary: The dictionary to get the key from.
-        key: The nested key to get, separated by dots.
-        default: The value returned when the key is missing; defaults to `None`.
+        dictionary: Dictionary to get the key from.
+        key: Nested key to get, separated by dots.
+        default: Value returned when the key is missing; defaults to `None`.
 
     Returns:
-        The value of the nested key, or the default value if not found.
+        Value of the nested key, or the default value if not found.
     """
     keys = key.split(".")
     data = dictionary

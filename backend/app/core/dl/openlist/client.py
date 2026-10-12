@@ -38,6 +38,15 @@ class OpenListClientError(Exception):
         retry_after: str | None = None,
         response_message: str | None = None,
     ):
+        """Store the request failure category and retry hints.
+
+        Args:
+            kind: Failure category.
+            message: Error summary; defaults to a general request failure.
+            retry_after: Server retry delay; `None` means no delay was supplied.
+            response_message: Business error text; `None` means no complete rejection
+                response.
+        """
         self.kind = kind
         self.retry_after = retry_after
         # even an empty business message confirms a complete rejection response
@@ -53,6 +62,12 @@ class OpenListClient:
     """
 
     def __init__(self, config: Endpoint, client: httpx.AsyncClient):
+        """Use a shared client for remote control requests.
+
+        Args:
+            config: Endpoint and optional authentication settings.
+            client: Shared HTTP client, owned by the application.
+        """
         self._base_url = config.base_url
         auth = getattr(config, "auth", None)
         self._token = auth.token.get_secret_value() if auth else ""
@@ -64,10 +79,10 @@ class OpenListClient:
         """List the OpenList tools available for a destination path.
 
         Args:
-            path: The absolute OpenList destination path.
+            path: Absolute OpenList destination path.
 
         Returns:
-            The supported offline download tool names.
+            Supported offline download tool names.
         """
         data = await self._request(
             "GET", "/public/offline_download_tools", params={"path": path}
@@ -79,10 +94,10 @@ class OpenListClient:
         )
 
     async def version(self) -> str:
-        """Get the normalized OpenList version.
+        """Get normalized OpenList version.
 
         Returns:
-            The version without an optional build suffix.
+            Version without an optional build suffix.
         """
         data = await self._request("GET", "/public/settings")
         version = _validate(OpenListSettings, data).version
@@ -114,7 +129,7 @@ class OpenListClient:
         """Create a remote directory.
 
         Args:
-            path: The absolute OpenList directory path.
+            path: Absolute OpenList directory path.
         """
         await self._request("POST", "/fs/mkdir", json={"path": path})
 
@@ -123,10 +138,10 @@ class OpenListClient:
 
         Args:
             source: The URI accepted by the configured tool.
-            path: The isolated remote result directory.
+            path: Isolated remote result directory.
 
         Returns:
-            The remote task IDs returned by OpenList.
+            Remote task IDs returned by OpenList.
         """
         data = await self._request(
             "POST",
@@ -146,7 +161,7 @@ class OpenListClient:
         """List unfinished offline download tasks.
 
         Returns:
-            The unfinished remote tasks.
+            Unfinished remote tasks.
         """
         return await self._tasks(f"{_OFFLINE_TASK_PATH}/undone")
 
@@ -154,7 +169,7 @@ class OpenListClient:
         """List finished offline download tasks.
 
         Returns:
-            The finished remote tasks.
+            Finished remote tasks.
         """
         return await self._tasks(f"{_OFFLINE_TASK_PATH}/done")
 
@@ -162,7 +177,7 @@ class OpenListClient:
         """Cancel an offline download task.
 
         Args:
-            task_id: The remote OpenList task ID.
+            task_id: Remote OpenList task ID.
         """
         await self._request(
             "POST",
@@ -174,7 +189,7 @@ class OpenListClient:
         """Retry an offline download task.
 
         Args:
-            task_id: The remote OpenList task ID.
+            task_id: Remote OpenList task ID.
         """
         await self._request(
             "POST",
@@ -186,7 +201,7 @@ class OpenListClient:
         """List unfinished offline transfer tasks.
 
         Returns:
-            The unfinished remote transfer tasks.
+            Unfinished remote transfer tasks.
         """
         return await self._tasks(f"{_TRANSFER_TASK_PATH}/undone")
 
@@ -194,7 +209,7 @@ class OpenListClient:
         """List finished offline transfer tasks.
 
         Returns:
-            The finished remote transfer tasks.
+            Finished remote transfer tasks.
         """
         return await self._tasks(f"{_TRANSFER_TASK_PATH}/done")
 
@@ -202,7 +217,7 @@ class OpenListClient:
         """Cancel an offline transfer task.
 
         Args:
-            task_id: The remote OpenList transfer task ID.
+            task_id: Remote OpenList transfer task ID.
         """
         await self._request(
             "POST",
@@ -214,7 +229,7 @@ class OpenListClient:
         """Retry an offline transfer task.
 
         Args:
-            task_id: The remote OpenList transfer task ID.
+            task_id: Remote OpenList transfer task ID.
         """
         await self._request(
             "POST",
@@ -228,13 +243,14 @@ class OpenListClient:
         """List one page of a remote directory.
 
         Args:
-            path: The absolute OpenList directory path.
-            page: The one-based page number.
-            per_page: The maximum entries requested per page.
-            refresh: Whether OpenList should refresh the mounted storage first.
+            path: Absolute OpenList directory path.
+            page: One-based page number.
+            per_page: Maximum entries requested per page.
+            refresh: Whether OpenList should refresh the mounted storage first. Defaults
+                to `False`.
 
         Returns:
-            The validated directory page.
+            Validated directory page.
         """
         data = await self._request(
             "POST",
@@ -252,10 +268,10 @@ class OpenListClient:
         """Get a direct link for a remote file.
 
         Args:
-            path: The absolute OpenList file path.
+            path: Absolute OpenList file path.
 
         Returns:
-            The direct URL and required request headers.
+            Direct URL and required request headers.
         """
         data = await self._request("POST", "/fs/link", json={"path": path})
         return _validate(RemoteLink, data)
@@ -264,8 +280,8 @@ class OpenListClient:
         """Remove one entry from a remote directory.
 
         Args:
-            directory: The absolute parent directory path.
-            name: The direct child name to remove.
+            directory: Absolute parent directory path.
+            name: Direct child name to remove.
         """
         await self._request(
             "POST",
@@ -277,10 +293,10 @@ class OpenListClient:
         """List and sanitize remote tasks from an OpenList task endpoint.
 
         Args:
-            path: The path relative to the configured API root.
+            path: Path relative to the configured API root.
 
         Returns:
-            The validated tasks with safe error text.
+            Validated tasks with safe error text.
         """
         data = await self._request("GET", path)
         tasks = _validate(RemoteTasks, data).root
@@ -301,17 +317,18 @@ class OpenListClient:
 
         Args:
             method: The HTTP method.
-            path: The path relative to the configured API root.
-            json: The optional JSON request body.
-            params: The optional query parameters.
-            secrets: The additional values to redact from business errors.
+            path: Path relative to the configured API root.
+            json: Optional JSON request body. `None` sends no JSON body.
+            params: Optional query parameters. `None` adds no query parameters.
+            secrets: Additional values to redact from business errors. An empty
+                tuple adds no extra secrets to redact.
 
         Raises:
             OpenListClientError: If transport, HTTP, envelope, or business validation
                 fails.
 
         Returns:
-            The decoded `data` value from a successful OpenList envelope.
+            Decoded `data` value from a successful OpenList envelope.
         """
         try:
             response = await self._client.request(
@@ -323,7 +340,7 @@ class OpenListClient:
                 follow_redirects=False,  # do not forward the administrator token
             )
         except httpx.RequestError as exc:
-            # keep transport failures retryable
+            # keep transport failures eligible for retry
             raise OpenListClientError(OpenListErrorKind.TRANSIENT) from exc
         if response.status_code != 200:
             kind = _error_kind(response.status_code)
@@ -357,11 +374,11 @@ def _redact(message: str, secrets: Iterable[str]) -> str:
     """Redact credentials and sensitive sources from an error message.
 
     Args:
-        message: The untrusted OpenList error message.
-        secrets: The additional values that must not be exposed.
+        message: Untrusted OpenList error message.
+        secrets: Additional values that must not be exposed.
 
     Returns:
-        The bounded and sanitized error message.
+        Bounded and sanitized error message.
     """
     # endpoint methods may pass sensitive sources here
     for secret in secrets:
@@ -378,14 +395,14 @@ def _validate[ResponseModel: BaseModel](
     """Validate response data against a strict Pydantic model.
 
     Args:
-        model: The response model used for validation.
-        data: The decoded OpenList response data.
+        model: Response model used for validation.
+        data: Decoded OpenList response data.
 
     Raises:
         OpenListClientError: If the response data does not match `model`.
 
     Returns:
-        The validated response model.
+        Validated response model.
     """
     try:
         return model.model_validate(data)
@@ -400,10 +417,10 @@ def _error_kind(code: int) -> OpenListErrorKind:
     """Classify an OpenList or HTTP response code.
 
     Args:
-        code: The response code to classify.
+        code: Response code to classify.
 
     Returns:
-        The corresponding OpenList failure category.
+        Corresponding OpenList failure category.
     """
     if code in {401, 403}:
         return OpenListErrorKind.AUTH

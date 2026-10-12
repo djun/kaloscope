@@ -61,10 +61,10 @@ def _path(value: str | None) -> Path:
     """Require a persisted path before inspecting a test file.
 
     Args:
-        value: The possibly unset path read from a test record.
+        value: Possibly unset path read from a test record.
 
     Returns:
-        The path whose presence the test requires.
+        Path whose presence the test requires.
 
     Raises:
         AssertionError: If the record has no path.
@@ -146,11 +146,11 @@ async def _movie(root: Path, template="{{title}}"):
     """Create an indexed movie with its original file information and metadata.
 
     Args:
-        root: The isolated library directory.
-        template: The automatic naming template for the library.
+        root: Isolated library directory.
+        template: Automatic naming template for the library.
 
     Returns:
-        The library and its movie item before organization.
+        Library and its movie item before organization.
     """
     lib = await MediaLib.create(
         name="Movies",
@@ -179,11 +179,11 @@ async def _journal(lib: MediaLib, item: MediaItem):
     """Persist a movie rename plan without invoking the planner.
 
     Args:
-        lib: The library containing the movie.
-        item: The indexed movie and its associated NFO.
+        lib: Library containing the movie.
+        item: Indexed movie and its associated NFO.
 
     Returns:
-        The persisted organization event.
+        Persisted organization event.
     """
     root = Path(lib.dir)
     video, nfo = root / "New Movie.mkv", root / "New Movie.nfo"
@@ -227,9 +227,9 @@ def test_empty_journal(tmp_path, monkeypatch, event_type):
     """Retain incomplete journals without changing media or firing workflows.
 
     Args:
-        tmp_path: The isolated media directory.
-        monkeypatch: The fixture isolating locks and workflow dispatch.
-        event_type: The persisted journal type with a missing payload.
+        tmp_path: Isolated media directory.
+        monkeypatch: Fixture isolating locks and workflow dispatch.
+        event_type: Persisted journal type with a missing payload.
     """
     fire = AsyncMock()
     monkeypatch.setattr(KaloscopeConfig, "get_workspace", lambda _name: str(tmp_path))
@@ -536,10 +536,10 @@ async def _episode(root: Path):
     """Create an indexed episode with existing NFO metadata.
 
     Args:
-        root: The temporary media library root directory.
+        root: Temporary media library root directory.
 
     Returns:
-        The library, parent directory item, and episode item.
+        Library, parent directory item, and episode item.
     """
     lib = await MediaLib.create(
         name="Shows",
@@ -1806,7 +1806,7 @@ def test_retained_symlink(tmp_path, monkeypatch, absolute, interruption, target_
                     """Interrupt organization after the selected filesystem write.
 
                     Args:
-                        *args: The arguments passed to the original writer.
+                        *args: Arguments passed to the original writer.
 
                     Raises:
                         OSError: After the filesystem operation has completed.
@@ -2542,8 +2542,8 @@ def test_split_nfo_permissions(tmp_path, monkeypatch, mode, published):
                 """Interrupt publication of the copied parent NFO.
 
                 Args:
-                    source: The source file being published.
-                    destination: The final file path.
+                    source: Source file being published.
+                    destination: Final file path.
 
                 Raises:
                     OSError: When the copied NFO reaches publication.

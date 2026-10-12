@@ -14,7 +14,7 @@ def _opf(href: str) -> str:
     """Build metadata with one external cover reference.
 
     Args:
-        href: The cover URL stored in the OPF manifest.
+        href: Cover URL stored in the OPF manifest.
 
     Returns:
         A minimal OPF document with a cover-image resource.

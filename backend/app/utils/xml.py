@@ -11,15 +11,16 @@ def get_element(
     tag_name: str,
     attrs: dict[str, str] | None = None,
 ) -> etree._Element | None:
-    """Get the first matching sub-element, optionally filtered by attributes.
+    """Get first matching sub-element, optionally filtered by attributes.
 
     Args:
-        element: The parent XML element.
-        tag_name: The tag name of the sub-element.
-        attrs: Optional attribute key-value pairs to filter by.
+        element: Parent XML element.
+        tag_name: Tag name of the sub-element.
+        attrs: Optional attribute key-value pairs to filter by. `None` matches without
+            attribute filters.
 
     Returns:
-        The first matching sub-element, or `None` if not found.
+        First matching sub-element, or `None` if not found.
     """
     if element is None:
         return None
@@ -32,14 +33,14 @@ def get_element(
 
 
 def get_text(element: etree._Element | None, tag_name: str) -> str | None:
-    """Get the text content of the first matching sub-element.
+    """Get text content of the first matching sub-element.
 
     Args:
-        element: The parent XML element.
-        tag_name: The tag name of the sub-element.
+        element: Parent XML element.
+        tag_name: Tag name of the sub-element.
 
     Returns:
-        The text content of the sub-element, or `None` if not found.
+        Text content of the sub-element, or `None` if not found.
     """
     if element is None:
         return None
@@ -51,14 +52,14 @@ def get_text(element: etree._Element | None, tag_name: str) -> str | None:
 
 
 def get_all_text(element: etree._Element | None, tag_name: str) -> list[str] | None:
-    """Get the text content of all matching sub-elements.
+    """Get text content of all matching sub-elements.
 
     Args:
-        element: The parent XML element.
-        tag_name: The tag name of the sub-elements.
+        element: Parent XML element.
+        tag_name: Tag name of the sub-elements.
 
     Returns:
-        The list of text content of the sub-elements, or `None` if not found.
+        List of text content of the sub-elements, or `None` if not found.
     """
     if element is None:
         return None
@@ -67,14 +68,14 @@ def get_all_text(element: etree._Element | None, tag_name: str) -> list[str] | N
 
 
 def get_integer(element: etree._Element | None, tag_name: str) -> int | None:
-    """Get the integer content of the first matching sub-element.
+    """Get integer content of the first matching sub-element.
 
     Args:
-        element: The parent XML element.
-        tag_name: The tag name of the sub-element.
+        element: Parent XML element.
+        tag_name: Tag name of the sub-element.
 
     Returns:
-        The integer content of the sub-element, or `None` if not found or invalid.
+        Integer content of the sub-element, or `None` if not found or invalid.
     """
     text = get_text(element, tag_name)
     if text and text.isdigit():
@@ -86,14 +87,14 @@ def get_integer(element: etree._Element | None, tag_name: str) -> int | None:
 
 
 def get_decimal(element: etree._Element | None, tag_name: str) -> Decimal | None:
-    """Get the decimal content of the first matching sub-element.
+    """Get decimal content of the first matching sub-element.
 
     Args:
-        element: The parent XML element.
-        tag_name: The tag name of the sub-element.
+        element: Parent XML element.
+        tag_name: Tag name of the sub-element.
 
     Returns:
-        The decimal content of the sub-element, or `None` if not found or invalid.
+        Decimal content of the sub-element, or `None` if not found or invalid.
     """
     text = get_text(element, tag_name)
     if text:

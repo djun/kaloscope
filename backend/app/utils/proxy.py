@@ -43,16 +43,18 @@ def remote_proxy_request(
     user_agent: str | None = None,
     request_headers: Mapping[str, str] | None = None,
 ) -> tuple[str, dict[str, str]]:
-    """Build the upstream URL and headers for a remote proxy request.
+    """Build upstream URL and headers for a remote proxy request.
 
     Args:
-        url: The user-provided remote resource URL.
-        referer: Optional referer override for the upstream request.
-        user_agent: Optional user agent override for the upstream request.
-        request_headers: Incoming request headers to selectively forward.
+        url: User-provided remote resource URL.
+        referer: Optional referrer header override for the upstream request.
+        user_agent: Optional user agent override for the upstream request. `None` uses
+            the default user agent.
+        request_headers: Incoming request headers to selectively forward. `None`
+            forwards no incoming headers.
 
     Returns:
-        The sanitized upstream URL and request headers.
+        Sanitized upstream URL and request headers.
 
     Raises:
         ForbiddenException: If the URL is not an absolute HTTP(S) URL.

@@ -19,6 +19,14 @@ class CacheNode(Node):
     async def execute(
         cls, *, graph_id: int, node_data: dict[str, Any], context: Context, **kwargs
     ):
+        """Cache a rendered variable with an optional expiry.
+
+        Args:
+            graph_id: Flow graph ID.
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+        """
         key = cls.key.extract(node_data, context=context)
         ttl = int(cls.ttl.extract(node_data))
         if not key or ttl < 0:

@@ -207,7 +207,7 @@ class DownloadTask(TortoiseModel):
         """Calculate the ratio of completed size to total size.
 
         Returns:
-            The formatted byte ratio and optional percentage.
+            Formatted byte ratio and optional percentage.
         """
         size = ""
         if self.completed_size is None or self.total_size is None:
@@ -222,7 +222,7 @@ class DownloadTask(TortoiseModel):
         """Estimate the download speed and time remaining.
 
         Returns:
-            The formatted speed and optional remaining duration.
+            Formatted speed and optional remaining duration.
         """
         speed = ""
         if self.dl_speed is None:
@@ -308,6 +308,14 @@ class DownloadAdd(BaseModel, RequestFilesMixin):
 
     @model_validator(mode="after")
     def check_link_or_torrent(self) -> Self:
+        """Require at least one download source.
+
+        Returns:
+            Validated submission model.
+
+        Raises:
+            ValueError: If both the link and torrent are absent.
+        """
         link = self.link.strip() if self.link else None
         if not link and not self.torrent:
             raise ValueError("either link or torrent must be provided")
@@ -315,6 +323,14 @@ class DownloadAdd(BaseModel, RequestFilesMixin):
 
     @field_serializer("torrent")
     def serialize_torrent(self, torrent: File | None) -> tuple | None:
+        """Convert a torrent upload to an HTTP multipart file tuple.
+
+        Args:
+            torrent: Uploaded torrent, or `None` when absent.
+
+        Returns:
+            File name, contents and media type, or `None` when absent.
+        """
         if torrent:
             # convert to `HTTPX` multipart file encoding
             # https://www.python-httpx.org/advanced/clients/#multipart-file-encoding
@@ -365,6 +381,14 @@ class DownloadPlanUpsert(BaseModel):
 
     @model_validator(mode="after")
     def validate_interval_fields(self) -> Self:
+        """Require the plan start time to precede its end time.
+
+        Returns:
+            Validated plan settings.
+
+        Raises:
+            ValueError: If the configured time range is empty or reversed.
+        """
         if (
             self.interval_start is not None
             and self.interval_end is not None

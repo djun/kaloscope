@@ -2,6 +2,10 @@ import { icons } from '$lib/icons';
 import type { Menu } from '$lib/types';
 import type { LayoutLoad } from './$types';
 
+/**
+ * Build download navigation and speed indicators.
+ * @returns Data used by the layout or page.
+ */
 export const load: LayoutLoad = () => {
   const menus: Menu[] = [
     {

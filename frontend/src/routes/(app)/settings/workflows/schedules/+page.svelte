@@ -39,8 +39,8 @@
   /**
    * Search for flow jobs.
    *
-   * @param page - The page number.
-   * @param size - The page size.
+   * @param page - Page number.
+   * @param size - Page size.
    * @param retry - Whether this search is a retry attempt.
    */
   function search(page: number = 1, size: number = pagination.size, retry: boolean = false) {
@@ -89,7 +89,7 @@
   /**
    * Pause a flow job by ID.
    *
-   * @param id - The flow job ID.
+   * @param id - Flow job ID.
    */
   function pause(id: number) {
     loading.start();
@@ -102,7 +102,7 @@
   /**
    * Resume a flow job by ID.
    *
-   * @param id - The flow job ID.
+   * @param id - Flow job ID.
    */
   function resume(id: number) {
     loading.start();
@@ -115,7 +115,7 @@
   /**
    * Delete a flow job by ID.
    *
-   * @param id - The flow job ID.
+   * @param id - Flow job ID.
    */
   function del(id: number) {
     loading.start();
@@ -126,9 +126,9 @@
   }
 
   /**
-   * Format the trigger description for display.
+   * Format trigger description for display.
    *
-   * @param job - The flow job.
+   * @param job - Flow job.
    */
   function triggerDesc(job: FlowJob): string {
     switch (job.trigger) {

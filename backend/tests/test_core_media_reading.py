@@ -26,8 +26,8 @@ def _files(root: Path, *paths: str):
     """Create fixtures whose bytes are intentionally irrelevant to discovery.
 
     Args:
-        root: The temporary library directory.
-        paths: Relative files to create beneath the root.
+        root: Temporary library directory.
+        *paths: Relative files to create beneath the root.
     """
     for relative in paths:
         path = root / relative
@@ -257,10 +257,10 @@ def test_source_snapshot(tmp_path, monkeypatch, lib_type, filename):
     """Observe body attributes without parsing bytes, including same-size edits.
 
     Args:
-        tmp_path: The isolated library directory.
-        monkeypatch: The fixture preventing body reads during observation.
-        lib_type: The reading library type.
-        filename: The body filename to observe.
+        tmp_path: Isolated library directory.
+        monkeypatch: Fixture preventing body reads during observation.
+        lib_type: Reading library type.
+        filename: Body filename to observe.
     """
     _files(tmp_path, f"Work/{filename}")
     handler = get_handler(lib_type)
@@ -292,7 +292,7 @@ def test_snapshot_scopes(tmp_path):
     """Ignore unrelated writes but include selected pages and work-level layout.
 
     Args:
-        tmp_path: The isolated library directory.
+        tmp_path: Isolated library directory.
     """
     _files(tmp_path, "Work/A/1.png", "Work/B/1.png", "Work/ComicInfo.xml")
     handler = get_handler(LibType.COMIC)
@@ -300,7 +300,7 @@ def test_snapshot_scopes(tmp_path):
     targets = {work / "A"}
 
     def snapshot():
-        """Return the selected chapter's current source digest."""
+        """Return selected chapter's current source digest."""
         return handler.snapshot_sources(str(tmp_path), work_path=work, targets=targets)
 
     first = snapshot()
@@ -323,7 +323,7 @@ def test_snapshot_absence(tmp_path):
     """Distinguish missing, empty and populated containers without deleting anything.
 
     Args:
-        tmp_path: The isolated library directory.
+        tmp_path: Isolated library directory.
     """
     handler = get_handler(LibType.COMIC)
     work = tmp_path / "Work"
@@ -351,8 +351,8 @@ def test_snapshot_symlink(tmp_path, scope):
     """Reject symlinks on every selected directory boundary.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        scope: The directory boundary replaced by a symlink.
+        tmp_path: Isolated filesystem root.
+        scope: Directory boundary replaced by a symlink.
     """
     original = tmp_path / "Original"
     _files(original, "Library/Work/A/1.png")
@@ -379,9 +379,9 @@ def test_snapshot_unavailable(tmp_path, monkeypatch, scope):
     """Report stat permission errors rather than a stable missing source.
 
     Args:
-        tmp_path: The isolated library directory.
-        monkeypatch: The fixture injecting a stat failure.
-        scope: The inaccessible directory relative to the library.
+        tmp_path: Isolated library directory.
+        monkeypatch: Fixture injecting a stat failure.
+        scope: Inaccessible directory relative to the library.
     """
     _files(tmp_path, "Work/A/1.png")
     original = Path.stat
@@ -390,11 +390,11 @@ def test_snapshot_unavailable(tmp_path, monkeypatch, scope):
         """Reject stat calls for the selected inaccessible directory.
 
         Args:
-            path: The path whose attributes are requested.
+            path: Path whose attributes are requested.
             **kwargs: Options forwarded to Path.stat for accessible paths.
 
         Returns:
-            The original filesystem attributes when the path is accessible.
+            Original filesystem attributes when the path is accessible.
 
         Raises:
             PermissionError: For the selected inaccessible directory.
@@ -417,7 +417,7 @@ def test_snapshot_targets(tmp_path, targets):
     """Reject invalid selections before accessing their sources.
 
     Args:
-        tmp_path: The isolated library directory.
+        tmp_path: Isolated library directory.
         targets: Invalid relative target paths.
     """
     with pytest.raises(ValueError):
@@ -450,10 +450,10 @@ def test_source_unavailable(tmp_path, monkeypatch, failed):
         """Fail only the selected scope.
 
         Args:
-            path: The directory requested by source discovery.
+            path: Directory requested by source discovery.
 
         Returns:
-            The real directory iterator for accessible scopes.
+            Real directory iterator for accessible scopes.
 
         Raises:
             PermissionError: For the selected inaccessible scope.
@@ -560,9 +560,9 @@ def test_synthetic_events(tmp_path, lib_type, event_type):
     """Ignore only inferred moves while preserving other source notifications.
 
     Args:
-        tmp_path: The isolated library root.
-        lib_type: The reading library receiving the event.
-        event_type: The filesystem notification whose inferred flag is set.
+        tmp_path: Isolated library root.
+        lib_type: Reading library receiving the event.
+        event_type: Filesystem notification whose inferred flag is set.
     """
     event = event_type(
         str(tmp_path / "Old/Chapter/1.jpg"),
@@ -647,10 +647,10 @@ def test_content_events(tmp_path, lib_type, relative, forced):
     """Distinguish body changes from metadata, covers and ignored file events.
 
     Args:
-        tmp_path: The isolated library root.
-        lib_type: The reading library type.
-        relative: The event path relative to the root.
-        forced: The expected forced container, or None for an incremental check.
+        tmp_path: Isolated library root.
+        lib_type: Reading library type.
+        relative: Event path relative to the root.
+        forced: Expected forced container, or None for an incremental check.
     """
     handler = get_handler(lib_type)
     assert isinstance(handler, reading.ReadingMediaHandler)
@@ -676,9 +676,9 @@ def test_content_moves(tmp_path, src, dest, forced):
     """Classify both ends of a move independently without changing its facts.
 
     Args:
-        tmp_path: The isolated library root.
-        src: The relative source path.
-        dest: The relative destination path.
+        tmp_path: Isolated library root.
+        src: Relative source path.
+        dest: Relative destination path.
         forced: Work names whose body indexes must be rebuilt.
     """
     event = FileMovedEvent(str(tmp_path / src), str(tmp_path / dest))
@@ -695,7 +695,7 @@ def test_content_directories(tmp_path):
     """Force replaced directories while keeping directory modifications incremental.
 
     Args:
-        tmp_path: The isolated library root.
+        tmp_path: Isolated library root.
     """
     handler = get_handler(LibType.COMIC)
     path = str(tmp_path / "Work/Chapter")

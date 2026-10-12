@@ -57,10 +57,10 @@ def _source(
     navigation: str | None = None,
     ncx: bool = False,
 ) -> ReadingSource:
-    """Write a real isolated EPUB with ordered bodies and an extensionless image.
+    """Write an isolated EPUB with ordered text and an image without an extension.
 
     Args:
-        tmp_path: The isolated test directory.
+        tmp_path: Isolated test directory.
         bodies: Spine bodies; defaults to one mixed text and image paragraph.
         image: Image member bytes; defaults to a supported PNG signature.
         navigation: Optional navigation document; absent by default.
@@ -117,11 +117,11 @@ def _index(source: ReadingSource, cache: Path) -> EpubIndex:
     """Build EPUB through the public novel entry point.
 
     Args:
-        source: The isolated EPUB fixture.
-        cache: The new cache directory.
+        source: Isolated EPUB fixture.
+        cache: New cache directory.
 
     Returns:
-        The validated EPUB index.
+        Validated EPUB index.
     """
     index = build_text_index(source, cache)
     assert isinstance(index, EpubIndex)
@@ -133,7 +133,7 @@ def _content(cache: Path, chapter_id: str) -> EpubContent:
     """Read one EPUB section through the public novel entry point.
 
     Args:
-        cache: The completed EPUB cache directory.
+        cache: Completed EPUB cache directory.
         chapter_id: An exact indexed section ID.
 
     Returns:
@@ -180,13 +180,13 @@ def test_epub_roundtrip(tmp_path, monkeypatch):
         """Record image reads while retaining the real archive validation.
 
         Args:
-            archive: The validated fixture archive.
-            member: The member being consumed.
-            limit: The uncompressed byte budget.
+            archive: Validated fixture archive.
+            member: Member being consumed.
+            limit: Uncompressed byte budget.
             prefix_bytes: Retained prefix length, or None for all bytes.
 
         Returns:
-            The bounded member bytes.
+            Bounded member bytes.
         """
         reads.append((member.filename, prefix_bytes))
         return read_member(archive, member, limit, prefix_bytes=prefix_bytes)
@@ -261,9 +261,9 @@ def test_navigation_external(tmp_path, monkeypatch):
             """Fail if any XML parser attempts external resolution.
 
             Args:
-                url: The requested external location.
-                public_id: The optional DTD public identifier.
-                context: The active parser context.
+                url: Requested external location.
+                public_id: Optional DTD public identifier.
+                context: Active parser context.
             """
             accesses.append(url)
             raise AssertionError("external XML access")
@@ -272,11 +272,11 @@ def test_navigation_external(tmp_path, monkeypatch):
         """Install a resolver that detects external file and network reads.
 
         Args:
-            args: Positional parser arguments.
-            kwargs: Keyword parser arguments.
+            *args: Positional parser arguments.
+            **kwargs: Keyword parser arguments.
 
         Returns:
-            The real XML parser with an access trap.
+            Real XML parser with an access trap.
         """
         result = parser(*args, **kwargs)
         result.resolvers.add(RejectResolver())
@@ -439,10 +439,10 @@ def test_chapter_range(tmp_path, monkeypatch):
             """Record and bound the selected chapter's byte range.
 
             Args:
-                size: The byte count; unbounded reads are rejected.
+                size: Byte count; unbounded reads are rejected.
 
             Returns:
-                The requested bytes from the isolated cache.
+                Requested bytes from the isolated cache.
             """
             assert 0 <= size <= epub_cache._SECTION_BYTES
             reads.append((self.tell(), size))
@@ -452,12 +452,12 @@ def test_chapter_range(tmp_path, monkeypatch):
         """Serve a guarded cache stream and reject source reads.
 
         Args:
-            path: The file requested by the reader.
-            args: Positional open arguments.
-            kwargs: Keyword open arguments.
+            path: File requested by the reader.
+            *args: Positional open arguments.
+            **kwargs: Keyword open arguments.
 
         Returns:
-            The guarded chapter body or the real file stream.
+            Guarded chapter body or the real file stream.
         """
         assert path != source.path
         if path == body_path:
@@ -584,11 +584,11 @@ def test_build_changed(tmp_path, monkeypatch, change):
         """Change the source after consuming a spine member.
 
         Args:
-            args: Positional document reader arguments.
-            kwargs: Keyword document reader arguments.
+            *args: Positional document reader arguments.
+            **kwargs: Keyword document reader arguments.
 
         Returns:
-            The original converted document before the source changed.
+            Original converted document before the source changed.
         """
         document = read_document(*args, **kwargs)
         if change == "delete":
@@ -634,11 +634,11 @@ def test_resource_changed(tmp_path, monkeypatch, change):
             """Delete the source after the selected image is read.
 
             Args:
-                args: Positional member reader arguments.
-                kwargs: Keyword member reader arguments.
+                *args: Positional member reader arguments.
+                **kwargs: Keyword member reader arguments.
 
             Returns:
-                The original image bytes.
+                Original image bytes.
             """
             data = read_member(*args, **kwargs)
             source.path.unlink()

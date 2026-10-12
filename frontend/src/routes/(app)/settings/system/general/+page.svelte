@@ -38,7 +38,7 @@
   /**
    * Persist a config value to the backend.
    *
-   * @param key - The config key.
+   * @param key - Config key.
    */
   function setValue(key: string) {
     api.post('config/upsert', {

@@ -47,6 +47,9 @@
   // the modal dialog instance
   let modal: Modal;
   let creatingGraph = false;
+  /**
+   * Restore the selected graph before opening the job editor.
+   */
   export const showModal = () => {
     if (id) {
       graphOptions = [{ value: graph_id, label: graph_name! }];

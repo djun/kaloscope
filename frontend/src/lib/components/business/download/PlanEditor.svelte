@@ -68,6 +68,9 @@
   // the modal dialog and file tree instance
   let modal: Modal;
   let fileTree: FileTree;
+  /**
+   * Restore the current plan settings before opening the editor.
+   */
   export const showModal = () => {
     if (id) {
       graphOptions = [{ value: graph_id, label: graph_name! }];
@@ -88,7 +91,7 @@
   let searching = createLoading();
   let abortController: AbortController | null = null;
 
-  // the download directory and downloaders
+  // the download directory and download clients
   let directory: DownloadDir | null = $state(null);
   let downloaders: Downloader[] = $state([]);
 
@@ -109,9 +112,9 @@
   }));
 
   /**
-   * Get the indexer config for the given graph.
+   * Get indexer config for the given graph.
    *
-   * @param graphId - The flow graph ID.
+   * @param graphId - Flow graph ID.
    */
   function configure(graphId: number | undefined) {
     if (!graphId) {
@@ -242,7 +245,7 @@
         });
     }
 
-    // load the downloaders and media libraries in parallel
+    // load the download clients and media libraries in parallel
     Promise.all([
       api
         .get('download/dir/list')

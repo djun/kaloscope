@@ -3,6 +3,10 @@ import { icons } from '$lib/icons';
 import type { FlowGraph, Menu, Page, Resp } from '$lib/types';
 import type { LayoutLoad } from './$types';
 
+/**
+ * Build search navigation from the available indexer graphs.
+ * @returns Data used by the layout or page.
+ */
 export const load: LayoutLoad = async () => {
   const menus: Menu[] = [
     {

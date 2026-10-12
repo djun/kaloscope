@@ -59,12 +59,13 @@ def validate_template(template: str, lib_type: str | None = None) -> str | None:
     """Validate a relative path containing only literal text and named tokens.
 
     Args:
-        template: The relative path template to validate.
-        lib_type: The library type used to restrict path depth and available
+        template: Relative path template to validate.
+        lib_type: Library type used to restrict path depth and available `None`
+            validates without library-specific restrictions.
             placeholders, or `None` to apply only the shared template rules.
 
     Returns:
-        The stripped template, normalizing legacy tokens when the result fits
+        Stripped template, normalizing legacy tokens when the result fits
         the length limit, or `None` if empty.
 
     Raises:
@@ -128,11 +129,11 @@ def _render_component(component: str, context: dict[str, Any]) -> str:
     """Render and validate a single filename or directory component.
 
     Args:
-        component: The path component containing literal text and placeholders.
-        context: The metadata field values used to replace placeholders.
+        component: Path component containing literal text and placeholders.
+        context: Metadata field values used to replace placeholders.
 
     Returns:
-        The rendered component with unsafe metadata characters replaced.
+        Rendered component with unsafe metadata characters replaced.
 
     Raises:
         ValueError: If a required field is missing, a numeric field is invalid,
@@ -143,10 +144,10 @@ def _render_component(component: str, context: dict[str, Any]) -> str:
         """Replace a placeholder with a sanitized metadata field value.
 
         Args:
-            match: The placeholder match with the field name in its first group.
+            match: Placeholder match with the field name in its first group.
 
         Returns:
-            The formatted field value with unsafe path characters replaced.
+            Formatted field value with unsafe path characters replaced.
 
         Raises:
             ValueError: If the field is missing or a numeric field is invalid.
@@ -186,12 +187,12 @@ def render_path(template: str, context: dict[str, Any], lib_type: str) -> PurePo
     """Render a relative path without a media extension.
 
     Args:
-        template: The relative path template to render.
-        context: The metadata field values used to replace placeholders.
-        lib_type: The library type used to validate the template.
+        template: Relative path template to render.
+        context: Metadata field values used to replace placeholders.
+        lib_type: Library type used to validate the template.
 
     Returns:
-        The rendered path relative to the media library root.
+        Rendered path relative to the media library root.
 
     Raises:
         ValueError: If the template is empty or invalid, a required field is
@@ -211,13 +212,13 @@ def render_directory(
     """Render shared parent components using the top-level item's metadata.
 
     Args:
-        template: The relative path template whose parent components are rendered.
-        context: The parent metadata used to replace placeholders. Reading
+        template: Relative path template whose parent components are rendered.
+        context: Parent metadata used to replace placeholders. Reading
             templates use the collection or standalone book, not a chapter.
-        lib_type: The library type used to validate the template.
+        lib_type: Library type used to validate the template.
 
     Returns:
-        The parent path relative to the media library root, or the current
+        Parent path relative to the media library root, or the current
         directory when the template has no parent components.
 
     Raises:
@@ -236,12 +237,12 @@ def render_filename(template: str, context: dict[str, Any], lib_type: str) -> st
     """Render the filename independently from the shared parent context.
 
     Args:
-        template: The relative path template whose final component is rendered.
-        context: The current media metadata used to replace placeholders.
-        lib_type: The library type used to validate the template.
+        template: Relative path template whose final component is rendered.
+        context: Current media metadata used to replace placeholders.
+        lib_type: Library type used to validate the template.
 
     Returns:
-        The rendered filename without a media extension.
+        Rendered filename without a media extension.
 
     Raises:
         ValueError: If the template is empty or invalid, a required filename field

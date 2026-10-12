@@ -26,10 +26,10 @@ async def standardize_magnet(link: str) -> MagnetLink | None:
     """Standardize a magnet link.
 
     Args:
-        link: The magnet link string, or an HTTP/HTTPS URL to a torrent file.
+        link: Magnet link string, or an HTTP/HTTPS URL to a torrent file.
 
     Returns:
-        The standardized magnet link object if successful, None otherwise.
+        Standardized magnet link object if successful, None otherwise.
     """
     link = link.strip()
     if not link:
@@ -37,7 +37,7 @@ async def standardize_magnet(link: str) -> MagnetLink | None:
     # HTTP/HTTPS link
     if link.lower().startswith(("http://", "https://")):
         return await _http_to_magnet(link)
-    # Magnet link
+    # magnet link
     if link.startswith("magnet:"):
         hash = get_magnet_hash(link)
         hash_v2 = get_magnet_hash_v2(link)
@@ -64,7 +64,7 @@ async def _http_to_magnet(url: str) -> MagnetLink | None:
         url: The HTTP/HTTPS URL to the torrent file.
 
     Returns:
-        The magnet link object if successful, None otherwise.
+        Magnet link object if successful, None otherwise.
     """
     try:
         client: httpx.AsyncClient = Sanic.get_app().ctx.httpx
@@ -98,7 +98,7 @@ def is_info_hash(hash: str) -> bool:
     """Check if a string is a valid info hash.
 
     Args:
-        hash: The string to check.
+        hash: String to check.
 
     Returns:
         True if the string is a valid info hash, False otherwise.
@@ -113,7 +113,7 @@ def is_info_hash_v2(hash: str) -> bool:
     """Check if a string is a valid info hash v2.
 
     Args:
-        hash: The string to check.
+        hash: String to check.
 
     Returns:
         True if the string is a valid info hash v2, False otherwise.
@@ -125,10 +125,10 @@ def get_magnet_hash(link: str) -> str | None:
     """Extract the info hash from a magnet link.
 
     Args:
-        link: The magnet link.
+        link: Magnet link.
 
     Returns:
-        The info hash if found, None otherwise.
+        Info hash if found, None otherwise.
     """
     match = re.search(r"urn:btih:([0-9a-fA-F]{40}|[0-9a-zA-Z]{32})(?=&|$)", link)
     return base32_to_sha1(match.group(1)) if match else None
@@ -138,17 +138,17 @@ def get_magnet_hash_v2(link: str) -> str | None:
     """Extract the info hash v2 from a magnet link.
 
     Args:
-        link: The magnet link.
+        link: Magnet link.
 
     Returns:
-        The info hash v2 if found, None otherwise.
+        Info hash v2 if found, None otherwise.
     """
     match = re.search(r"urn:btmh:(1220[0-9a-fA-F]{64})(?=&|$)", link)
     return match.group(1) if match else None
 
 
 def base32_to_sha1(hash: str) -> str:
-    """Converts a Base32 hash (from a magnet link) to a SHA1 hash.
+    """Convert a Base32 hash (from a magnet link) to a SHA1 hash.
 
     Args:
         hash: The Base32 encoded hash string.
@@ -166,10 +166,10 @@ def decode_torrent(torrent: bytes) -> Torrent | None:
     """Decode a torrent file.
 
     Args:
-        torrent: The torrent file content.
+        torrent: Torrent file content.
 
     Returns:
-        The decoded torrent object if successful, None otherwise.
+        Decoded torrent object if successful, None otherwise.
     """
     try:
         # preserve binary piece hashes when re-encoding the `info` dictionary
@@ -185,10 +185,10 @@ def get_torrent_hash(torrent: bytes) -> str | None:
     """Extract the info hash from a torrent file.
 
     Args:
-        torrent: The torrent file content.
+        torrent: Torrent file content.
 
     Returns:
-        The info hash if found, None otherwise.
+        Info hash if found, None otherwise.
     """
     decoded = decode_torrent(torrent)
     return decoded.info_hash if decoded else None

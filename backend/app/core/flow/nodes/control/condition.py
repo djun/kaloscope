@@ -21,6 +21,16 @@ class ConditionNode(Node):
     async def execute(
         cls, *, node_data: dict[str, Any], context: Context, **kwargs
     ) -> OutputHandle | None:
+        """Choose the output handle from the rendered condition.
+
+        Args:
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+
+        Returns:
+            True or false output handle.
+        """
         var = cls.expression.extract(node_data, context=context, raw=True)
         # an XPath element indicates a match even when it has no children
         if isinstance(var, etree._Element):

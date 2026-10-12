@@ -30,7 +30,7 @@
   /**
    * Show an alert message.
    *
-   * @param alert - The alert message instance.
+   * @param alert - Alert message instance.
    */
   export function alert(message: Alert | string | null) {
     if (typeof message === 'string') {

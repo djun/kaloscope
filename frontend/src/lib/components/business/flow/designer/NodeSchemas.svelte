@@ -29,8 +29,8 @@
   /**
    * Check if the node is disabled.
    *
-   * @param group - The group name.
-   * @param schema - The node schema.
+   * @param group - Group name.
+   * @param schema - Node schema.
    */
   function isDisabled(group: string, schema: NodeSchema) {
     if (graph === null) {
@@ -46,7 +46,7 @@
   /**
    * Add a node to the graph.
    *
-   * @param schema - The node schema.
+   * @param schema - Node schema.
    */
   function addNode(schema: NodeSchema) {
     if (!interactive) {
@@ -88,7 +88,7 @@
   /**
    * Find the first non-occupied coordinate.
    *
-   * @param coordinates - The list of coordinates.
+   * @param coordinates - List of coordinates.
    */
   function nextCoordinate(coordinates: number[]) {
     for (let i = 0; i < coordinates.length; i++) {
@@ -103,8 +103,8 @@
   /**
    * Handle the drag start event.
    *
-   * @param event - The drag event.
-   * @param schema - The node schema.
+   * @param event - Drag event.
+   * @param schema - Node schema.
    */
   function ondragstart(event: DragEvent, schema: NodeSchema) {
     const transfer = event.dataTransfer;

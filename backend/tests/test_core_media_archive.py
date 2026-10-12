@@ -40,13 +40,13 @@ def _source(
     """Create and discover a real comic archive in an isolated container.
 
     Args:
-        tmp_path: The temporary test directory.
+        tmp_path: Temporary test directory.
         entries: Member names or descriptors with their uncompressed bytes.
-        format: The source suffix; defaults to CBZ.
-        compression: The method for named entries; defaults to Deflate.
+        format: Source suffix; defaults to CBZ.
+        compression: Method for named entries; defaults to Deflate.
 
     Returns:
-        The archive source discovered by the reading handler.
+        Archive source discovered by the reading handler.
     """
     path = tmp_path / "library/Comic" / f"comic.{format.value.upper()}"
     path.parent.mkdir(parents=True)
@@ -280,11 +280,11 @@ def test_member_read_bound(tmp_path, monkeypatch, prefix_bytes):
         """Require bounded decompression reads.
 
         Args:
-            file: The member stream.
-            size: The read bound; the unbounded default is rejected.
+            file: Member stream.
+            size: Read bound; the unbounded default is rejected.
 
         Returns:
-            The next decoded bytes.
+            Next decoded bytes.
         """
         assert 0 < size <= archive._READ_BYTES
         sizes.append(size)
@@ -333,13 +333,13 @@ def test_source_changed(tmp_path, monkeypatch, phase, change):
         """Mutate the archive after the selected member was decoded.
 
         Args:
-            file: The open archive.
-            member: The selected member.
-            limit: The uncompressed byte budget.
-            kwargs: Remaining options forwarded to the reader.
+            file: Open archive.
+            member: Selected member.
+            limit: Uncompressed byte budget.
+            **kwargs: Remaining options forwarded to the reader.
 
         Returns:
-            The member's original decoded bytes.
+            Member's original decoded bytes.
         """
         data = read_member(file, member, limit, **kwargs)
         if change == "append":
@@ -484,7 +484,7 @@ def test_source_unavailable(tmp_path, monkeypatch, phase):
             """Simulate a source I/O failure below the ZIP directory parser.
 
             Args:
-                buffer: The buffer requested by the bounded reader.
+                buffer: Buffer requested by the bounded reader.
 
             Raises:
                 OSError: For every source read.

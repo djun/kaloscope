@@ -29,7 +29,7 @@ class Package:
 
 
 # ---------------------------------------------------------------------------
-# Run external tools
+# run external tools
 # ---------------------------------------------------------------------------
 
 
@@ -56,7 +56,7 @@ def run_pip_licenses():
 
 
 # ---------------------------------------------------------------------------
-# Parse JSON outputs
+# parse JSON outputs
 # ---------------------------------------------------------------------------
 
 
@@ -99,14 +99,22 @@ def parse_backend_json() -> list[Package]:
 
 
 # ---------------------------------------------------------------------------
-# Generate LICENSES.md
+# generate LICENSES.md
 # ---------------------------------------------------------------------------
 
 EXCLUDE_NAMES = {"kaloscope-frontend", "kaloscope-backend"}
 
 
 def generate_table(packages: list[Package], title: str) -> list[str]:
-    """Generate a Markdown table for dependency data."""
+    """Generate a Markdown table for dependency data.
+
+    Args:
+        packages: Dependency records to include.
+        title: Table heading.
+
+    Returns:
+        Markdown lines for the dependency table.
+    """
     pkgs = [p for p in packages if p.name not in EXCLUDE_NAMES]
     rows: list[str] = [
         f"## {title}\n",
@@ -127,7 +135,12 @@ def generate_table(packages: list[Package], title: str) -> list[str]:
 
 
 def generate_licenses(frontend_data: list[Package], backend_data: list[Package]):
-    """Generate the complete LICENSES.md document."""
+    """Generate the complete LICENSES.md document.
+
+    Args:
+        frontend_data: Frontend dependency records.
+        backend_data: Backend dependency records.
+    """
     now = datetime.now(timezone.utc).strftime("%B %d, %Y, %I:%M %p %Z")
     lines: list[str] = [
         "# Third-Party License Notices\n",
@@ -141,7 +154,7 @@ def generate_licenses(frontend_data: list[Package], backend_data: list[Package])
 
 
 # ---------------------------------------------------------------------------
-# Update README badges
+# update README badges
 # ---------------------------------------------------------------------------
 
 
@@ -200,7 +213,7 @@ def update_readme():
 
 
 # ---------------------------------------------------------------------------
-# Main
+# main
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":

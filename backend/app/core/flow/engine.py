@@ -82,10 +82,10 @@ class EventWrapper:
         """Wrap the flow instance into an event.
 
         Args:
-            inst: The flow instance.
+            inst: Flow instance.
 
         Returns:
-            The event wrapper.
+            Event wrapper.
         """
         return cls(
             "immediate",
@@ -101,10 +101,10 @@ class EventWrapper:
         """Wrap the flow job into an event.
 
         Args:
-            job: The flow job.
+            job: Flow job.
 
         Returns:
-            The event wrapper.
+            Event wrapper.
         """
         if job.interval_num and job.interval_unit:
             interval = (job.interval_num, job.interval_unit.value)
@@ -140,21 +140,21 @@ class NodeWrapper:
         """Bind the input handle to the node.
 
         Args:
-            handle_id: The handle ID.
-            loop_id: The loop node ID.
+            handle_id: Handle ID.
+            loop_id: Loop node ID. `None` means no active loop.
 
         Returns:
-            The node data wrapper.
+            Node data wrapper.
         """
         self.input_handle = InputHandle.create(handle_id, loop_id)
         return self
 
     @property
     def loop_id(self) -> str | None:
-        """Get the loop node ID from the input handle.
+        """Get loop node ID from the input handle.
 
         Returns:
-            The loop node ID.
+            Loop node ID.
         """
         return self.input_handle.loop_id if self.input_handle else None
 
@@ -241,7 +241,7 @@ class FlowEngine:
         """Calculate the payload based on the number of workers and tasks.
 
         Returns:
-            The payload of the engine.
+            Payload of the engine.
         """
         factor = (1 - (1 / self._num_workers)) / 100
         if factor == 0:
@@ -337,7 +337,7 @@ class FlowEngine:
         """Add the flow job to the broker.
 
         Args:
-            job_id: The flow job ID.
+            job_id: Flow job ID.
         """
         job = FlowJob.filter(id=job_id, state__not=JobState.RUNNING)
         if await job.update(state=JobState.RUNNING) == 1:
@@ -347,7 +347,7 @@ class FlowEngine:
         """Pause the flow job.
 
         Args:
-            job_id: The flow job ID.
+            job_id: Flow job ID.
         """
         job = FlowJob.filter(id=job_id, state=JobState.RUNNING)
         if await job.update(state=JobState.PAUSED) == 1:
@@ -357,7 +357,7 @@ class FlowEngine:
         """Resume the flow job.
 
         Args:
-            job_id: The flow job ID.
+            job_id: Flow job ID.
         """
         await self.add_job(job_id)
 
@@ -365,7 +365,7 @@ class FlowEngine:
         """Refresh the flow job.
 
         Args:
-            job_id: The flow job ID.
+            job_id: Flow job ID.
         """
         job = FlowJob.filter(id=job_id, state=JobState.RUNNING)
         if await job.update(state=JobState.PENDING) == 1:
@@ -375,7 +375,7 @@ class FlowEngine:
         """Delete the flow job.
 
         Args:
-            job_id: The flow job ID.
+            job_id: Flow job ID.
         """
         if await FlowJob.filter(id=job_id, state=JobState.RUNNING).exists():
             self._job_actions[job_id] = JobAction.DELETE
@@ -394,15 +394,17 @@ class FlowEngine:
         """Execute the flow graph.
 
         Args:
-            graph_id: The flow graph ID for execution.
-            bootparams: The boot parameters for execution.
-            repeatable: Whether the execution is repeatable.
-            recoverable: Whether the execution is recoverable.
-            recovery_id: The flow instance ID for recovery.
-            asynchronous: Whether to run the task in the background.
+            graph_id: Flow graph ID for execution.
+            bootparams: Boot parameters for execution. `None` adds no startup
+                parameters.
+            repeatable: Whether the execution is repeatable. Defaults to `True`.
+            recoverable: Whether the execution is recoverable. Defaults to `False`.
+            recovery_id: Flow instance ID for recovery. `None` creates a new run.
+            asynchronous: Whether to run the task in the background. Defaults to
+                `False`.
 
         Returns:
-            The execution result.
+            Execution result.
 
         Raises:
             Exception: If synchronous task setup or execution fails. Individual
@@ -481,12 +483,14 @@ class FlowEngine:
         any domain locks are released.
 
         Args:
-            graph_ids: The ordered graphs and their asynchronous execution flags.
-            bootparams: The original parameters shared by every graph in the batch.
+            graph_ids: Ordered graphs and their asynchronous execution flags.
+            bootparams: Original parameters shared by every graph in the batch.
+                `None` adds no startup parameters.
             repeatable: Whether concurrent execution of identical tasks is allowed.
+                Defaults to `True`.
 
         Returns:
-            The first persisted instance, or `None` for an empty batch.
+            First persisted instance, or `None` for an empty batch.
         """
         first = None
         prev_id = None
@@ -519,9 +523,10 @@ class FlowEngine:
 
         Args:
             graph_ids: A list of flow graph IDs for execution.
-            bootparams: The boot parameters for execution.
-            repeatable: Whether the execution is repeatable.
-            recoverable: Whether the execution is recoverable.
+            bootparams: Boot parameters for execution. `None` adds no startup
+                parameters.
+            repeatable: Whether the execution is repeatable. Defaults to `True`.
+            recoverable: Whether the execution is recoverable. Defaults to `False`.
         """
         if not recoverable:
             # execute the flow graphs without recovery
@@ -572,6 +577,13 @@ class FlowTask(ABC):
     _running_tasks: ListProxy | None = None
 
     def __init__(self, graph_id: int, bootparams: Mapping[str, Any], repeatable: bool):
+        """Initialize a flow run and its concurrency settings.
+
+        Args:
+            graph_id: Flow graph ID.
+            bootparams: Parameters supplied at flow startup.
+            repeatable: Allow concurrent runs with the same graph and parameters.
+        """
         self.graph_id = graph_id
         self.bootparams = bootparams
         self.repeatable = repeatable
@@ -591,13 +603,13 @@ class FlowTask(ABC):
         """Factory method to create a flow task from an event.
 
         Args:
-            event: The event wrapper.
+            event: Event wrapper.
 
         Raises:
             KaloscopeException: If the task is already running.
 
         Returns:
-            The flow task instance.
+            Flow task instance.
         """
         task_symbol = (event.graph_id, event.bootparams or {})
         if not event.repeatable and task_symbol in cls.running_tasks():
@@ -623,6 +635,15 @@ class FlowTask(ABC):
 
     async def __aenter__(self) -> Self:
         # check if the task is already running
+        """Register the run and initialize its context.
+
+        Returns:
+            Initialized task.
+
+        Raises:
+            KaloscopeException: If a matching run is already active and repeats are
+                disabled.
+        """
         if not self.repeatable:
             with self.running_lock():
                 task_symbol = (self.graph_id, self.bootparams)
@@ -639,10 +660,18 @@ class FlowTask(ABC):
 
     @abstractmethod
     async def initialize(self):
+        """Prepare the published graph and execution context."""
         raise NotImplementedError
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         # remove the task from the running tasks
+        """Release the run registration and clean up eligible state.
+
+        Args:
+            exc_type: Exception class, or `None` after a successful run.
+            exc_value: Unused exception instance from the context manager.
+            traceback: Unused exception trace from the context manager.
+        """
         if not self.repeatable:
             self.running_tasks().remove((self.graph_id, self.bootparams))
         # mark the task as cleanable if an exception is raised
@@ -654,16 +683,17 @@ class FlowTask(ABC):
 
     @abstractmethod
     async def cleanup(self):
+        """Release resources after a flow run."""
         raise NotImplementedError
 
     async def graph_definition(self) -> dict[str, Any]:
-        """Get the published flow graph definition from the database.
+        """Get published flow graph definition from the database.
 
         Raises:
             ValueError: If the flow graph does not exist.
 
         Returns:
-            The flow graph object.
+            Flow graph object.
         """
         graph = await FlowGraph.get_or_none(
             id=self.graph_id,
@@ -732,10 +762,10 @@ class FlowTask(ABC):
         return self._outgoers
 
     def start_nodes(self) -> list[NodeWrapper]:
-        """Get the start nodes to begin the flow execution.
+        """Get start nodes to begin the flow execution.
 
         Returns:
-            The list of start nodes.
+            List of start nodes.
         """
         start_type = self.bootparams.get(START_KEY)
         if start_type is not None:
@@ -748,14 +778,14 @@ class FlowTask(ABC):
         """Create a context manager for the node execution.
 
         Args:
-            node: The node data wrapper.
+            node: Node data wrapper.
 
         Raises:
             Exception: If node execution fails, after logging and recording any
                 correlated media task failure.
 
         Yields:
-            The context for the node execution.
+            Context for the node execution.
         """
         ctx = None
         loop_id = None
@@ -802,11 +832,11 @@ class FlowTask(ABC):
         """Create a footprint for the node execution.
 
         Args:
-            node: The node data wrapper.
-            started_at: The time when the execution started.
-            ended_at: The time when the execution ended.
-            ctx: The context for the node execution.
-            loop_id: The loop node ID.
+            node: Node data wrapper.
+            started_at: Time when the execution started.
+            ended_at: Time when the execution ended.
+            ctx: Context for the node execution.
+            loop_id: Loop node ID.
         """
         raise NotImplementedError
 
@@ -816,8 +846,10 @@ class FlowTask(ABC):
         """Run the flow task.
 
         Args:
-            nodes: The specific nodes to execute.
-            source: The edge source for the nodes to execute.
+            nodes: Specific nodes to execute. `None` starts from the graph's start
+                nodes.
+            source: Edge source for the nodes to execute. `None` means no incoming
+                edge.
         """
         _root = False
         if nodes is None:
@@ -828,10 +860,10 @@ class FlowTask(ABC):
             return
 
         async def _run(node: NodeWrapper):
-            """Run a single node and its outgoers recursively.
+            """Run a single node and its downstream nodes recursively.
 
             Args:
-                node: The node to execute.
+                node: Node to execute.
             """
             input = node.input_handle
             if input is not None:
@@ -854,7 +886,7 @@ class FlowTask(ABC):
                 )
 
             if output is not None:
-                # get the target nodes from the outgoers mapping
+                # get the target nodes from the outgoing edge mapping
                 src = Source(node.node_id, handle_id=output.id)
                 targets = self.outgoers.get(src)
                 if targets:
@@ -869,10 +901,10 @@ class FlowTask(ABC):
             """Wait for the tasks to complete and handle exceptions.
 
             Args:
-                tasks: The iterable of asyncio tasks to wait for.
+                tasks: Iterable of asyncio tasks to wait for.
 
             Raises:
-                e: CancellationSignal if any task is cancelled.
+                CancellationSignal: If a task requests cancellation during a nested run.
             """
             # wait until the first exception occurs or all tasks are done
             done, pending = await asyncio.wait(
@@ -905,10 +937,10 @@ class FlowTask(ABC):
         await _wait(asyncio.create_task(_run(node)) for node in nodes)
 
     async def retval(self) -> Any:
-        """Get the the execution result from the context as the return value.
+        """Get the execution result from the context as the return value.
 
         Returns:
-            The return value.
+            Return value.
         """
         value = self._context.get(RETVAL_KEY)
         await self.log_success(value)
@@ -918,7 +950,7 @@ class FlowTask(ABC):
         """Log the successful execution of the flow task.
 
         Args:
-            retval: The return value of the flow task.
+            retval: Return value of the flow task.
         """
         if self.bootparams.get(START_KEY) == "auth_start":
             retval = {"name": retval.get("name")} if isinstance(retval, dict) else None
@@ -935,8 +967,8 @@ class FlowTask(ABC):
         """Log the exception during the node execution.
 
         Args:
-            node: The node data wrapper.
-            exc_info: The exception information.
+            node: Node data wrapper.
+            exc_info: Exception information.
         """
         input_id = node.input_handle.id if node.input_handle else None
         await FlowLog.create(
@@ -952,7 +984,11 @@ class FlowTask(ABC):
         await self.clear_logs(preserve=5)
 
     async def clear_logs(self, *, preserve: int):
-        """Clear the old logs for the flow graph."""
+        """Clear the old logs for the flow graph.
+
+        Args:
+            preserve: Number of most recent execution groups to retain.
+        """
         filter = Q(graph_id=self.graph_id)
         await FlowLog.filter(
             filter,
@@ -983,6 +1019,13 @@ class TransientTask(FlowTask):
 
     async def footprint(self, node: NodeWrapper, *args, **kwargs):
         # remove the output handle
+        """Discard the transient node output after execution.
+
+        Args:
+            node: Node that finished executing.
+            *args: Unused positional arguments from the common task interface.
+            **kwargs: Unused keyword arguments from the common task interface.
+        """
         node.node_data.pop(OUTPUT_KEY, None)
 
 
@@ -998,11 +1041,20 @@ class PersistentTask(FlowTask):
         repeatable: bool,
         recovery_id: int | None = None,
     ):
+        """Initialize a flow run and its concurrency settings.
+
+        Args:
+            graph_id: Flow graph ID.
+            bootparams: Parameters supplied at flow startup.
+            repeatable: Allow concurrent runs with the same graph and parameters.
+            recovery_id: Instance to resume; `None` creates a new persistent run.
+        """
         super().__init__(graph_id, bootparams, repeatable)
         self.inst_id = recovery_id
         self.inst: FlowInstance | None = None
 
     async def initialize(self):
+        """Load persisted state or create a new run, then restore nodes."""
         footprints = []
         if self.inst_id is None:
             # create a new flow instance
@@ -1029,6 +1081,7 @@ class PersistentTask(FlowTask):
 
     async def cleanup(self):
         # delete the flow instance and footprints
+        """Delete persistent state only when the run is marked for cleanup."""
         if self.cleanable and self.inst is not None:
             await self.inst.delete()
 
@@ -1040,6 +1093,15 @@ class PersistentTask(FlowTask):
         ctx: Context,
         loop_id: str | None,
     ):
+        """Persist changed context and node state for recovery.
+
+        Args:
+            node: Node that finished executing.
+            started_at: Node start time.
+            ended_at: Node completion time.
+            ctx: Node context containing tracked storage changes.
+            loop_id: Active loop node ID, or `None` outside a loop.
+        """
         if self.inst_id is None:
             return
         if ctx.is_modified():
@@ -1072,10 +1134,10 @@ def _log_bootparams(bootparams: Mapping[str, Any] | None):
     """Exclude credentials from authentication flow logs.
 
     Args:
-        bootparams: The boot parameters for the flow execution.
+        bootparams: Boot parameters for the flow execution.
 
     Returns:
-        The authentication parameters without credentials.
+        Authentication parameters without credentials.
     """
     if bootparams and bootparams.get(START_KEY) == "auth_start":
         return {

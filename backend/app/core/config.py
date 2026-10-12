@@ -17,33 +17,43 @@ class KaloscopeConfig:
     _config: Self | None = None
 
     def __init__(self, toml: Path, root: Path | None = None):
-        """Initializes the configuration class.
+        """Load configuration and resolve the workspace root.
 
         Args:
-            toml: The path to the configuration file.
-            root: The root path to be used for formatting workspace paths.
+            toml: Configuration file path.
+            root: Workspace parent; `None` uses `/workspace`.
         """
         with open(toml, "rb") as f:
             self.toml_config = tomllib.load(f)
         self._workspace = f"{str(root) if root else ''}/workspace"
 
     def _upper_key(self, obj: dict[str, Any]) -> dict[str, Any]:
-        """Converts the keys of the dictionary to uppercase.
+        """Convert the keys of the dictionary to uppercase.
 
         Args:
-            obj: The dictionary to convert.
+            obj: Dictionary to convert.
 
         Returns:
-            The dictionary with uppercase keys.
+            Dictionary with uppercase keys.
         """
         return {k.upper(): v for k, v in obj.items()}
 
     @cached_property
     def app(self) -> dict[str, Any]:
+        """Get application settings with uppercase keys.
+
+        Returns:
+            Application settings.
+        """
         return self._upper_key(self.toml_config["app"])
 
     @cached_property
     def workspace(self) -> dict[str, Any]:
+        """Resolve workspace paths and uppercase their keys.
+
+        Returns:
+            Workspace settings with resolved paths.
+        """
         workspace = self.toml_config["workspace"]
         return self._upper_key(
             {
@@ -54,6 +64,11 @@ class KaloscopeConfig:
 
     @cached_property
     def tortoise(self) -> dict[str, Any]:
+        """Build database and migration settings.
+
+        Returns:
+            Database connection and model settings.
+        """
         db_url = f"sqlite://{self.workspace['DATABASE']}/db.sqlite3"
         return {
             "connections": {"default": db_url},
@@ -70,9 +85,19 @@ class KaloscopeConfig:
 
     @cached_property
     def logging(self) -> dict[str, Any]:
+        """Configure console logging for application dependencies.
+
+        Returns:
+            Logging configuration.
+        """
         logging_config = LOGGING_CONFIG_DEFAULTS
 
         def attach_logger(qualname: str):
+            """Route dependency logs to the console.
+
+            Args:
+                qualname: Logger name.
+            """
             logging_config["loggers"][qualname] = {
                 "level": "INFO",
                 "handlers": ["console"],
@@ -88,10 +113,10 @@ class KaloscopeConfig:
 
     @cached_property
     def secret_key_path(self) -> Path:
-        """Get the instance secret key file path.
+        """Get instance secret key file path.
 
         Returns:
-            The instance secret key file path.
+            Instance secret key file path.
         """
         return Path(self.workspace["DATABASE"]) / "secret.key"
 
@@ -147,7 +172,7 @@ class KaloscopeConfig:
         return value in _TRUE_VALUES
 
     def configure(self, app: Sanic):
-        """Update the Sanic application configuration and store it in the context.
+        """Update Sanic application configuration and store it in the context.
 
         Args:
             app: The Sanic application instance.
@@ -157,10 +182,10 @@ class KaloscopeConfig:
 
     @classmethod
     def get(cls) -> Self:
-        """Get the configuration instance stored in the application context.
+        """Get configuration instance stored in the application context.
 
         Returns:
-            The configuration instance.
+            Configuration instance.
         """
         if cls._config is None:
             config: Self = Sanic.get_app().ctx.app_config
@@ -172,9 +197,9 @@ class KaloscopeConfig:
         """Get a specific workspace path by name.
 
         Args:
-            name: The name of the workspace.
+            name: Name of the workspace.
 
         Returns:
-            The path to the workspace.
+            Path to the workspace.
         """
         return cls.get().workspace[name.upper()]

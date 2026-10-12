@@ -14,7 +14,15 @@ variable = Blueprint("variable", url_prefix="/variable")
 @variable.get("/list")
 @validate(query=VariableQuery)
 async def list_variables(_, query: VariableQuery) -> HTTPResponse:
-    """List the global variables."""
+    """List the global variables.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     queries = []
     if query.key:
         queries.append(Q(key__icontains=query.key))
@@ -31,7 +39,15 @@ async def list_variables(_, query: VariableQuery) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=VariableUpsert)
 async def upsert_variable(_, body: VariableUpsert) -> HTTPResponse:
-    """Create or update a global variable."""
+    """Create or update a global variable.
+
+    Args:
+        _: Unused request.
+        body: Variable key, value and encryption setting.
+
+    Returns:
+        Response containing the requested data.
+    """
     variable = await VariableService.upsert(body)
     return json(await VariableService.dump(variable))
 
@@ -40,6 +56,14 @@ async def upsert_variable(_, body: VariableUpsert) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_variables(_, body: IDs) -> HTTPResponse:
-    """Delete the global variables."""
+    """Delete the global variables.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     await GlobalVariable.filter(id__in=body.ids).delete()
     return empty()

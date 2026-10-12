@@ -26,10 +26,10 @@ class RpcClient:
         return Sanic.get_app().shared_ctx.csrf_tokens
 
     async def version(self) -> str | None:
-        """Get the version of the RPC endpoint.
+        """Get version of the RPC endpoint.
 
         Returns:
-            The version of the RPC endpoint.
+            Version of the RPC endpoint.
         """
         version = None
         with contextlib.suppress(Exception):
@@ -47,11 +47,11 @@ class RpcClient:
         """Call an API method with the given variables.
 
         Args:
-            method: The method name.
-            variables: The variables to pass to the API.
+            method: Method name.
+            variables: Variables to pass to the API. `None` adds no call variables.
 
         Returns:
-            The result of the API call.
+            Result of the API call.
         """
         if self.config.extended:
             from app.core.dl.rpc.extended import ExtendedRpcClient
@@ -87,11 +87,13 @@ class RpcClient:
 
         Args:
             api: The API schema.
-            variables: The variables to render the API with.
-            api_method: The configured RPC method.
-            retries: The number of retries.
+            variables: Variables to render the API with.
+            api_method: Configured RPC method.
+            retries: Number of retries. Defaults to `0`.
             raw_response: Whether to return the HTTP response before mapping it.
-            refresh: The callback that refreshes the session and allows one retry.
+                Defaults to `False`.
+            refresh: Callback that refreshes the session and allows one retry.
+                `None` disables session refresh.
 
         Returns:
             The HTTP response if `raw_response` is set, otherwise the API result.
@@ -147,14 +149,14 @@ class RpcClient:
             raise KaloscopeException(ErrorCode.HTTP_REQUEST_FAILED) from None
 
     def _request_body(self, api: API, variables: dict) -> tuple:
-        """Get the request body for the given API and variables.
+        """Get request body for the given API and variables.
 
         Args:
             api: The API schema.
-            variables: The variables to render the API with.
+            variables: Variables to render the API with.
 
         Returns:
-            The request body tuple.
+            Request body tuple.
         """
         content, data, files, json = None, None, None, None
         if api.body is not None:
@@ -196,12 +198,14 @@ class RpcClient:
 
         Args:
             api: The API schema.
-            variables: The variables to render the API with.
+            variables: Variables to render the API with.
             response: The HTTP response.
-            api_method: The configured RPC method.
-            retries: The number of retries.
+            api_method: Configured RPC method.
+            retries: Number of retries.
             raw_response: Whether to return the HTTP response before mapping it.
-            refresh: The callback that refreshes the session and allows one retry.
+                Defaults to `False`.
+            refresh: Callback that refreshes the session and allows one retry.
+                `None` disables session refresh.
 
         Returns:
             The HTTP response if `raw_response` is set, otherwise the API result.
@@ -279,13 +283,13 @@ class RpcClient:
         return response.text
 
     def _expected(self, api: API) -> dict[str, str] | str | None:
-        """Get the expected response format for the given API.
+        """Get expected response format for the given API.
 
         Args:
             api: The API schema.
 
         Returns:
-            The expected response format.
+            Expected response format.
         """
         if api.response and api.response.expected:
             return api.response.expected
@@ -294,13 +298,13 @@ class RpcClient:
         return None
 
     def _unexpected(self, api: API) -> dict[str, str] | str | None:
-        """Get the unexpected response format for the given API.
+        """Get unexpected response format for the given API.
 
         Args:
             api: The API schema.
 
         Returns:
-            The unexpected response format.
+            Unexpected response format.
         """
         if api.response and api.response.unexpected:
             return api.response.unexpected
@@ -313,8 +317,8 @@ def _successful(expected: dict[str, str] | str | None, actual: JSONType) -> bool
     """Check if the response is successful based on the expected format.
 
     Args:
-        expected: The expected response format.
-        actual: The actual response value.
+        expected: Expected response format.
+        actual: Actual response value.
 
     Returns:
         Whether the response is successful.
@@ -332,8 +336,8 @@ def _failed(unexpected: dict[str, str] | str | None, actual: JSONType) -> bool:
     """Check if the response is failed based on the unexpected format.
 
     Args:
-        unexpected: The unexpected response format.
-        actual: The actual response value.
+        unexpected: Unexpected response format.
+        actual: Actual response value.
 
     Returns:
         Whether the response is failed.
@@ -354,7 +358,7 @@ def _error_msg(response: httpx.Response) -> str | None:
         response: The HTTP response.
 
     Returns:
-        The error message if found, otherwise None.
+        Error message if found, otherwise None.
     """
     try:
         if response.text and isinstance((json := try_loads(response.text)), dict):
@@ -370,12 +374,13 @@ def _render[T: dict | list | str](value: T, variables: dict, *, raw: bool = Fals
     """Render the given value with the given variables.
 
     Args:
-        value: The value to render.
-        variables: The variables to render the value with.
-        raw: Whether to preserve native types in rendered expressions.
+        value: Value to render.
+        variables: Variables to render the value with.
+        raw: Whether to preserve native types in rendered expressions. Defaults to
+            `False`.
 
     Returns:
-        The rendered value.
+        Rendered value.
     """
     if raw:
         return render(value, variables, raw=True, strict=True)
@@ -389,10 +394,10 @@ def _mapping(json: Any, mappings: dict[str, str]) -> dict[str, Any]:
 
     Args:
         json: The JSON response.
-        mappings: The mappings dictionary.
+        mappings: Mappings dictionary.
 
     Returns:
-        The mapped JSON response.
+        Mapped JSON response.
     """
 
     def jsonpath(k: str):
@@ -406,7 +411,7 @@ def _is_multipart_file(value: Any) -> bool:
     """Check if the given value is a multipart file tuple.
 
     Args:
-        value: The value to check.
+        value: Value to check.
 
     Returns:
         Whether the value is a multipart file tuple.

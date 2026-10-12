@@ -69,8 +69,8 @@
   /**
    * Load tab resources.
    *
-   * @param id - The indexer ID.
-   * @param name - The indexer name.
+   * @param id - Indexer ID.
+   * @param name - Indexer name.
    */
   async function load(id: string, name?: string) {
     const reload = !!tabs[id];

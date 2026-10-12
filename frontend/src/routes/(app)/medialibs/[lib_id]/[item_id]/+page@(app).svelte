@@ -97,8 +97,8 @@
   /**
    * Open the local reader, resuming saved progress only in the selected chapter.
    *
-   * @param chapterId - The requested chapter; omitted to continue the last chapter.
-   * @param version - The novel directory version; omitted for a fresh reading request.
+   * @param chapterId - Requested chapter; omitted to continue the last chapter.
+   * @param version - Novel directory version; omitted for a fresh reading request.
    */
   function read(chapterId?: string, version?: string) {
     if (!media || mediaType === 'video') return;
@@ -106,7 +106,7 @@
     loadContent(chapterId, version, { resume: true });
   }
 
-  /** Save the latest position in request order, including before leaving the page. */
+  /** Save latest position in request order, including before leaving the page. */
   function saveProgress() {
     captureProgress?.();
     clearTimeout(progressTimer);
@@ -141,7 +141,7 @@
   /**
    * Read retained progress through the shared user history endpoint.
    *
-   * @param id - The novel or comic's top-level media ID.
+   * @param id - Novel or comic's top-level media ID.
    * @param signal - Cancellation for the directory or reading request.
    * @returns The current account's work history, or null without a saved record.
    */
@@ -208,7 +208,7 @@
   /**
    * Format a publication date up to its available precision.
    *
-   * @param metadata - The current work or chapter metadata.
+   * @param metadata - Current work or chapter metadata.
    * @returns The date through the last consecutive part, or null without a year.
    */
   function publicationDate(metadata: MediaMeta): string | null {
@@ -222,10 +222,10 @@
   }
 
   /**
-   * Format the same section label in the detail page and reader directory.
+   * Format same section label in the detail page and reader directory.
    *
-   * @param chapter - The published section label and split-part number.
-   * @param index - The zero-based section position used for missing titles.
+   * @param chapter - Published section label and split-part number.
+   * @param index - Zero-based section position used for missing titles.
    * @returns The localized title with an optional split-part suffix.
    */
   function chapterTitle(chapter: ContentChapter, index: number): string {
@@ -235,7 +235,7 @@
     );
   }
 
-  /** Load the novel directory without mounting a reader or retaining its body. */
+  /** Load novel directory without mounting a reader or retaining its body. */
   async function loadTextChapters() {
     if (!media || mediaType !== 'text') return;
     chaptersController?.abort();
@@ -258,7 +258,7 @@
   /**
    * Extract a localized content error, including a fallback for network failures.
    *
-   * @param error - The failed content request.
+   * @param error - Failed content request.
    * @returns The API error code or the generic reading failure code.
    */
   function contentError(error: unknown): string {
@@ -283,8 +283,8 @@
   /**
    * Read content through the shared API without a duplicate error notification.
    *
-   * @param id - The parent work or standalone reading source ID.
-   * @param query - The selected chapter, expected version and optional image range.
+   * @param id - Parent work or standalone reading source ID.
+   * @param query - Selected chapter, expected version and optional image range.
    * @param signal - Cancellation for this reading session or image request.
    * @returns The validated kind of content for the current reader.
    */
@@ -306,8 +306,8 @@
   /**
    * Replace the chapter and its directory, ignoring responses from cancelled loads.
    *
-   * @param selectedId - The requested chapter, or undefined for the first chapter.
-   * @param version - The expected novel version; omitted when switching comic sources.
+   * @param selectedId - Requested chapter, or undefined for the first chapter.
+   * @param version - Expected novel version; omitted when switching comic sources.
    * @param options - Allow one content refresh by default, and optionally resume saved progress.
    */
   async function loadContent(
@@ -328,6 +328,7 @@
     readingLoading = true;
     readingError = null;
     clearContent();
+
     // wait for the conditional viewers before loading the first chapter
     await tick();
     if (signal.aborted) return;
@@ -388,10 +389,11 @@
         title: chapterTitle(chapter, index),
         volume: chapter.volume
       }));
+
       /**
        * Recover changed content once, then use the reader's existing retry UI.
        *
-       * @param code - The content or resource error reported during reading.
+       * @param code - Content or resource error reported during reading.
        */
       const handleContentError = (code: string) => {
         if (signal.aborted) return;
@@ -417,6 +419,7 @@
         chapterChange: (chapter: Chapter) =>
           loadContent(chapter.id ?? undefined, data.media_type === 'text' ? data.version : undefined),
         back: closeReader,
+        // check the content version before reporting an image load failure
         imageError: async () => {
           if (signal.aborted || checkingImage) return;
           checkingImage = true;
@@ -432,6 +435,12 @@
           }
         }
       };
+
+      /**
+       * Keep the latest allowed reading position for the delayed save.
+       *
+       * @param entry - Current reading position and content version.
+       */
       const queueProgress = (entry: ReadingEntry) => {
         const current = get(user);
         if (signal.aborted || !reading || current?.id !== readerUserId || current?.preferences?.read_records === 0)
@@ -441,12 +450,14 @@
           progressTimer = setTimeout(saveProgress, PROGRESS_SAVE_DELAY);
         }
       };
+
       // restore only after the dialog's reading area is visible and measurable
       readingLoading = false;
       await tick();
       if (signal.aborted) return;
       progressUserId = readerUserId;
       if (data.content_type === 'images') {
+        // convert the visible image position to saved reading progress
         const progress: NonNullable<ImageViewerOptions['progress']> = (position) => {
           // local content URLs carry the indexed page ID in the final path segment
           const pageId = new URL(position.url, window.location.origin).pathname.split('/').at(-1)!;
@@ -472,6 +483,7 @@
           position: { index: data.offset, offset: imageLocator?.offset ?? 0 },
           progress,
           signal,
+          // load indexed comic pages for the expected content version
           loadImages: async ({ offset, limit, version, signal }) => {
             try {
               const next = await getContent(item.id, { chapter_id: data.chapter_id, offset, limit, version }, signal);
@@ -496,6 +508,8 @@
             ? data.blocks.findIndex((block) => block.id === textLocator.block_id)
             : (textLocator.paragraph ?? -1)
           : -1;
+
+        // convert the visible text position to saved reading progress
         const progress: NonNullable<TextViewerOptions['progress']> = (position) => {
           const chapterIndex = data.chapters.findIndex((chapter) => chapter.id === data.chapter_id);
           const blockId = data.content_type === 'blocks' ? data.blocks[position.index]?.id : undefined;
@@ -567,8 +581,8 @@
   /**
    * Start playing the selected media item.
    *
-   * @param target - The video to open; defaults to the selected item or the work.
-   * @param startTime - The saved position in seconds; omitted to play from the start.
+   * @param target - Video to open; defaults to the selected item or the work.
+   * @param startTime - Saved position in seconds; omitted to play from the start.
    */
   function play(target = _media ?? media, startTime?: number) {
     if (!target) {
@@ -600,9 +614,9 @@
   }
 
   /**
-   * Get the media item details by ID.
+   * Get media item details by ID.
    *
-   * @param id - The media item ID.
+   * @param id - Media item ID.
    * @return The media item details.
    */
   async function getDetails(id: number): Promise<MediaItem> {
@@ -613,7 +627,7 @@
   /**
    * Select a child media item and load its details.
    *
-   * @param item - The child media item.
+   * @param item - Child media item.
    */
   async function selectMedia(item: MediaItem) {
     if (_media?.id === item.id) {
@@ -631,7 +645,7 @@
   /**
    * Reload the work and the saved comic chapter after scraping.
    *
-   * @param id - The media item whose metadata was saved.
+   * @param id - Media item whose metadata was saved.
    */
   async function refreshMetadata(id: number) {
     if (!media) return;
@@ -650,7 +664,7 @@
   /**
    * Refresh pending metadata silently without replacing newer details.
    *
-   * @param item - The current work or selected chapter awaiting metadata.
+   * @param item - Current work or selected chapter awaiting metadata.
    * @param signal - Cancellation when the item changes or the page is destroyed.
    * @returns A promise that resolves after the refresh attempt.
    */
@@ -678,11 +692,7 @@
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
 
-    /**
-     * Retry pending metadata reads after transient failures without overlapping requests.
-     *
-     * @returns A promise that resolves after the next refresh is scheduled or cancelled.
-     */
+    // retry pending metadata reads without overlapping requests
     const refresh = async () => {
       await refreshPendingMetadata(item, controller.signal);
       if (!controller.signal.aborted) timer = setTimeout(refresh, 3000);

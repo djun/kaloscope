@@ -71,8 +71,8 @@ def workspace(tmp_path, monkeypatch):
     """Keep synchronization locks outside the application's workspace.
 
     Args:
-        tmp_path: The isolated test directory.
-        monkeypatch: The fixture restoring configuration after the test.
+        tmp_path: Isolated test directory.
+        monkeypatch: Fixture restoring configuration after the test.
     """
     directory = tmp_path / "cache"
     directory.mkdir()
@@ -123,7 +123,7 @@ def _opf(title: str, fields: str = "") -> bytes:
     """Build external metadata without a readable EPUB body.
 
     Args:
-        title: The title value in a Dublin Core element.
+        title: Title value in a Dublin Core element.
         fields: Additional metadata XML, empty by default.
 
     Returns:
@@ -140,11 +140,11 @@ async def _item(tmp_path: Path, format: MediaFormat | None) -> MediaItem:
     """Create one indexed source with deliberately outdated database summaries.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        format: The reading format, or None for an empty comic collection.
+        tmp_path: Isolated filesystem root.
+        format: Reading format, or None for an empty comic collection.
 
     Returns:
-        The item with its library assigned and body file or directory created.
+        Item with its library assigned and body file or directory created.
     """
     root = tmp_path / "Library"
     directory = root / "Work"
@@ -315,7 +315,7 @@ def test_sync_legacy_signature(signature):
     """Accept existing sync records while serializing only the canonical field.
 
     Args:
-        signature: The previous external XML digest, or None when unavailable.
+        signature: Previous external XML digest, or None when unavailable.
     """
     data = {
         "state": "none" if signature is None else "ready",
@@ -348,8 +348,8 @@ def test_sync_failure(tmp_path, monkeypatch, problem, code):
         """Simulate case-variant conflicts on case-insensitive test filesystems.
 
         Args:
-            directory: The metadata container being searched.
-            names: The preferred metadata filenames.
+            directory: Metadata container being searched.
+            names: Preferred metadata filenames.
 
         Raises:
             ContentError: To report multiple candidates at the same priority.
@@ -458,12 +458,12 @@ def test_sync_ownership(tmp_path, monkeypatch, change):
                 """Change ownership or unrelated fields after the read completes.
 
                 Args:
-                    function: The reader dispatched to the worker.
-                    *args: The reader's positional arguments.
-                    **kwargs: The reader's keyword options.
+                    function: Reader dispatched to the worker.
+                    *args: Reader's positional arguments.
+                    **kwargs: Reader's keyword options.
 
                 Returns:
-                    The original read result before the concurrent change.
+                    Original read result before the concurrent change.
                 """
                 result = await worker(function, *args, **kwargs)
                 if change == "move":
@@ -550,11 +550,11 @@ def test_sync_worker(tmp_path, monkeypatch, cancel):
                 """Keep a read active while checking cancellation and library locking.
 
                 Args:
-                    *args: The reader's positional arguments.
-                    **kwargs: The reader's keyword options.
+                    *args: Reader's positional arguments.
+                    **kwargs: Reader's keyword options.
 
                 Returns:
-                    The original reader result after the test releases the worker.
+                    Original reader result after the test releases the worker.
                 """
                 try:
                     assert threading.get_ident() != loop_thread
@@ -680,8 +680,8 @@ def test_access_before_files(tmp_path, monkeypatch, access, method):
         """Fail if an inaccessible request reaches the filesystem reader.
 
         Args:
-            args: Reader positional arguments.
-            kwargs: Reader keyword options.
+            *args: Reader positional arguments.
+            **kwargs: Reader keyword options.
 
         Raises:
             AssertionError: If file reading was attempted.
@@ -1048,7 +1048,7 @@ def test_read_revalidation(tmp_path, monkeypatch, change):
                 """Assert that synchronous metadata I/O runs off the event loop.
 
                 Args:
-                    source: The validated reading source.
+                    source: Validated reading source.
 
                 Returns:
                     Current metadata from the original reader.
@@ -1060,12 +1060,12 @@ def test_read_revalidation(tmp_path, monkeypatch, change):
                 """Change database ownership immediately after worker completion.
 
                 Args:
-                    function: The worker function being awaited.
-                    args: Its positional arguments.
-                    kwargs: Its keyword arguments.
+                    function: Worker function being awaited.
+                    *args: Its positional arguments.
+                    **kwargs: Its keyword arguments.
 
                 Returns:
-                    The original worker result before the concurrent change.
+                    Original worker result before the concurrent change.
                 """
                 nonlocal calls
                 result = await original(function, *args, **kwargs)
@@ -1103,7 +1103,7 @@ async def _client(user: UserInfo) -> AsyncGenerator[httpx.AsyncClient]:
     """Exercise real routes and authentication without production startup listeners.
 
     Args:
-        user: The authenticated session available to the isolated application.
+        user: Authenticated session available to the isolated application.
 
     Yields:
         An in-process HTTP client using the application's middleware and serializer.
@@ -1192,7 +1192,7 @@ def test_delete_reading_http_error(tmp_path, monkeypatch, problem):
                 """Allow one body deletion before a controlled I/O failure.
 
                 Args:
-                    path: The current selected file.
+                    path: Current selected file.
 
                 Raises:
                     PermissionError: When the second page is reached.
@@ -1422,11 +1422,11 @@ async def _indexed_text(
     """Publish a real TXT index without starting a library consumer.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        body: The novel text, defaulting to two short chapters.
+        tmp_path: Isolated source and cache root.
+        body: Novel text, defaulting to two short chapters.
 
     Returns:
-        The ready item whose source and cache may be changed by a test.
+        Ready item whose source and cache may be changed by a test.
     """
     item = await _item(tmp_path, MediaFormat.TXT)
     Path(item.path).write_text(body)
@@ -1437,7 +1437,7 @@ def test_text_content_http(tmp_path):
     """Read chapters through authentication and retain live metadata semantics.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
     """
 
     async def run():
@@ -1531,10 +1531,10 @@ def test_text_query_http(tmp_path, params, status, code):
     """Reject unknown chapters and malformed or stale selections.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        params: The query values under test.
-        status: The expected HTTP status.
-        code: The expected application error code.
+        tmp_path: Isolated source and cache root.
+        params: Query values under test.
+        status: Expected HTTP status.
+        code: Expected application error code.
     """
 
     async def run():
@@ -1568,9 +1568,9 @@ def test_text_content_sources(tmp_path, change, code):
     """Prevent cached text from masking changed or unavailable sources.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        change: The source or published cache mutation.
-        code: The expected controlled read error.
+        tmp_path: Isolated source and cache root.
+        change: Source or published cache mutation.
+        code: Expected controlled read error.
     """
 
     async def run():
@@ -1631,10 +1631,10 @@ def test_text_content_access(tmp_path, monkeypatch, change, code):
     """Reject inaccessible and unready requests before reading cache or source files.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        monkeypatch: The fixture replacing file reads.
-        change: The access, readiness or format change.
-        code: The expected error message.
+        tmp_path: Isolated source and cache root.
+        monkeypatch: Fixture replacing file reads.
+        change: Access, readiness or format change.
+        code: Expected error message.
     """
 
     async def run():
@@ -1713,11 +1713,11 @@ def test_content_cancel(tmp_path, monkeypatch):
                 """Hold the reader until cancellation has been checked.
 
                 Args:
-                    item: The ready novel guarded by the service.
-                    chapter_id: The selected chapter, or None for the first one.
+                    item: Ready novel guarded by the service.
+                    chapter_id: Selected chapter, or None for the first one.
 
                 Returns:
-                    The original chapter content after the test releases the worker.
+                    Original chapter content after the test releases the worker.
                 """
                 started.set()
                 assert released.wait(5)
@@ -1755,10 +1755,10 @@ def test_content_race(tmp_path, monkeypatch, change, mode):
     """Revalidate database access and source ownership after unlocked file reading.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        monkeypatch: The fixture replacing the worker dispatch.
-        change: The database mutation occurring during file reading.
-        mode: The content or resource read whose result must be discarded.
+        tmp_path: Isolated source and cache root.
+        monkeypatch: Fixture replacing the worker dispatch.
+        change: Database mutation occurring during file reading.
+        mode: Content or resource read whose result must be discarded.
     """
 
     async def run():
@@ -1783,11 +1783,11 @@ def test_content_race(tmp_path, monkeypatch, change, mode):
                 """Dispatch the actual read and mutate ownership before it returns.
 
                 Args:
-                    func: The synchronous content reader.
-                    *args: The reader arguments.
+                    func: Synchronous content reader.
+                    *args: Reader arguments.
 
                 Returns:
-                    The original content result before database revalidation.
+                    Original content result before database revalidation.
                 """
                 result = await dispatch(func, *args)
                 if change == "permission":
@@ -1834,7 +1834,7 @@ def test_text_content_limit(tmp_path):
     """Include chapter labels when enforcing the HTTP response size limit.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
     """
 
     async def run():
@@ -1858,10 +1858,10 @@ def test_text_content_files_change(tmp_path, monkeypatch, change, format):
     """Guard unlocked reads without treating other cache writes as content changes.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        monkeypatch: The fixture replacing the chapter reader.
-        change: The file changed while reading the selected chapter.
-        format: The novel format whose source and cache must remain stable.
+        tmp_path: Isolated source and cache root.
+        monkeypatch: Fixture replacing the chapter reader.
+        change: File changed while reading the selected chapter.
+        format: Novel format whose source and cache must remain stable.
     """
     from app.core.media import text as text_media
 
@@ -1879,11 +1879,11 @@ def test_text_content_files_change(tmp_path, monkeypatch, change, format):
                 """Read one chapter and simulate an external writer before returning.
 
                 Args:
-                    cache: The current published cache directory.
-                    chapter_id: The section selected by the request.
+                    cache: Current published cache directory.
+                    chapter_id: Section selected by the request.
 
                 Returns:
-                    The original section read before the external change.
+                    Original section read before the external change.
                 """
                 assert threading.get_ident() != loop_thread
                 result = reader(cache, chapter_id)
@@ -1930,7 +1930,7 @@ def _epub_asset_id(name: str = "picture.png") -> str:
     """Resolve a fixture image's opaque ID without putting its path in requests.
 
     Args:
-        name: The member basename, defaulting to the fixture's first valid image.
+        name: Member basename, defaulting to the fixture's first valid image.
 
     Returns:
         The ID generated by the actual EPUB index builder.
@@ -1942,10 +1942,10 @@ async def _indexed_epub(tmp_path: Path) -> MediaItem:
     """Publish a real EPUB with mixed blocks, two chapters and unavailable images.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
 
     Returns:
-        The ready EPUB item, built through the normal indexing service.
+        Ready EPUB item, built through the normal indexing service.
     """
     item = await _item(tmp_path, MediaFormat.EPUB)
     bodies = (
@@ -1997,7 +1997,7 @@ def test_epub_content_http(tmp_path):
     """Read safe blocks and their images through the shared content and asset routes.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
     """
 
     async def run():
@@ -2149,11 +2149,11 @@ def test_epub_asset_errors(tmp_path, version_key, case, status, code):
     """Never let conditional requests bypass access, membership or source checks.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        version_key: The canonical version parameter or its legacy alias.
-        case: The invalid query, access or source condition.
-        status: The expected HTTP status.
-        code: The stable error exposed to the client.
+        tmp_path: Isolated source and cache root.
+        version_key: Canonical version parameter or its legacy alias.
+        case: Invalid query, access or source condition.
+        status: Expected HTTP status.
+        code: Stable error exposed to the client.
     """
 
     async def run():
@@ -2231,7 +2231,7 @@ def test_epub_content_corrupt(tmp_path):
     """Reject modified cached blocks and invalid chapter selections through HTTP.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
     """
 
     async def run():
@@ -2263,12 +2263,12 @@ async def _indexed_comic(
     """Publish a comic with natural page order and a separate cover.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        format: The directory, CBZ or ZIP source format.
+        tmp_path: Isolated source and cache root.
+        format: Directory, CBZ or ZIP source format.
         chapter: Whether to create a collection child; defaults to a standalone work.
 
     Returns:
-        The ready source built through the normal indexing service.
+        Ready source built through the normal indexing service.
     """
     item = await _item(tmp_path, None if chapter else format)
     if chapter:
@@ -2312,8 +2312,8 @@ def test_comic_content_http(tmp_path, format, chapter):
     """Read comic pages, live titles and conditional images through the shared API.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        format: The comic source format.
+        tmp_path: Isolated source and cache root.
+        format: Comic source format.
         chapter: Whether to access a child source directly.
     """
 
@@ -2493,9 +2493,9 @@ def test_comic_query_http(tmp_path, params, status):
     """Reject invalid comic ranges, foreign chapters and stale versions.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        params: The invalid content query.
-        status: The expected HTTP status.
+        tmp_path: Isolated source and cache root.
+        params: Invalid content query.
+        status: Expected HTTP status.
     """
 
     async def run():
@@ -2517,7 +2517,7 @@ def test_comic_page_limits(tmp_path):
     """Apply the default and maximum batch sizes to the indexed page list.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
     """
 
     async def run():
@@ -2567,11 +2567,11 @@ def test_comic_content_changes(tmp_path, monkeypatch, change, status, code):
     """Reject stale page lists and conditional images after source or cache changes.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        monkeypatch: The fixture replacing unavailable file inspection.
-        change: The source or cache mutation before reading.
-        status: The expected HTTP status.
-        code: The expected controlled error.
+        tmp_path: Isolated source and cache root.
+        monkeypatch: Fixture replacing unavailable file inspection.
+        change: Source or cache mutation before reading.
+        status: Expected HTTP status.
+        code: Expected controlled error.
     """
 
     async def run():
@@ -2606,7 +2606,7 @@ def test_comic_content_changes(tmp_path, monkeypatch, change, status, code):
                         """Simulate a page whose attributes are unavailable.
 
                         Args:
-                            path: The inspected path.
+                            path: Inspected path.
                             *args: Positional stat arguments.
                             **kwargs: Keyword stat arguments.
 
@@ -2647,8 +2647,8 @@ def test_comic_asset_crc(tmp_path, format):
     """Revalidate archive members before allowing a conditional image response.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        format: The supported comic archive format.
+        tmp_path: Isolated source and cache root.
+        format: Supported comic archive format.
     """
 
     async def run():
@@ -2685,10 +2685,10 @@ def test_comic_read_race(tmp_path, monkeypatch, asset, change):
     """Guard unlocked comic reads against page and cache replacement.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        monkeypatch: The fixture wrapping the actual worker read.
+        tmp_path: Isolated source and cache root.
+        monkeypatch: Fixture wrapping the actual worker read.
         asset: Whether to read image bytes instead of the page list.
-        change: The file changed before the read's stability check.
+        change: File changed before the read's stability check.
     """
     from app.core.media import image as image_media
     from app.core.media import reader
@@ -2708,10 +2708,10 @@ def test_comic_read_race(tmp_path, monkeypatch, asset, change):
                 """Read actual data and simulate an external writer before returning.
 
                 Args:
-                    *args: The arguments to the original reader.
+                    *args: Arguments to the original reader.
 
                 Returns:
-                    The original result before the source or cache is mutated.
+                    Original result before the source or cache is mutated.
                 """
                 assert threading.get_ident() != loop_thread
                 result = read(*args)
@@ -2760,10 +2760,10 @@ async def _indexed_collection(tmp_path: Path) -> tuple[MediaItem, dict[int, Medi
     """Publish mixed comic chapters in an order different from their directory names.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
 
     Returns:
-        The collection without an aggregate index and its ready chapters by number.
+        Collection without an aggregate index and its ready chapters by number.
     """
     parent = await _item(tmp_path, None)
     chapters = {}
@@ -2804,8 +2804,8 @@ def test_collection_content_http(tmp_path, monkeypatch):
     """Select naturally ordered chapters and retain their versions through pagination.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        monkeypatch: The fixture observing live metadata reads.
+        tmp_path: Isolated source and cache root.
+        monkeypatch: Fixture observing live metadata reads.
     """
 
     async def run():
@@ -2921,10 +2921,10 @@ def test_collection_selection(tmp_path, states, selected, code):
     """Select only published ready chapters and report unavailable selections.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
         states: Chapter states in natural directory order.
-        selected: The expected automatic chapter number, or None when unavailable.
-        code: The expected error when no chapter is ready.
+        selected: Expected automatic chapter number, or None when unavailable.
+        code: Expected error when no chapter is ready.
     """
 
     async def run():
@@ -2967,8 +2967,8 @@ def test_collection_scope(tmp_path, scope):
     """Exclude chapters outside the collection's visible direct comic sources.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        scope: The ownership or visibility change excluding the first chapter.
+        tmp_path: Isolated source and cache root.
+        scope: Ownership or visibility change excluding the first chapter.
     """
 
     async def run():
@@ -3034,10 +3034,10 @@ def test_collection_errors(tmp_path, case, status, code):
     """Reject invalid collection requests without selecting unrelated sources.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        case: The invalid collection state or chapter query.
-        status: The expected HTTP status.
-        code: The expected controlled error.
+        tmp_path: Isolated source and cache root.
+        case: Invalid collection state or chapter query.
+        status: Expected HTTP status.
+        code: Expected controlled error.
     """
 
     async def run():
@@ -3100,10 +3100,10 @@ def test_collection_read_race(tmp_path, monkeypatch, change, status):
     """Recheck collection access and directory membership after an unlocked read.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        monkeypatch: The fixture wrapping worker dispatch.
-        change: The database mutation after the selected chapter is read.
-        status: The expected HTTP status after revalidation.
+        tmp_path: Isolated source and cache root.
+        monkeypatch: Fixture wrapping worker dispatch.
+        change: Database mutation after the selected chapter is read.
+        status: Expected HTTP status after revalidation.
     """
 
     async def run():
@@ -3122,11 +3122,11 @@ def test_collection_read_race(tmp_path, monkeypatch, change, status):
                 """Mutate the database between actual file reading and revalidation.
 
                 Args:
-                    func: The synchronous chapter reader.
+                    func: Synchronous chapter reader.
                     *args: Its original arguments.
 
                 Returns:
-                    The original content before database revalidation.
+                    Original content before database revalidation.
                 """
                 result = await dispatch(func, *args)
                 if change == "permission":
@@ -3184,8 +3184,8 @@ def test_collection_reparented(tmp_path, monkeypatch):
     """Reject a chapter moved after selection before attempting any content read.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        monkeypatch: The fixture moving a chapter just before access is loaded.
+        tmp_path: Isolated source and cache root.
+        monkeypatch: Fixture moving a chapter just before access is loaded.
     """
 
     async def run():
@@ -3203,11 +3203,11 @@ def test_collection_reparented(tmp_path, monkeypatch):
                 """Move the selected chapter before loading its current ownership.
 
                 Args:
-                    id: The item being authorized.
-                    user: The current user.
+                    id: Item being authorized.
+                    user: Current user.
 
                 Returns:
-                    The currently accessible item after the move.
+                    Currently accessible item after the move.
                 """
                 if id == chapters[1].id:
                     await MediaItem.filter(id=id).update(parent_id=other.id)
@@ -3229,7 +3229,7 @@ def test_collection_versions(tmp_path):
     """Exclude malformed unpublished versions from automatic chapter selection.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
     """
 
     async def run():
@@ -3254,7 +3254,7 @@ def test_collection_content_limit(tmp_path):
     """Include the complete collection directory in the content response limit.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
     """
 
     async def run():
@@ -4186,7 +4186,7 @@ def test_reading_library_http(tmp_path, monkeypatch, lib_type, role):
                 """Run initial ingestion without a production observer.
 
                 Args:
-                    lib: The library created through the HTTP endpoint.
+                    lib: Library created through the HTTP endpoint.
                 """
                 assert not await MediaItemService.ingest_reading_work(lib.id, work)
 

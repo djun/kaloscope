@@ -44,8 +44,8 @@ def workspace(tmp_path, monkeypatch):
     """Keep locks, caches and generated covers inside the isolated test directory.
 
     Args:
-        tmp_path: The isolated test root.
-        monkeypatch: The fixture restoring application configuration.
+        tmp_path: Isolated test root.
+        monkeypatch: Fixture restoring application configuration.
     """
     cache = tmp_path / "cache"
     cache.mkdir()
@@ -71,9 +71,9 @@ def _source(directory: Path, format: MediaFormat, title: str):
     """Write a readable body and its external metadata.
 
     Args:
-        directory: The owned work or chapter directory.
-        format: The reading source format to create.
-        title: The metadata title used for both external and embedded sources.
+        directory: Owned work or chapter directory.
+        format: Reading source format to create.
+        title: Metadata title used for both external and embedded sources.
     """
     directory.mkdir(parents=True, exist_ok=True)
     novel = format in (MediaFormat.TXT, MediaFormat.EPUB)
@@ -133,11 +133,11 @@ async def _work(tmp_path: Path, format: MediaFormat) -> tuple[MediaLib, MediaIte
     """Index a standalone work through the normal reading service.
 
     Args:
-        tmp_path: The isolated source and cache root.
-        format: The reading format to create.
+        tmp_path: Isolated source and cache root.
+        format: Reading format to create.
 
     Returns:
-        The configured library and its ready work.
+        Configured library and its ready work.
     """
     root = tmp_path / "library"
     directory = root / "original"

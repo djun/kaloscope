@@ -44,6 +44,17 @@ class AuthEndNode(Node):
         cls, *, graph_id: int, node_data: dict[str, Any], context: Context, **kwargs
     ):
         # extract the response
+        """Store the authentication result and persist its expiry.
+
+        Args:
+            graph_id: Flow graph ID.
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+
+        Raises:
+            CancellationSignal: If the flow should end without an error.
+        """
         retval = json.try_loads(
             cls.response.extract(node_data, context=context), with_comments=True
         )

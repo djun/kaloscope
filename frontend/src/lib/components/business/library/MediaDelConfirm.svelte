@@ -14,6 +14,11 @@
 
   // the modal dialog instance
   let modal: Modal;
+  /**
+   * Select an item and default to keeping its local files.
+   *
+   * @param target - Media item to delete.
+   */
   export const showModal = (target: MediaItem) => {
     item = target;
     local = false;
@@ -43,8 +48,8 @@
   /**
    * Delete a media item by ID.
    *
-   * @param form - The form element.
-   * @param data - The form data.
+   * @param form - Form element.
+   * @param data - Form data.
    */
   function del(form: HTMLFormElement, data: FormData) {
     if (!item) {

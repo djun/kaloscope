@@ -41,7 +41,7 @@
   /**
    * Copy the node with a new ID and offset position.
    *
-   * @param event - The click event.
+   * @param event - Click event.
    */
   function copyNode(event: MouseEvent) {
     event.stopPropagation();
@@ -64,7 +64,7 @@
   /**
    * Delete the node and all connected edges.
    *
-   * @param event - The click event.
+   * @param event - Click event.
    */
   function deleteNode(event: MouseEvent) {
     event.stopPropagation();
@@ -73,9 +73,9 @@
   }
 
   /**
-   * Get the grid column span for a node field.
+   * Get grid column span for a node field.
    *
-   * @param field - The node field schema.
+   * @param field - Node field schema.
    */
   function fieldLayoutStyle(field: Field) {
     const span = field.span ?? 100;

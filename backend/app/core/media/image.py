@@ -59,10 +59,10 @@ class ImageResource(BaseModel):
         """Accept only a visible, supported relative image path inside the source.
 
         Args:
-            path: The relative resource filename or member path from an index.
+            path: Relative resource filename or member path from an index.
 
         Returns:
-            The unchanged path for exact filesystem or member lookup.
+            Unchanged path for exact filesystem or member lookup.
 
         Raises:
             ValueError: If the path could escape the source or is unsupported.
@@ -92,7 +92,7 @@ class ImageIndex(BaseModel):
         """Require unique resources, natural page order and separate cover names.
 
         Returns:
-            The validated index.
+            Validated index.
 
         Raises:
             ValueError: If snapshots, identities, ordering or cover ownership
@@ -138,7 +138,7 @@ class ImageIndex(BaseModel):
 
     @property
     def cover_id(self) -> str:
-        """Return the separate cover ID or the first body page ID.
+        """Return separate cover ID or the first body page ID.
 
         Returns:
             An ID readable through the same resource lookup as body pages.
@@ -150,10 +150,10 @@ def _directory_state(path: Path) -> tuple[int, ...]:
     """Inspect a real source container without accepting a linked parent.
 
     Args:
-        path: The source directory within a caller-validated library boundary.
+        path: Source directory within a caller-validated library boundary.
 
     Returns:
-        The directory identity and modification attributes for one operation.
+        Directory identity and modification attributes for one operation.
 
     Raises:
         ContentError: If the container is not a directory or its parent is a symlink.
@@ -169,10 +169,10 @@ def _build_directory_index(source: ReadingSource) -> ImageIndex:
     """Build an image directory index while checking source stability.
 
     Args:
-        source: The directory reading unit whose current direct files are indexed.
+        source: Directory reading unit whose current direct files are indexed.
 
     Returns:
-        The complete index without writing cache files or copying images.
+        Complete index without writing cache files or copying images.
 
     Raises:
         ContentError: If the directory is empty, ambiguous, unstable or over limits.
@@ -277,7 +277,7 @@ def _build_archive_index(source: ReadingSource) -> ImageIndex:
     """Build a CBZ or ZIP page index without extracting members to disk.
 
     Args:
-        source: The independently contained CBZ or ZIP reading unit.
+        source: Independently contained CBZ or ZIP reading unit.
 
     Returns:
         Ordered member resources and an archive snapshot, with a fallback cover.
@@ -348,15 +348,15 @@ def _build_archive_index(source: ReadingSource) -> ImageIndex:
 def build_image_index(source: ReadingSource, cache_dir: Path) -> ImageIndex:
     """Build a staging index from an image directory, CBZ or ZIP archive.
 
-    The caller validates library ownership, runs this synchronous work in a worker
+    Caller validates library ownership, runs this synchronous work in a worker
     and revalidates the source before publishing under the library lock.
 
     Args:
-        source: The directory or archive reading unit discovered by its handler.
+        source: Directory or archive reading unit discovered by its handler.
         cache_dir: A nonexistent staging directory whose parent already exists.
 
     Returns:
-        The index also saved as index.json, without copying source images.
+        Index also saved as index.json, without copying source images.
 
     Raises:
         ContentError: If the source is unsafe, empty, unsupported, corrupt,
@@ -389,7 +389,7 @@ def load_image_index(cache_dir: Path) -> ImageIndex:
         cache_dir: A completed internal cache directory selected by the caller.
 
     Returns:
-        The index with safe relative filenames and unique resource identities.
+        Index with safe relative filenames and unique resource identities.
 
     Raises:
         ContentError: If the cache is missing, corrupt or from an unsupported schema.
@@ -410,12 +410,12 @@ def read_image_resource(
     """Read one indexed page or cover after checking its current source snapshot.
 
     Args:
-        source_path: The current directory or archive after the caller checks access.
-        cache_dir: The completed cache for the caller-validated content version.
+        source_path: Current directory or archive after the caller checks access.
+        cache_dir: Completed cache for the caller-validated content version.
         resource_id: An exact opaque page or cover ID from the index.
 
     Returns:
-        The bounded image bytes and their verified MIME type.
+        Bounded image bytes and their verified MIME type.
 
     Raises:
         ContentError: If the ID is unknown, the cache is invalid or the file changed

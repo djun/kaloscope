@@ -21,9 +21,9 @@
   };
 
   /**
-   * Get the corresponding NFO type for the given library type.
+   * Get corresponding NFO type for the given library type.
    *
-   * @param libType - The library type.
+   * @param libType - Library type.
    * @returns The corresponding NFO type.
    */
   function getNFOType(libType: keyof typeof LibType | null | undefined): string | null {
@@ -77,6 +77,9 @@
 
   // the modal dialog instance
   let modal: Modal;
+  /**
+   * Initialize metadata choices and ignore canceled requests.
+   */
   export async function showModal() {
     if (busy) return;
     initializing = true;

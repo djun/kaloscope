@@ -36,7 +36,7 @@ def is_nfo(path: Path | str) -> bool:
     """Check if the path is an NFO file.
 
     Args:
-        path: The path to check.
+        path: Path to check.
 
     Returns:
         True if the path is an NFO file, False otherwise.
@@ -48,7 +48,7 @@ def is_nfo(path: Path | str) -> bool:
 
 
 def is_locked(path: Path | str) -> bool:
-    """Check if the NFO file is locked by reading the <lockdata> tag.
+    """Check if the NFO file is locked by reading the `lockdata` tag.
 
     Args:
         path: Path to the NFO file.
@@ -73,13 +73,13 @@ def is_locked(path: Path | str) -> bool:
 
 
 def get_nfo_type(lib_type: LibType) -> str:
-    """Get the corresponding NFO type for the given library type.
+    """Get corresponding NFO type for the given library type.
 
     Args:
-        lib_type: The library type.
+        lib_type: Library type.
 
     Returns:
-        The corresponding NFO type.
+        Corresponding NFO type.
     """
     if lib_type == LibType.MOVIE:
         return NFOType.MOVIE
@@ -89,13 +89,13 @@ def get_nfo_type(lib_type: LibType) -> str:
 
 
 def get_nfo_path(item_path: str) -> str:
-    """Get the corresponding NFO path for the given media item path.
+    """Get corresponding NFO path for the given media item path.
 
     Args:
-        item_path: The media item path.
+        item_path: Media item path.
 
     Returns:
-        The corresponding NFO path.
+        Corresponding NFO path.
     """
     path = Path(item_path)
     if path.is_dir():
@@ -105,13 +105,13 @@ def get_nfo_path(item_path: str) -> str:
 
 
 def nfo_context(flow_ctx: Context) -> tuple[str, str, dict]:
-    """Extract the NFO context from the flow context.
+    """Extract NFO type, path and data from the flow context.
 
     Args:
-        context: The flow context.
+        flow_ctx: Flow context containing source and rendered NFO fields.
 
     Returns:
-        A tuple of (NFO type, NFO path, NFO data).
+        NFO type, path and data, or empty values if the result is incomplete.
     """
     # ensure we have NFO type and path
     bootparams = flow_ctx.bootparams
@@ -125,7 +125,6 @@ def nfo_context(flow_ctx: Context) -> tuple[str, str, dict]:
     if not retval or not isinstance(retval, list) or not isinstance(retval[0], dict):
         return "", "", {}
 
-    # return the NFO context
     return nfo_type, nfo_path, retval[0]
 
 
@@ -144,12 +143,15 @@ async def gen_nfo(
     persist any follow-up organization and notify its watcher after committing.
 
     Args:
-        nfo_type: The type of the NFO file (e.g. `movie`, `tvshow`).
-        nfo_path: The path to the NFO file to generate.
-        data: The metadata used to render the NFO and fill missing parsed values.
-        overwrite: Whether to overwrite the NFO file if it already exists.
-        item_id: The media item ID used to resolve the current NFO path.
+        nfo_type: Type of the NFO file (e.g. `movie`, `tvshow`).
+        nfo_path: Path to the NFO file to generate.
+        data: Metadata used to render the NFO and fill missing parsed values.
+        overwrite: Whether to overwrite the NFO file if it already exists. Defaults to
+            `False`.
+        item_id: Media item ID used to resolve the current NFO path. `None` uses the
+            supplied NFO path.
         refresh: Whether to update metadata after writing when `item_id` is set.
+            Defaults to `False`.
 
     Returns:
         `True` if the NFO file is generated successfully, `False` otherwise.
@@ -218,8 +220,8 @@ async def _write_nfo(
 
     Args:
         nfo_type: The NFO template type.
-        nfo_path: The destination NFO path.
-        data: The metadata used to render the NFO.
+        nfo_path: Destination NFO path.
+        data: Metadata used to render the NFO.
         overwrite: Whether to replace an existing NFO.
 
     Returns:
@@ -306,7 +308,7 @@ def _nfo_integer(name: str, value: Any) -> int | None:
         value: A candidate integer or decimal string; empty values mean absent.
 
     Returns:
-        The normalized integer, or `None` for an absent value.
+        Normalized integer, or `None` for an absent value.
 
     Raises:
         ContentError: If the value is malformed or exceeds the field's range.
@@ -331,9 +333,9 @@ def _parse_nfo_data(
     """Parse bounded NFO bytes and identify unusable persisted fields.
 
     Args:
-        lib_type: The video library type selecting the supported XML roots.
+        lib_type: Video library type selecting the supported XML roots.
         content: Current XML bytes, including an optional encoding declaration.
-        path: The file identity attached to the parsed metadata.
+        path: File identity attached to the parsed metadata.
 
     Returns:
         Parsed metadata and the names of invalid fields omitted from it.
@@ -395,7 +397,7 @@ def read_nfo(
     """Read regular NFO files with separate missing and failure outcomes.
 
     Args:
-        lib_type: The media library type.
+        lib_type: Media library type.
         path: The NFO file path, or `None` when no file is registered.
 
     Returns:
@@ -425,8 +427,8 @@ def parse_nfo(lib_type: LibType, path: Path | str) -> MediaMeta | None:
     """Read usable NFO metadata for existing synchronization callers.
 
     Args:
-        lib_type: The video library type.
-        path: The current NFO file path.
+        lib_type: Video library type.
+        path: Current NFO file path.
 
     Returns:
         Parsed metadata, or `None` for a missing or unreadable document.
@@ -440,9 +442,10 @@ async def update_metadata(
     """Update media items matched by their NFO path.
 
     Args:
-        lib: The media library instance.
-        path: The path to the NFO file.
-        fallback: The fallback metadata dictionary.
+        lib: Media library instance.
+        path: Path to the NFO file.
+        fallback: Fallback metadata dictionary. `None` supplies no fallback
+            metadata.
 
     Returns:
         The IDs of the updated media items, or an empty list if the NFO cannot be
@@ -458,15 +461,15 @@ async def update_metadata(
 
     # update the media item in the database
     if meta is not None:
-        # helper function to get the value from the fallback metadata
+
         def _fallback(key: str) -> Any:
             """Read a parsed field before consulting the save candidate.
 
             Args:
-                key: The field name to resolve.
+                key: Field name to resolve.
 
             Returns:
-                The current value, or `None` when both sources omit it.
+                Current value, or `None` when both sources omit it.
 
             Raises:
                 ContentError: If the numeric fallback is invalid.

@@ -25,7 +25,7 @@ def ass_to_vtt(content: str) -> str:
         content: The ASS or SSA subtitle content.
 
     Returns:
-        The converted WebVTT content.
+        Converted WebVTT content.
     """
     fields: list[str] = []
     cues: list[_Cue] = []
@@ -64,11 +64,11 @@ def _parse_ass_dialogue(payload: str, fields: list[str]) -> _Cue | None:
     """Parse an ASS/SSA dialogue payload into a plain cue.
 
     Args:
-        payload: The dialogue payload after the `Dialogue:` marker.
-        fields: The normalized field names from the matching `Format:` line.
+        payload: Dialogue payload after the `Dialogue:` marker.
+        fields: Normalized field names from the matching `Format:` line.
 
     Returns:
-        The parsed cue, or `None` if the dialogue cannot be converted.
+        Parsed cue, or `None` if the dialogue cannot be converted.
     """
     parts = payload.split(",", maxsplit=len(fields) - 1)
     if len(parts) != len(fields):
@@ -108,7 +108,7 @@ def _clean_ass_text(text: str) -> str:
         text: The ASS/SSA dialogue text.
 
     Returns:
-        The plain subtitle text.
+        Plain subtitle text.
     """
     text = text.replace(r"\N", "<br/>").replace(r"\n", "<br/>").replace(r"\h", " ")
     text = _ASS_TAG_RE.sub("", text)
@@ -122,7 +122,7 @@ def srt_to_vtt(content: str) -> str:
         content: The SubRip subtitle content.
 
     Returns:
-        The converted WebVTT content.
+        Converted WebVTT content.
     """
     cues: list[_Cue] = []
     normalized = content.replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -143,11 +143,11 @@ def _parse_srt_cue(lines: list[str], time_index: int) -> _Cue | None:
     """Parse a SubRip cue block into a plain cue.
 
     Args:
-        lines: The normalized cue block lines.
-        time_index: The index of the timing line in the cue block.
+        lines: Normalized cue block lines.
+        time_index: Index of the timing line in the cue block.
 
     Returns:
-        The parsed cue, or `None` if the block cannot be converted.
+        Parsed cue, or `None` if the block cannot be converted.
     """
     if time_index >= len(lines):
         return None
@@ -184,7 +184,14 @@ def _format_srt_time(value: str) -> str | None:
 
 
 def _vtt_time_to_milliseconds(value: str) -> int:
-    """Convert a normalized WebVTT timestamp to milliseconds."""
+    """Convert a normalized WebVTT timestamp to milliseconds.
+
+    Args:
+        value: Timestamp in normalized hours, minutes, seconds and milliseconds.
+
+    Returns:
+        Timestamp in milliseconds.
+    """
     hours, minutes, seconds = value.split(":")
     second, millisecond = seconds.split(".")
     return ((int(hours) * 60 + int(minutes)) * 60 + int(second)) * 1000 + int(
@@ -196,7 +203,7 @@ def _format_vtt(cues: list[_Cue]) -> str:
     """Format plain cues as WebVTT content.
 
     Args:
-        cues: The cues to write.
+        cues: Cues to write.
 
     Returns:
         The WebVTT content.

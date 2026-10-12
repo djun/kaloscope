@@ -39,7 +39,7 @@
   /**
    * Scrolls the given HTMLLIElement into view.
    *
-   * @param element - The selected HTMLLIElement.
+   * @param element - Selected HTMLLIElement.
    * @param delay - Optional delay in milliseconds before scrolling.
    */
   function scrollIntoView(element: HTMLLIElement | null, delay: number = 0) {

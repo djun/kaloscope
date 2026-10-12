@@ -1,7 +1,7 @@
 /**
  * Extract the first Unicode letter or number, falling back to the first character.
  *
- * @param str - The nonempty source string.
+ * @param str - Nonempty source string.
  * @returns The initial converted to the locale's uppercase form.
  * @throws {TypeError} If the source string is empty.
  */
@@ -13,7 +13,7 @@ export function extractInitial(str: string): string {
 /**
  * Escape HTML special characters in a string to prevent XSS attacks.
  *
- * @param str - The string to escape.
+ * @param str - String to escape.
  * @returns The escaped string.
  */
 export function escapeHTML(str: string): string {
@@ -28,7 +28,7 @@ export function escapeHTML(str: string): string {
 /**
  * Convert part of the title to italic format.
  *
- * @param title - The title string.
+ * @param title - Title string.
  * @returns The HTML string with italicized parts.
  */
 export function italic(title: string): string {

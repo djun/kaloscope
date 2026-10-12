@@ -17,7 +17,7 @@ class ProgressUpdate:
     dl_speed: int | None = None
 
 
-# resume each retryable failure from the earliest phase that can safely recover it
+# resume failed jobs from the earliest phase that allows a safe retry
 _S = DownloadState
 _RETRY_TARGETS = {
     OfflineDownloadErrorKind.INSTANCE_AUTH: _S.PULLING,
@@ -33,34 +33,34 @@ _RETRY_TARGETS = {
     OfflineDownloadErrorKind.VERIFY_FAILED: _S.SETTLING,
 }
 
-# `DOWNLOADING` belongs to RPC drivers and is invalid in the OpenList lifecycle
+# `DOWNLOADING` belongs to RPC drivers and is invalid in the OpenList state model
 _OPENLIST_STATES = set(DownloadState) - {DownloadState.DOWNLOADING}
 
 
 def retry_state(kind: OfflineDownloadErrorKind) -> DownloadState | None:
-    """Get the OpenList state from which a failed task can be retried.
+    """Get OpenList state from which a failed task can be retried.
 
     Args:
-        kind: The persisted failure category.
+        kind: Persisted failure category.
 
     Returns:
-        The safe recovery state, or `None` when retry is unsupported.
+        Safe recovery state, or `None` when retry is unsupported.
     """
     return _RETRY_TARGETS.get(kind)
 
 
 def state_progress(state: DownloadState, current: float | None) -> ProgressUpdate:
-    """Apply the progress assigned to an OpenList lifecycle state.
+    """Apply the progress assigned to an OpenList task state.
 
     Args:
-        state: The lifecycle state being entered.
-        current: The previously persisted progress percentage.
+        state: Task state being entered.
+        current: Previously persisted progress percentage.
 
     Raises:
-        ValueError: If `state` is not part of the OpenList lifecycle.
+        ValueError: If `state` is not part of the OpenList state model.
 
     Returns:
-        The progress update for the state.
+        Progress update for the state.
     """
     if state not in _OPENLIST_STATES:
         raise ValueError(f"Unsupported OpenList state: {state}")
@@ -79,8 +79,8 @@ def remote_progress(current: float | None, percentage: float) -> ProgressUpdate:
     """Apply remote offline-tool progress directly.
 
     Args:
-        current: The previously persisted remote progress percentage.
-        percentage: The progress reported by the OpenList offline tool.
+        current: Previously persisted remote progress percentage.
+        percentage: Progress reported by the OpenList offline tool.
 
     Returns:
         A monotonic remote progress update.
@@ -94,12 +94,12 @@ def pull_progress(
     """Calculate local file transfer progress from transferred bytes.
 
     Args:
-        completed_size: The number of bytes already transferred locally.
-        total_size: The total number of bytes to transfer locally.
-        dl_speed: The current local transfer speed in bytes per second.
+        completed_size: Number of bytes already transferred locally.
+        total_size: Total number of bytes to transfer locally.
+        dl_speed: Current local transfer speed in bytes per second.
 
     Returns:
-        The local file transfer progress update.
+        Local file transfer progress update.
     """
     completed_size = max(completed_size, 0)
     total_size = max(total_size, 0)
@@ -123,12 +123,13 @@ def poll_delay(
 
     Args:
         changed: Whether the latest poll observed a meaningful state change.
-        unchanged_count: The number of consecutive unchanged polls.
-        base_interval: The configured active polling interval in seconds.
-        max_interval: The configured idle polling interval in seconds.
+        unchanged_count: Number of consecutive unchanged polls.
+        base_interval: Configured active polling interval in seconds. Defaults to
+            `10`.
+        max_interval: Configured idle polling interval in seconds. Defaults to `60`.
 
     Returns:
-        The jittered delay and updated unchanged-poll count.
+        Jittered delay and updated unchanged-poll count.
     """
     count = 0 if changed else max(unchanged_count, 0) + 1
     base = max(base_interval, 5)
@@ -144,10 +145,10 @@ def transient_delay(retry_count: int) -> tuple[float, int]:
     """Calculate exponential backoff for a transient OpenList failure.
 
     Args:
-        retry_count: The number of consecutive transient failures.
+        retry_count: Number of consecutive transient failures.
 
     Returns:
-        The jittered delay and incremented retry count.
+        Jittered delay and incremented retry count.
     """
     retry_count = max(retry_count, 0)
     delay = min(30 * 2 ** min(retry_count, 4), 300)
@@ -159,7 +160,7 @@ def rate_limit_delay(retry_after: str | None, now: datetime) -> float:
 
     Args:
         retry_after: A `Retry-After` value expressed as seconds or an HTTP date.
-        now: The current timezone-aware timestamp used for HTTP-date calculation.
+        now: Current timezone-aware timestamp used for HTTP-date calculation.
 
     Returns:
         A jittered delay in seconds that is never shorter than the requested delay.
@@ -184,11 +185,11 @@ def _percentage(current: float | None, floor: float = 0) -> float:
     """Clamp a progress percentage to the valid range.
 
     Args:
-        current: The current progress percentage.
-        floor: The minimum valid progress.
+        current: Current progress percentage.
+        floor: Minimum valid progress. Defaults to `0`.
 
     Returns:
-        The clamped progress percentage.
+        Clamped progress percentage.
     """
     return max(min(current if current is not None else 0, 100), floor)
 
@@ -197,12 +198,13 @@ def _jitter(delay: float, *, minimum: float = 5, maximum: float | None = None) -
     """Add random jitter to a delay to avoid polling bursts.
 
     Args:
-        delay: The original delay in seconds.
-        minimum: The minimum delay in seconds.
-        maximum: The maximum delay in seconds.
+        delay: Original delay in seconds.
+        minimum: Minimum delay in seconds. Defaults to `5`.
+        maximum: Maximum delay in seconds. `None` leaves the delay without an upper
+            bound.
 
     Returns:
-        The jittered delay in seconds.
+        Jittered delay in seconds.
     """
     factor = 0.8 + min(max(random(), 0), 1) * 0.4
     result = max(delay * factor, minimum)

@@ -53,7 +53,7 @@
   /**
    * Change password with given data.
    *
-   * @param data - The form data.
+   * @param data - Form data.
    */
   function changePwd(data: FormData) {
     if (data.get('new_pwd') !== data.get('confirm_pwd')) {

@@ -25,7 +25,7 @@ def _opf(href: str | None = None) -> bytes:
     """Build minimal OPF metadata with an optional declared cover.
 
     Args:
-        href: The cover URL, or None to omit the declaration.
+        href: Cover URL, or None to omit the declaration.
 
     Returns:
         OPF bytes without a readable spine or body.
@@ -46,7 +46,7 @@ def _comic(page: int) -> bytes:
     """Build a ComicInfo cover marker.
 
     Args:
-        page: The zero-based image number to mark as the front cover.
+        page: Zero-based image number to mark as the front cover.
 
     Returns:
         UTF-8 ComicInfo bytes.
@@ -61,8 +61,8 @@ def _source(tmp_path: Path, format: MediaFormat | None) -> ReadingSource:
     """Create a reading source in an isolated work container.
 
     Args:
-        tmp_path: The temporary library directory.
-        format: The body format, or None for a comic collection.
+        tmp_path: Temporary library directory.
+        format: Body format, or None for a comic collection.
 
     Returns:
         A reading source whose parent directory exists.
@@ -81,7 +81,7 @@ def _archive(source: ReadingSource, entries: dict[str, bytes]) -> None:
     """Write a test archive with EPUB container defaults when needed.
 
     Args:
-        source: The target EPUB, CBZ or ZIP reading source.
+        source: Target EPUB, CBZ or ZIP reading source.
         entries: Exact member names and bytes overriding any defaults.
     """
     files = {}
@@ -210,13 +210,13 @@ def test_epub_cover(tmp_path, monkeypatch):
         """Record cover reads while preserving the bounded archive reader.
 
         Args:
-            archive: The stable source archive.
-            member: The selected archive member.
-            limit: The caller's byte bound.
-            kwargs: Additional reader options.
+            archive: Stable source archive.
+            member: Selected archive member.
+            limit: Caller's byte bound.
+            **kwargs: Additional reader options.
 
         Returns:
-            The original member bytes.
+            Original member bytes.
         """
         reads.append(member.filename)
         return read_member(archive, member, limit, **kwargs)
@@ -389,8 +389,8 @@ def test_local_changed(tmp_path, monkeypatch, change):
         """Change the container after the bounded image read.
 
         Args:
-            path: The selected cover path.
-            kwargs: The bounded reader's options.
+            path: Selected cover path.
+            **kwargs: Bounded reader's options.
 
         Returns:
             Bytes and stat information from the original read.
@@ -421,8 +421,8 @@ def test_cover_io_error(tmp_path, monkeypatch):
         """Simulate an unreadable cover instead of a missing optional image.
 
         Args:
-            args: Positional reader arguments.
-            kwargs: Reader options.
+            *args: Positional reader arguments.
+            **kwargs: Reader options.
 
         Raises:
             PermissionError: For every attempted image read.

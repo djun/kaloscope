@@ -3,7 +3,7 @@
 
   let { id, sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, markerEnd }: EdgeProps = $props();
   let [path, labelX, labelY] = $derived(
-    // render a bezier edge between two nodes
+    // draw a curved edge between two nodes
     getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
   );
 

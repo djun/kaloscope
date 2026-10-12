@@ -73,9 +73,9 @@ class EventHandler(FileSystemEventHandler):
         """Initialize the event handler.
 
         Args:
-            lib: The media library instance.
-            loop: The event loop for the application.
-            events: The queue to store media events.
+            lib: Media library instance.
+            loop: Event loop for the application.
+            events: Queue to store media events.
         """
         self._lib = lib
         self._loop = loop
@@ -87,7 +87,7 @@ class EventHandler(FileSystemEventHandler):
         """Schedule watchdog notifications on the application's event loop.
 
         Args:
-            event: The filesystem notification received on the observer thread.
+            event: Filesystem notification received on the observer thread.
         """
         self._loop.call_soon_threadsafe(super().dispatch, event, context=self._context)
 
@@ -95,7 +95,7 @@ class EventHandler(FileSystemEventHandler):
         """Persist the event to the database.
 
         Args:
-            event: The file system event to persist.
+            event: File system event to persist.
         """
         handler = get_handler(self._lib.lib_type)
         sys_event = handler.filter_event(event, base_path=self._lib.dir)
@@ -186,7 +186,7 @@ class LibWatcher:
         """Get pending reload notifications shared by all workers.
 
         Returns:
-            The libraries with committed events to reload.
+            Libraries with committed events to reload.
         """
         return self._app.shared_ctx.lib_event_changes
 
@@ -240,8 +240,9 @@ class LibWatcher:
         schedule a full scan only when the library enables it.
 
         Args:
-            lib: The media library that will be monitored.
+            lib: Media library that will be monitored.
             startup: Whether the observer is being added during application startup.
+                Defaults to `False`.
         """
         if self._watcher_lock.acquire(block=False):
             try:
@@ -270,11 +271,11 @@ class LibWatcher:
                 self._watcher_lock.release()
 
     async def remove_observer(self, path: str, *, force: bool = False):
-        """Remove the observer for the specified path.
+        """Remove observer for the specified path.
 
         Args:
-            path: The directory path to stop monitoring.
-            force: Whether to forcefully remove the observer.
+            path: Directory path to stop monitoring.
+            force: Whether to forcefully remove the observer. Defaults to `False`.
         """
         if path not in self._observers:
             self._watcher_actions[path] = LibAction.REMOVE
@@ -298,7 +299,7 @@ class LibWatcher:
         Log recovery conflicts so other libraries can start.
 
         Args:
-            lib: The media library instance.
+            lib: Media library instance.
 
         Returns:
             A queue of pending events excluding organization journals.
@@ -329,8 +330,8 @@ class LibWatcher:
         idle queue does not query the database until notified or a deadline arrives.
 
         Args:
-            lib_id: The media library whose persisted events are consumed.
-            events: The queue to store media events.
+            lib_id: Media library whose persisted events are consumed.
+            events: Queue to store media events.
         """
         reload = True
         deferred: dict[int, tuple[float, MediaEvent]] = {}
@@ -378,6 +379,7 @@ class LibWatcher:
                                     await consume_event(event)
                         except ContentError as error:
                             ready, failure = False, error
+
                         # observation and execution both persist their own deadlines
                         event = await MediaEvent.get_or_none(
                             id=event.id, lib_id=lib_id, event_type="reconcile"
@@ -413,6 +415,7 @@ class LibWatcher:
                         if not ready or not unchanged:
                             reload = True
                         continue
+
                     # merged or removed events must not delay the remaining queue
                     if not await consume_event(event or queued):
                         continue
@@ -435,8 +438,9 @@ class LibWatcher:
         Recheck delayed startup scans in case the library was disabled or removed.
 
         Args:
-            lib: The media library instance.
+            lib: Media library instance.
             delay: Seconds to wait before a startup scan, or `0` for a new library.
+                Defaults to `0`.
         """
         if delay > 0:
             await asyncio.sleep(delay)
@@ -458,9 +462,11 @@ class LibWatcher:
         Recover pending organization before comparing indexed paths.
 
         Args:
-            target: The media library instance or the directory path to scan.
+            target: Media library instance or the directory path to scan.
             backfill_nfo_events: Whether to create events for missing NFO files.
-            validate_request: Whether to validate the scanning request.
+                Defaults to `True`.
+            validate_request: Whether to validate the scanning request. Defaults to
+                `False`.
 
         Raises:
             KaloscopeException: If the requested scan is already in progress.
@@ -511,7 +517,7 @@ class LibWatcher:
         pending moves and body-change facts under the library lock.
 
         Args:
-            lib: The observed reading library with a pending-event queue.
+            lib: Observed reading library with a pending-event queue.
 
         Raises:
             ContentError: If the root is invalid, inaccessible or the library changes.
@@ -559,8 +565,9 @@ class LibWatcher:
         Fill missing hashes and sizes without treating them as file replacements.
 
         Args:
-            lib: The media library instance.
+            lib: Media library instance.
             backfill_nfo_events: Whether to create events for missing NFO files.
+                Defaults to `True`.
         """
         logger.info(f"Scanning directory: {Colors.GREEN}%s{Colors.END}", lib.dir)
         _, events = self._observers[lib.dir]
@@ -569,7 +576,7 @@ class LibWatcher:
             """Create a media event from a system event.
 
             Args:
-                sys_event: The file system event.
+                sys_event: File system event.
             """
             media_event = await MediaEvent.create(
                 lib_id=lib.id,
@@ -645,7 +652,7 @@ class LibWatcher:
         """Check if the specified path is being scanned.
 
         Args:
-            path: The directory path to check.
+            path: Directory path to check.
 
         Returns:
             True if the path is being scanned, False otherwise.
@@ -657,10 +664,10 @@ def _ingest_params(info: MediaPathInfo) -> dict:
     """Build serializable parameters for pending ingest workflows.
 
     Args:
-        info: The indexed media item and its initial scrape parameters.
+        info: Indexed media item and its initial scrape parameters.
 
     Returns:
-        The workflow parameters retaining the stable media item ID.
+        Workflow parameters retaining the stable media item ID.
     """
     return {
         "item_id": info.item_id,
@@ -690,7 +697,7 @@ async def consume_event(event: MediaEvent) -> bool:
     run workflows after releasing it, saving progress after each successful trigger.
 
     Args:
-        event: The persisted media event to process. Prepared reading tasks must
+        event: Persisted media event to process. Prepared reading tasks must
             retain the library and task snapshot captured before execution.
 
     Returns:
@@ -735,6 +742,7 @@ async def consume_event(event: MediaEvent) -> bool:
             or (event.lib.dir, event.lib.lib_type) != (lib.dir, lib.lib_type)
         ):
             return False
+
         # merge already persisted changes before registering any new source
         await coalesce_reading_events(lib.id)
         current = await MediaEvent.get_or_none(id=event.id).select_related("lib")
@@ -831,7 +839,8 @@ async def consume_event(event: MediaEvent) -> bool:
         event = current
         event.lib = lib
         pending = await _consume_event(event)
-    # fire workflows after releasing the library lock they also use to write NFOs
+
+    # fire workflows after releasing the library lock they also use to write NFO files
     for index, params in enumerate(pending):
         await FlowTriggerService.fire(
             GraphCategory.INGEST, event.lib_id, bootparams=params
@@ -845,7 +854,7 @@ async def consume_event(event: MediaEvent) -> bool:
 async def _handle_reading_moves(event: MediaEvent, payload: ReadingReconcile) -> bool:
     """Apply a body or directory move chain before registering new sources.
 
-    The serial consumer calls this after checking its prepared task version.
+    Serial consumer calls this after checking its prepared task version.
     Gather linked facts across pending works in arrival order, retaining duplicates
     only once. Collapse a continuous chain of one kind to its current owner's final
     path. Apply mixed, branching and cyclic moves together in one transaction.
@@ -853,8 +862,8 @@ async def _handle_reading_moves(event: MediaEvent, payload: ReadingReconcile) ->
     another item's identity. This step never moves files or removes old companions.
 
     Args:
-        event: The prepared task with its current reading library loaded.
-        payload: The task scopes and original filesystem move facts.
+        event: Prepared task with its current reading library loaded.
+        payload: Task scopes and original filesystem move facts.
 
     Returns:
         True if ingestion can continue after handling the moves; False if the
@@ -882,6 +891,7 @@ async def _handle_reading_moves(event: MediaEvent, payload: ReadingReconcile) ->
             if move.event_id in pending_moves and pending_moves[move.event_id] != move:
                 raise ValueError("conflicting reading move records")
             pending_moves[move.event_id] = move
+
     # a later leg must not register a new ID while an earlier leg owns the body
     while True:
         linked = {
@@ -975,14 +985,14 @@ async def _handle_reading_moves(event: MediaEvent, payload: ReadingReconcile) ->
 async def _consume_event(event: MediaEvent) -> list[dict]:
     """Persist pending work before organizing outside the metadata transaction.
 
-    The caller must hold the library lock and recover pending plans first.
+    Caller must hold the library lock and recover pending plans first.
     Preserve media and NFO associations at reused paths when handling delayed events.
 
     Args:
-        event: The media event with its current library instance attached.
+        event: Media event with its current library instance attached.
 
     Returns:
-        The ingest workflow parameter dictionaries using the current media paths.
+        Ingest workflow parameter dictionaries using the current media paths.
 
     Raises:
         OrganizePendingError: If organization cannot finish safely.
@@ -1013,7 +1023,7 @@ async def _consume_event(event: MediaEvent) -> list[dict]:
                 await _handle_deleted(event)
             affected.extend(await update_metadata(event.lib, target))
         elif event.event_type == EVENT_TYPE_MOVED:
-            # skip reindexing when organization already moved the original record
+            # skip indexing again when organization already moved the original record
             known = await MediaItem.get_or_none(lib_id=event.lib_id, path=str(target))
             source = await MediaItem.filter(
                 lib_id=event.lib_id, path=event.src_path
@@ -1048,14 +1058,14 @@ async def _consume_event(event: MediaEvent) -> list[dict]:
 async def _resume_ingest(event: MediaEvent) -> list[dict]:
     """Refresh pending ingest parameters from current media records.
 
-    The caller must hold the library lock. Fill missing file hashes and sizes
+    Caller must hold the library lock. Fill missing file hashes and sizes
     before triggering workflows.
 
     Args:
-        event: The ingest event containing unfinished workflow parameters.
+        event: Ingest event containing unfinished workflow parameters.
 
     Returns:
-        The remaining workflow parameters with current paths and parent metadata.
+        Remaining workflow parameters with current paths and parent metadata.
 
     Raises:
         OrganizePendingError: If the payload is missing or organization cannot
@@ -1118,13 +1128,13 @@ async def _resume_ingest(event: MediaEvent) -> list[dict]:
 
 
 async def _refresh_replaced(item: MediaItem):
-    """Refresh an indexed video's content identity and cached danmakus.
+    """Refresh an indexed video's content identity and cached overlay comments.
 
-    Hold the library lock and clear cached danmakus only when a known hash or
+    Hold the library lock and clear cached overlay comments only when a known hash or
     size changes. Preserve the media ID and NFO.
 
     Args:
-        item: The indexed media item to refresh.
+        item: Indexed media item to refresh.
     """
     if not await MediaItemService.refresh_hash_and_size(item):
         return
@@ -1142,7 +1152,7 @@ async def _handle_deleted(event: MediaEvent):
     """Clean missing videos using the same ownership rules as explicit deletion.
 
     Args:
-        event: The deletion or move event with its library loaded. The caller holds
+        event: Deletion or move event with its library loaded. The caller holds
             the library lock and has checked that the original path is absent.
 
     Raises:
@@ -1177,10 +1187,10 @@ async def _handle_moved(event: MediaEvent) -> list[MediaPathInfo] | None:
     Preserve its metadata and history even if the destination no longer exists.
 
     Args:
-        event: The media event.
+        event: Media event.
 
     Returns:
-        The destination paths needing ingest, or `None` if none are needed.
+        Destination paths needing ingest, or `None` if none are needed.
     """
     source = Path(event.src_path)
     if not (source.exists() or source.is_symlink()):
@@ -1193,10 +1203,10 @@ async def _handle_created(event: MediaEvent) -> list[MediaPathInfo] | None:
     """Index a created path or refresh an existing media item.
 
     Args:
-        event: The media event.
+        event: Media event.
 
     Returns:
-        The media paths needing ingest workflows, or `None` if none are needed.
+        Media paths needing ingest workflows, or `None` if none are needed.
     """
     # check if the destination path exists
     path = Path(event.dest_path or event.src_path)

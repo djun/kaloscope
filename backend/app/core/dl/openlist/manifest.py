@@ -56,8 +56,8 @@ class RefreshLimiter:
         """Acquire permission to request a refreshed listing.
 
         Args:
-            key: The stable identifier of the job requesting a refresh.
-            now: The current observation timestamp.
+            key: Stable identifier of the job requesting a refresh.
+            now: Current observation timestamp.
 
         Returns:
             `True` when the refresh interval has elapsed, otherwise `False`.
@@ -87,13 +87,13 @@ _REFRESH_LIMITERS: WeakValueDictionary[str, RefreshLimiter] = WeakValueDictionar
 
 
 def shared_refresh_limiter(endpoint: str) -> RefreshLimiter:
-    """Get the forced-refresh limiter shared by an OpenList endpoint.
+    """Get forced-refresh limiter shared by an OpenList endpoint.
 
     Args:
-        endpoint: The normalized OpenList endpoint URL.
+        endpoint: Normalized OpenList endpoint URL.
 
     Returns:
-        The process-local limiter shared by active drivers for the endpoint.
+        Process-local limiter shared by active drivers for the endpoint.
     """
     limiter = _REFRESH_LIMITERS.get(endpoint)
     if limiter is None:
@@ -112,7 +112,7 @@ def normalize_relative_path(path: str) -> str:
         ValueError: If `path` is absolute, ambiguous, or unsafe.
 
     Returns:
-        The canonical relative POSIX path.
+        Canonical relative POSIX path.
     """
     if path.startswith("/") or "\\" in path or "\0" in path:
         raise ValueError("Remote path must be a canonical relative POSIX path")
@@ -130,14 +130,15 @@ async def build_manifest(
 
     Args:
         client: The OpenList client used to list remote directories.
-        root: The absolute remote result root.
+        root: Absolute remote result root.
         refresh: Whether the first page of each directory should refresh storage.
+            Defaults to `False`.
 
     Raises:
         ValueError: If paths, pagination, hashes, depth, or entry counts are unsafe.
 
     Returns:
-        The canonical manifest entries sorted by relative path.
+        Canonical manifest entries sorted by relative path.
     """
     entries: list[RemoteManifestEntry] = []
     paths: set[str] = set()
@@ -145,6 +146,16 @@ async def build_manifest(
 
     async def walk(remote_dir: str, parent: str, depth: int):
         # bound recursion before issuing another remote request
+        """Collect paged directory entries within the manifest limits.
+
+        Args:
+            remote_dir: Absolute directory to list.
+            parent: Relative parent path in the manifest.
+            depth: Current directory nesting depth.
+
+        Raises:
+            ValueError: If traversal or pagination is unsafe or exceeds a limit.
+        """
         if depth > _MAX_DEPTH:
             raise ValueError("Remote manifest depth limit exceeded")
         seen = 0
@@ -191,13 +202,13 @@ def _normalize_hashes(values: dict[str, str]) -> tuple[tuple[str, str], ...]:
     """Normalize supported hashes and discard unusable values.
 
     Args:
-        values: The hashes reported by OpenList.
+        values: Hashes reported by OpenList.
 
     Raises:
         ValueError: If one algorithm has conflicting valid values.
 
     Returns:
-        The sorted supported hash pairs.
+        Sorted supported hash pairs.
     """
     result: dict[str, str] = {}
     for raw_algorithm, raw_value in values.items():
@@ -220,10 +231,10 @@ def manifest_fingerprint(entries: Iterable[RemoteManifestEntry]) -> str:
     """Calculate a deterministic fingerprint for manifest stability checks.
 
     Args:
-        entries: The canonical manifest entries.
+        entries: Canonical manifest entries.
 
     Returns:
-        The hexadecimal SHA-256 fingerprint.
+        Hexadecimal SHA-256 fingerprint.
     """
     canonical = [
         (entry.path, entry.is_dir, entry.size, sorted(entry.hashes))
@@ -239,7 +250,7 @@ def serialize_manifest(
     """Serialize manifest entries for database storage.
 
     Args:
-        entries: The canonical manifest entries.
+        entries: Canonical manifest entries.
 
     Returns:
         The JSON-compatible manifest records.
@@ -268,13 +279,13 @@ def observe_manifest(
     unchanged for `STABILITY_WINDOW`.
 
     Args:
-        entries: The latest canonical manifest entries.
-        previous_fingerprint: The fingerprint saved by the previous observation.
-        changed_at: The start of the persisted unchanged period.
-        now: The current observation timestamp.
+        entries: Latest canonical manifest entries.
+        previous_fingerprint: Fingerprint saved by the previous observation.
+        changed_at: Start of the persisted unchanged period.
+        now: Current observation timestamp.
 
     Returns:
-        The updated fingerprint, stability state, and refresh requirement.
+        Updated fingerprint, stability state, and refresh requirement.
     """
     entries = tuple(entries)
     fingerprint = manifest_fingerprint(entries)

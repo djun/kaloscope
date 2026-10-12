@@ -166,9 +166,9 @@ export const sniffer = {
 };
 
 /**
- * Load the first selected file as a base64 data URL.
+ * Load first selected file as a base64 data URL.
  *
- * @param target - The event target of a file input change event.
+ * @param target - Event target of a file input change event.
  * @returns A promise resolving to the data URL or `null` when no file is selected, rejecting on read errors.
  */
 export function loadFile(target: EventTarget & HTMLInputElement): Promise<string | null> {
@@ -191,8 +191,8 @@ export function loadFile(target: EventTarget & HTMLInputElement): Promise<string
 /**
  * Download a blob through a temporary link and release its object URL.
  *
- * @param blob - The file contents to download.
- * @param filename - The suggested filename, including its extension.
+ * @param blob - File contents to download.
+ * @param filename - Suggested filename, including its extension.
  */
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);

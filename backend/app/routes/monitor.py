@@ -21,7 +21,14 @@ monitor = Blueprint("monitor", url_prefix="/monitor")
 @monitor.get("/logs")
 @authorize(role=UserRole.ADMIN)
 async def stream_logs(request: Request) -> HTTPResponse | None:
-    """Stream recent and new system logs to an administrator."""
+    """Stream recent and new system logs to an administrator.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        An error response, or `None` after the stream ends.
+    """
     # establish the event stream before polling shared records
     try:
         response = await request.respond(
@@ -100,11 +107,11 @@ def records_after(
     """Select retained records newer than an `SSE` cursor.
 
     Args:
-        snapshot: The latest system log snapshot.
-        last_event_id: The client cursor from the `Last-Event-ID` header.
+        snapshot: Latest system log snapshot.
+        last_event_id: Client cursor from the `Last-Event-ID` header.
 
     Returns:
-        The retained records newer than the validated cursor.
+        Retained records newer than the validated cursor.
     """
     # accept cursors only from the current backend service lifetime
     try:
@@ -129,8 +136,8 @@ async def send_state(response: Any, snapshot: LogSnapshot) -> bool:
     """Send the current service-wide log monitor state.
 
     Args:
-        response: The streaming response used to send the event.
-        snapshot: The latest system log snapshot.
+        response: Streaming response used to send the event.
+        snapshot: Latest system log snapshot.
 
     Returns:
         Whether the state event was sent successfully.
@@ -159,12 +166,12 @@ async def send_records(
     """Send resumable `SSE` records in bounded batches and return the final ID.
 
     Args:
-        response: The streaming response used to send events.
-        records: The log records to serialize as `SSE` events.
-        run_id: The current backend service lifetime identifier.
+        response: Streaming response used to send events.
+        records: Log records to serialize as `SSE` events.
+        run_id: Current backend service lifetime identifier.
 
     Returns:
-        The final sent record ID, or `None` if sending is interrupted.
+        Final sent record ID, or `None` if sending is interrupted.
     """
     last_id = 0
     events: list[str] = []
@@ -189,21 +196,42 @@ async def send_records(
 @monitor.post("/logs/pause")
 @authorize(role=UserRole.ADMIN)
 async def pause_logs(request: Request) -> HTTPResponse:
-    """Pause service-wide system log retention."""
+    """Pause service-wide system log retention.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Response containing the requested data.
+    """
     return enqueue_action(request, "pause")
 
 
 @monitor.post("/logs/resume")
 @authorize(role=UserRole.ADMIN)
 async def resume_logs(request: Request) -> HTTPResponse:
-    """Resume service-wide system log retention."""
+    """Resume service-wide system log retention.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Response containing the requested data.
+    """
     return enqueue_action(request, "resume")
 
 
 @monitor.post("/logs/clear")
 @authorize(role=UserRole.ADMIN)
 async def clear_logs(request: Request) -> HTTPResponse:
-    """Clear retained service-wide system logs."""
+    """Clear retained service-wide system logs.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Response containing the requested data.
+    """
     return enqueue_action(request, "clear")
 
 
@@ -211,8 +239,8 @@ def enqueue_action(request: Request, action: LogAction) -> HTTPResponse:
     """Queue a service-wide system log action.
 
     Args:
-        request: The current Sanic request.
-        action: The system log action to enqueue.
+        request: Current Sanic request.
+        action: System log action to enqueue.
 
     Returns:
         An accepted response, or a service unavailable response on failure.

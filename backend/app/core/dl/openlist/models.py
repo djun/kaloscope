@@ -57,6 +57,14 @@ class RemoteEntry(BaseModel):
     @field_validator("hash_info", mode="before")
     @classmethod
     def normalize_hash_info(cls, value: object) -> object:
+        """Treat missing hash data as an empty mapping.
+
+        Args:
+            value: Raw response field before validation.
+
+        Returns:
+            Hash data, or an empty mapping for `None`.
+        """
         return {} if value is None else value
 
 
@@ -68,6 +76,14 @@ class RemoteEntryPage(BaseModel):
     @field_validator("content", mode="before")
     @classmethod
     def normalize_content(cls, value: object) -> object:
+        """Treat an absent directory listing as empty.
+
+        Args:
+            value: Raw response field before validation.
+
+        Returns:
+            Directory entries, or an empty list for `None`.
+        """
         return [] if value is None else value
 
 
@@ -81,6 +97,14 @@ class RemoteLink(BaseModel):
     @field_validator("headers", mode="before")
     @classmethod
     def normalize_headers(cls, value: object) -> object:
+        """Treat missing download headers as an empty mapping.
+
+        Args:
+            value: Raw response field before validation.
+
+        Returns:
+            Headers, or an empty mapping for `None`.
+        """
         return {} if value is None else value
 
 
@@ -93,7 +117,7 @@ class RemoteTaskState(StrEnum):
     CANCELED = auto()
 
 
-# Numeric values are defined in:
+# numeric values are defined in:
 # https://github.com/OpenListTeam/tache/blob/v0.2.2/state.go
 _TACHE_TASK_STATES = {
     0: RemoteTaskState.PENDING,  # tache.StatePending
@@ -121,6 +145,17 @@ class RemoteTask(BaseModel):
     @field_validator("state", mode="before")
     @classmethod
     def map_tache_state(cls, value: object) -> RemoteTaskState:
+        """Map the remote numeric state to a download state.
+
+        Args:
+            value: Remote numeric state or an existing state value.
+
+        Returns:
+            Mapped task state.
+
+        Raises:
+            ValueError: If the numeric state is unknown.
+        """
         if isinstance(value, RemoteTaskState):
             return value
         if type(value) is not int or value not in _TACHE_TASK_STATES:
@@ -132,6 +167,15 @@ class RemoteTask(BaseModel):
     ) -> bool:
         # `DownloadTask.GetName()` includes the source and exact destination:
         # https://github.com/OpenListTeam/OpenList/blob/a4ae2acb65792f59b2ab0f24a0f68430e1f1fd81/internal/offline_download/tool/download.go
+        """Match a remote task to its source and destination.
+
+        Args:
+            remote_directory: Exact remote destination directory.
+            source_fingerprint: SHA-256 hash of the submitted source.
+
+        Returns:
+            Whether both the destination and source hash match.
+        """
         prefix = "download "
         suffix = f" to ({remote_directory})"
         if not self.name.startswith(prefix) or not self.name.endswith(suffix):
@@ -180,6 +224,17 @@ class OpenListConfig(Endpoint):
     @field_validator("path")
     @classmethod
     def validate_api_path(cls, value: str) -> str:
+        """Require the endpoint path to end with `/api`.
+
+        Args:
+            value: Normalized endpoint path.
+
+        Returns:
+            Validated API path.
+
+        Raises:
+            ValueError: If the path lacks the `/api` suffix.
+        """
         if not value.endswith("/api"):
             raise ValueError("OpenList path must end with /api")
         return value
@@ -187,6 +242,18 @@ class OpenListConfig(Endpoint):
     @field_validator("remote_root")
     @classmethod
     def normalize_remote_root(cls, value: str) -> str:
+        """Require a safe absolute remote destination.
+
+        Args:
+            value: Remote root directory.
+
+        Returns:
+            Normalized POSIX path.
+
+        Raises:
+            ValueError: If the path is relative or contains parent traversal or a null
+                byte.
+        """
         path = PurePosixPath(value)
         if not path.is_absolute() or ".." in path.parts or "\0" in value:
             raise ValueError("OpenList remote root must be an absolute POSIX path")
@@ -195,12 +262,29 @@ class OpenListConfig(Endpoint):
     @field_validator("poll_max_interval")
     @classmethod
     def validate_poll_max_interval(cls, value: int, info: ValidationInfo) -> int:
+        """Keep the maximum poll delay at least as large as the base.
+
+        Args:
+            value: Maximum poll delay in seconds.
+            info: Previously validated fields, including the base delay.
+
+        Returns:
+            Validated maximum delay.
+
+        Raises:
+            ValueError: If the maximum delay is shorter than the base delay.
+        """
         if value < info.data.get("poll_interval", value):
             raise ValueError("Maximum poll interval cannot be smaller than the base")
         return value
 
     @model_validator(mode="after")
     def apply_name_default(self) -> Self:
+        """Use the selected tool name when the client name is empty.
+
+        Returns:
+            Configuration with a display name.
+        """
         if not self.name:
             self.name = f"OpenList · {self.tool}"
         return self

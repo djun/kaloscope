@@ -23,7 +23,15 @@ network = Blueprint("network", url_prefix="/network")
 @network.get("/rule/list")
 @validate(query=URLRuleQuery)
 async def list_rules(_, query: URLRuleQuery) -> HTTPResponse:
-    """List the URL rules."""
+    """List the URL rules.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     queries = []
     if query.pattern:
         queries.append(Q(pattern__icontains=query.pattern))
@@ -37,7 +45,15 @@ async def list_rules(_, query: URLRuleQuery) -> HTTPResponse:
 @network.post("/rule/sort")
 @validate(json=IDs)
 async def sort_rules(_, body: IDs) -> HTTPResponse:
-    """Sort the URL rules."""
+    """Sort the URL rules.
+
+    Args:
+        _: Unused request.
+        body: Record IDs in display order.
+
+    Returns:
+        Empty response on success.
+    """
     await URLRuleService.update_priorities(body.ids)
     return empty()
 
@@ -46,7 +62,15 @@ async def sort_rules(_, body: IDs) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=URLRuleUpsert)
 async def upsert_rule(_, body: URLRuleUpsert) -> HTTPResponse:
-    """Create or update a URL rule."""
+    """Create or update a URL rule.
+
+    Args:
+        _: Unused request.
+        body: URL matching and routing settings.
+
+    Returns:
+        Response containing the requested data.
+    """
     rule = await URLRuleService.upsert(body)
     return json(await URLRuleService.dump(rule))
 
@@ -55,7 +79,15 @@ async def upsert_rule(_, body: URLRuleUpsert) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_rules(_, body: IDs) -> HTTPResponse:
-    """Delete the URL rules."""
+    """Delete the URL rules.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     await URLRule.filter(id__in=body.ids).delete()
     return empty()
 
@@ -64,7 +96,15 @@ async def delete_rules(_, body: IDs) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=URLRuleToggle)
 async def toggle_rule(_, body: URLRuleToggle) -> HTTPResponse:
-    """Toggle boolean fields of a URL rule."""
+    """Toggle boolean fields of a URL rule.
+
+    Args:
+        _: Unused request.
+        body: URL rule ID and routing flags to change.
+
+    Returns:
+        Empty response on success.
+    """
     fields = {}
     if body.secure_dns is not None:
         fields["secure_dns"] = body.secure_dns
@@ -77,7 +117,14 @@ async def toggle_rule(_, body: URLRuleToggle) -> HTTPResponse:
 
 @network.get("/dns/list")
 async def list_dns_resolvers(_) -> HTTPResponse:
-    """List the DNS resolvers."""
+    """List the DNS resolvers.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Response containing the requested data.
+    """
     resolvers = await DNSResolverService.dump_list(DNSResolver.all())
     return json(resolvers)
 
@@ -86,7 +133,15 @@ async def list_dns_resolvers(_) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=DNSResolverUpsert)
 async def upsert_dns_resolver(_, body: DNSResolverUpsert) -> HTTPResponse:
-    """Create or update a DNS resolver."""
+    """Create or update a DNS resolver.
+
+    Args:
+        _: Unused request.
+        body: DNS server and connection settings.
+
+    Returns:
+        Response containing the requested data.
+    """
     resolver = await DNSResolverService.upsert(body)
     return json(await DNSResolverService.dump(resolver))
 
@@ -95,14 +150,29 @@ async def upsert_dns_resolver(_, body: DNSResolverUpsert) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_dns_resolvers(_, body: IDs) -> HTTPResponse:
-    """Delete the DNS resolvers."""
+    """Delete the DNS resolvers.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     await DNSResolver.filter(id__in=body.ids).delete()
     return empty()
 
 
 @network.get("/proxy/list")
 async def list_proxy_servers(_) -> HTTPResponse:
-    """List the HTTP proxy servers."""
+    """List the HTTP proxy servers.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Response containing the requested data.
+    """
     servers = await HTTPProxyService.dump_list(HTTPProxy.all())
     return json(servers)
 
@@ -111,7 +181,15 @@ async def list_proxy_servers(_) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=HTTPProxyUpsert)
 async def upsert_proxy_server(_, body: HTTPProxyUpsert) -> HTTPResponse:
-    """Create or update an HTTP proxy server."""
+    """Create or update an HTTP proxy server.
+
+    Args:
+        _: Unused request.
+        body: HTTP proxy connection settings.
+
+    Returns:
+        Response containing the requested data.
+    """
     server = await HTTPProxyService.upsert(body)
     return json(await HTTPProxyService.dump(server))
 
@@ -120,6 +198,14 @@ async def upsert_proxy_server(_, body: HTTPProxyUpsert) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_proxy_servers(_, body: IDs) -> HTTPResponse:
-    """Delete the HTTP proxy servers."""
+    """Delete the HTTP proxy servers.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     await HTTPProxy.filter(id__in=body.ids).delete()
     return empty()

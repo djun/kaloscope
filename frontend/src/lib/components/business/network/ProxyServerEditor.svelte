@@ -40,7 +40,7 @@
   /**
    * Save or update the HTTP proxy server.
    *
-   * @param data - The form data.
+   * @param data - Form data.
    */
   function upsert(data: FormData) {
     loading.start();

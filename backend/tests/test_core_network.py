@@ -6,7 +6,7 @@ from app.utils.crypto import xor_encrypt
 
 
 def test_encode_proxy_credentials():
-    """Test that proxy credentials are safely encoded as URL userinfo."""
+    """Test that proxy credentials are safely encoded in the URL credentials."""
     proxy = HTTPProxy(
         name="proxy",
         protocol=ProxyProtocol.HTTP,

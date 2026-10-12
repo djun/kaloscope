@@ -18,10 +18,10 @@ class OutputHandle(Handle):
         """Create a new output handle with the given loop node ID.
 
         Args:
-            loop_id: The loop node ID.
+            loop_id: Loop node ID.
 
         Returns:
-            The new output handle.
+            New output handle.
         """
         return self.create(self.id, loop_id)
 
@@ -30,7 +30,7 @@ class OutputHandle(Handle):
         """Create a snapshot dict of the output handle.
 
         Returns:
-            The snapshot dict.
+            Snapshot dict.
         """
         return {
             "id": self.id,
@@ -43,10 +43,10 @@ class OutputHandle(Handle):
         """Create a new output handle from the snapshot dict.
 
         Args:
-            snapshot: The snapshot dict.
+            snapshot: Snapshot dict.
 
         Returns:
-            The new output handle.
+            New output handle.
         """
         if snapshot is None:
             return None

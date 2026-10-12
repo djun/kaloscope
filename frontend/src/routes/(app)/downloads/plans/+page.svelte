@@ -35,8 +35,8 @@
   /**
    * Search for download plans.
    *
-   * @param page - The page number.
-   * @param size - The page size.
+   * @param page - Page number.
+   * @param size - Page size.
    */
   function search(page: number = 1, size: number = pagination.size) {
     loading.start();
@@ -63,7 +63,7 @@
   /**
    * Delete a download plan by ID.
    *
-   * @param id - The download plan ID.
+   * @param id - Download plan ID.
    */
   function del(id: number) {
     loading.start();

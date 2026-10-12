@@ -46,12 +46,12 @@ def read_image_file(
 
     Args:
         path: An image path after the caller validates its directory boundary.
-        snapshot: The indexed size and mtime, or None while building an index.
+        snapshot: Indexed size and mtime, or None while building an index.
         full: Whether to read the full image; False reads only its signature.
-        limit: The byte limit, defaulting to the shared image budget.
+        limit: Byte limit, defaulting to the shared image budget.
 
     Returns:
-        The bounded bytes and the source attributes before reading.
+        Bounded bytes and the source attributes before reading.
 
     Raises:
         ContentError: If the file is unsafe, changes or exceeds the image limit.

@@ -4,7 +4,7 @@ import type { MediaLib, Menu, Resp } from '$lib/types';
 import type { LayoutLoad } from './$types';
 
 /**
- * Load the media library navigation and scan states.
+ * Load media library navigation and scan states.
  *
  * @returns The library menus and their backing media libraries.
  */

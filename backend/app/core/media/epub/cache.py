@@ -76,10 +76,10 @@ class EpubAsset(BaseModel):
         """Keep the exact ZIP name after checking its normalized boundary.
 
         Args:
-            member: The cached archive member name, including its original spelling.
+            member: Cached archive member name, including its original spelling.
 
         Returns:
-            The unchanged member name for exact ZIP lookup.
+            Unchanged member name for exact ZIP lookup.
 
         Raises:
             ValueError: If the member path is unsafe.
@@ -106,7 +106,7 @@ class EpubIndex(BaseModel):
         """Require contiguous ranges and unique section and image identities.
 
         Returns:
-            The validated index.
+            Validated index.
 
         Raises:
             ValueError: If ranges or resource identities are inconsistent.
@@ -146,7 +146,7 @@ class EpubContent(BaseModel):
         """Validate block identities, conditional fields and warning references.
 
         Returns:
-            The validated section.
+            Validated section.
 
         Raises:
             ValueError: If block fields or warning references are inconsistent.
@@ -254,8 +254,8 @@ def _validate_asset(
     """Validate an image candidate once without retaining its complete bytes.
 
     Args:
-        archive: The archive yielded by open_archive.
-        identifier: The opaque ID assigned by the XHTML converter.
+        archive: Archive yielded by open_archive.
+        identifier: Opaque ID assigned by the XHTML converter.
         resource: An existing, unencrypted manifest image candidate.
 
     Returns:
@@ -298,11 +298,11 @@ def _write_chapter(
     """Write one bounded section and append its checksum and byte range.
 
     Args:
-        output: The new binary chapter-cache stream.
-        chapters: The book's chapter index being assembled.
-        path: The normalized spine member path used for stable section IDs.
-        title: The optional navigation or document title.
-        part: The one-based continuation within this spine document.
+        output: New binary chapter-cache stream.
+        chapters: Book's chapter index being assembled.
+        path: Normalized spine member path used for stable section IDs.
+        title: Optional navigation or document title.
+        part: One-based continuation within this spine document.
         blocks: Already serialized blocks in reading order.
         warnings: Already serialized warning entries for those blocks.
 
@@ -337,7 +337,7 @@ def build_epub_index(source_path: Path, cache_dir: Path) -> EpubIndex:
     """Build a complete EPUB cache in a fresh caller-owned staging directory.
 
     Run in a worker after validating library access and the full source boundary.
-    The caller publishes the result under its library lock. No source files are
+    Caller publishes the result under its library lock. No source files are
     modified or extracted; a failed build removes only its own new directory.
 
     Args:
@@ -345,7 +345,7 @@ def build_epub_index(source_path: Path, cache_dir: Path) -> EpubIndex:
         cache_dir: A nonexistent cache directory whose parent already exists.
 
     Returns:
-        The index saved beside the serialized chapter body.
+        Index saved beside the serialized chapter body.
 
     Raises:
         ContentError: If the source is invalid, empty, unsupported, unstable
@@ -462,8 +462,8 @@ def read_epub_chapter(
     """Read and validate one cached section without opening the source EPUB.
 
     Args:
-        cache_dir: The completed internal directory selected by the caller.
-        index: The validated index loaded from that directory.
+        cache_dir: Completed internal directory selected by the caller.
+        index: Validated index loaded from that directory.
         chapter_id: An exact chapter ID from the current index.
 
     Returns:
@@ -503,12 +503,12 @@ def read_epub_resource(
     Run in a worker after checking library access, source boundaries and version.
 
     Args:
-        source_path: The source EPUB currently owned by the authorized item.
-        index: The validated index of that source and content version.
+        source_path: Source EPUB currently owned by the authorized item.
+        index: Validated index of that source and content version.
         resource_id: An exact image ID from the current index.
 
     Returns:
-        The selected bytes and their validated MIME type.
+        Selected bytes and their validated MIME type.
 
     Raises:
         ContentError: If the ID is unknown, the source changed or reading fails.

@@ -36,9 +36,9 @@
   }>;
 
   /**
-   * Get the whole URL string of the static file.
+   * Get whole URL string of the static file.
    *
-   * @param url - The relative URL of the static file.
+   * @param url - Relative URL of the static file.
    */
   const resolve = (url: string) => new URL(url, import.meta.url).href;
 

@@ -27,9 +27,9 @@
   });
 
   /**
-   * Update the preference value.
+   * Update preference value.
    *
-   * @param key - The preference key.
+   * @param key - Preference key.
    */
   function update(key: string) {
     if ($user?.preferences) {

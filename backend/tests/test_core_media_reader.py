@@ -21,7 +21,7 @@ def _opf(fields: str) -> bytes:
     """Build OPF metadata without a readable manifest or spine.
 
     Args:
-        fields: The metadata element contents.
+        fields: Metadata element contents.
 
     Returns:
         Bounded UTF-8 package bytes.
@@ -49,8 +49,8 @@ def _source(tmp_path: Path, format: MediaFormat | None) -> ReadingSource:
     """Create an isolated work container and a source without indexing it.
 
     Args:
-        tmp_path: The isolated library root.
-        format: The body format, or None for a comic collection.
+        tmp_path: Isolated library root.
+        format: Body format, or None for a comic collection.
 
     Returns:
         A source with an existing container and no parent.
@@ -69,7 +69,7 @@ def _archive(source: ReadingSource, entries: dict[str, bytes]) -> None:
     """Write isolated ZIP members, adding EPUB descriptors when applicable.
 
     Args:
-        source: The target EPUB, CBZ or ZIP source.
+        source: Target EPUB, CBZ or ZIP source.
         entries: Members overriding the EPUB defaults or forming the comic archive.
     """
     files = {}
@@ -221,7 +221,7 @@ def test_external_errors(tmp_path, monkeypatch, kind):
             """Reject the selected source read.
 
             Args:
-                args: Unused reader arguments.
+                *args: Unused reader arguments.
 
             Raises:
                 PermissionError: For the isolated unreadable-file scenario.
@@ -249,7 +249,7 @@ def test_external_changes(tmp_path, monkeypatch, change):
             data: Bytes from the open metadata source.
 
         Returns:
-            The real parsed fields before the source stability check.
+            Real parsed fields before the source stability check.
         """
         calls.append(data)
         result = parse(data)
@@ -292,13 +292,13 @@ def test_epub_metadata_only(tmp_path, monkeypatch):
         """Record the members consumed by EPUB metadata discovery.
 
         Args:
-            archive: The open archive.
-            member: The selected metadata member.
-            limit: The byte budget.
-            kwargs: Optional read arguments forwarded unchanged.
+            archive: Open archive.
+            member: Selected metadata member.
+            limit: Byte budget.
+            **kwargs: Optional read arguments forwarded unchanged.
 
         Returns:
-            The member bytes from the real bounded reader.
+            Member bytes from the real bounded reader.
         """
         members.append(member.filename)
         return read(archive, member, limit, **kwargs)
@@ -471,7 +471,7 @@ def test_embedded_changes(tmp_path, monkeypatch, continuous):
         """Replace the archive after parsing, before the stable context exits.
 
         Args:
-            data: The selected ComicInfo member bytes.
+            data: Selected ComicInfo member bytes.
 
         Returns:
             Parsed metadata, subject to the archive's final stability check.

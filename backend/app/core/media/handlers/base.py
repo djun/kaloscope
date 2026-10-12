@@ -102,7 +102,7 @@ class MediaHandler(ABC):
         """Return file depths for video scanning.
 
         Returns:
-            The supported file depths.
+            Supported file depths.
 
         Raises:
             NotImplementedError: If the handler requires source discovery.
@@ -113,10 +113,10 @@ class MediaHandler(ABC):
         """Read video metadata from NFO XML.
 
         Args:
-            data: The parsed NFO document.
+            data: Parsed NFO document.
 
         Returns:
-            The video metadata.
+            Video metadata.
 
         Raises:
             NotImplementedError: If the handler does not support NFO metadata.
@@ -127,11 +127,11 @@ class MediaHandler(ABC):
         """Create video items from a source path.
 
         Args:
-            lib: The owning media library.
-            path: The video source path.
+            lib: Owning media library.
+            path: Video source path.
 
         Returns:
-            The generated video path information.
+            Generated video path information.
 
         Raises:
             NotImplementedError: If the handler requires content indexing.
@@ -144,11 +144,11 @@ class MediaHandler(ABC):
         """Filter the event based on the library type and hierarchy.
 
         Args:
-            event: The file system event to filter.
-            base_path: The base path of the media library.
+            event: File system event to filter.
+            base_path: Base path of the media library.
 
         Returns:
-            The filtered event or None if the event is not accepted.
+            Filtered event or None if the event is not accepted.
         """
         logger.debug(f"Filtering: {Colors.CYAN}%s{Colors.END}", event)
 
@@ -177,10 +177,10 @@ class MediaHandler(ABC):
         """Check if the path is a target for the media item handler.
 
         Args:
-            base_path: The base path.
-            path: The path to check for.
-            check_dir: Whether to check directories.
-            check_exists: Whether to check if the path exists.
+            base_path: Base path.
+            path: Path to check for.
+            check_dir: Whether to check directories. Defaults to `False`.
+            check_exists: Whether to check if the path exists. Defaults to `True`.
 
         Returns:
             True if the path is a target, False otherwise.
@@ -227,10 +227,10 @@ class MediaHandler(ABC):
         """Convert the path to a string.
 
         Args:
-            path: The path to convert.
+            path: Path to convert.
 
         Returns:
-            The converted path as a string.
+            Converted path as a string.
         """
         if isinstance(path, bytes | bytearray):
             path = path.decode(ENCODING)
@@ -244,11 +244,11 @@ class MediaHandler(ABC):
         """Filter the modification event.
 
         Args:
-            event: The file system event to filter.
-            base_path: The base path of the media library.
+            event: File system event to filter.
+            base_path: Base path of the media library.
 
         Returns:
-            The filtered event or None if the event is not accepted.
+            Filtered event or None if the event is not accepted.
         """
         if event.is_directory:
             return None
@@ -274,11 +274,11 @@ class MediaHandler(ABC):
         """Filter the deletion event.
 
         Args:
-            event: The file system event to filter.
-            base_path: The base path of the media library.
+            event: File system event to filter.
+            base_path: Base path of the media library.
 
         Returns:
-            The filtered event or None if the event is not accepted.
+            Filtered event or None if the event is not accepted.
         """
         if self.is_target(
             base_path, event.src_path, check_dir=event.is_directory, check_exists=False
@@ -292,11 +292,11 @@ class MediaHandler(ABC):
         """Filter the movement event.
 
         Args:
-            event: The file system event to filter.
-            base_path: The base path of the media library.
+            event: File system event to filter.
+            base_path: Base path of the media library.
 
         Returns:
-            The filtered event or None if the event is not accepted.
+            Filtered event or None if the event is not accepted.
         """
         if event.is_directory:
             return None
@@ -328,11 +328,11 @@ class MediaHandler(ABC):
         """Filter the creation event.
 
         Args:
-            event: The file system event to filter.
-            base_path: The base path of the media library.
+            event: File system event to filter.
+            base_path: Base path of the media library.
 
         Returns:
-            The filtered event or None if the event is not accepted.
+            Filtered event or None if the event is not accepted.
         """
         if event.is_directory:
             return None
@@ -355,16 +355,16 @@ def get_handler(lib_type: LibType) -> MediaHandler: ...
 
 
 def get_handler(lib_type: LibType) -> MediaHandler:
-    """Get the registered handler for the given type.
+    """Get registered handler for the given type.
 
     Args:
-        lib_type: The media library type.
+        lib_type: Media library type.
 
     Raises:
         ValueError: If the type is not supported.
 
     Returns:
-        The registered handler for the type.
+        Registered handler for the type.
     """
     handler = _HANDLERS.get(lib_type)
     if handler is None:

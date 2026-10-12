@@ -3,8 +3,8 @@ import type { Chapter, ChapterGroup } from '$lib/types';
 /**
  * Check whether two chapter ids refer to the same chapter.
  *
- * @param left - The first chapter id.
- * @param right - The second chapter id.
+ * @param left - First chapter id.
+ * @param right - Second chapter id.
  * @returns Whether the ids match.
  */
 export function matchChapterId(left: string | null | undefined, right: string | null | undefined) {
@@ -14,7 +14,7 @@ export function matchChapterId(left: string | null | undefined, right: string | 
 /**
  * Group chapters by volume when every chapter has a volume.
  *
- * @param chapters - The chapters to group.
+ * @param chapters - Chapters to group.
  * @returns Ordered chapter groups.
  */
 export function groupChapters(chapters: Chapter[]): ChapterGroup[] {

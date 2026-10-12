@@ -57,7 +57,7 @@ class SubtitleService:
         """List local subtitles for a media resource path.
 
         Args:
-            path: The media resource path.
+            path: Media resource path.
 
         Returns:
             A list of subtitle tracks found next to the media file.
@@ -86,11 +86,12 @@ class SubtitleService:
         """Load a supported local subtitle resource for the player.
 
         Args:
-            subtitle_path: The external subtitle file path or source video file path.
-            stream_index: The embedded subtitle stream index.
+            subtitle_path: External subtitle file path or source video file path.
+            stream_index: Embedded subtitle stream index. `None` loads the external
+                subtitle file.
 
         Returns:
-            The subtitle content and content type, or `None` if the resource is
+            Subtitle content and content type, or `None` if the resource is
             unsupported.
         """
         path = Path(subtitle_path)
@@ -103,7 +104,7 @@ class SubtitleService:
         """Discover supported external subtitles next to a local video file.
 
         Args:
-            video_path: The video file path.
+            video_path: Video file path.
 
         Returns:
             Subtitle tracks whose file names share the video file stem.
@@ -131,11 +132,12 @@ class SubtitleService:
         """Resolve a supported external subtitle file into a player track.
 
         Args:
-            subtitle_path: The external subtitle file path.
-            video_path: The related video file path.
+            subtitle_path: External subtitle file path.
+            video_path: Related video file path. `None` resolves without a related
+                video.
 
         Returns:
-            The resolved subtitle track, or `None` if the file is unsupported.
+            Resolved subtitle track, or `None` if the file is unsupported.
         """
         path = Path(subtitle_path)
         subtitle_format = cls._external_subtitle_format(path)
@@ -160,10 +162,10 @@ class SubtitleService:
         """Load a supported external subtitle file for the player.
 
         Args:
-            subtitle_path: The external subtitle file path.
+            subtitle_path: External subtitle file path.
 
         Returns:
-            The subtitle content and content type, or `None` if the file is unsupported.
+            Subtitle content and content type, or `None` if the file is unsupported.
         """
         path = Path(subtitle_path)
         subtitle_format = cls._external_subtitle_format(path)
@@ -183,13 +185,13 @@ class SubtitleService:
 
     @classmethod
     def _external_subtitle_format(cls, path: Path) -> str | None:
-        """Get the supported external subtitle format for a file path.
+        """Get supported external subtitle format for a file path.
 
         Args:
-            path: The subtitle file path.
+            path: Subtitle file path.
 
         Returns:
-            The subtitle format, or `None` if the file is unsupported.
+            Subtitle format, or `None` if the file is unsupported.
         """
         subtitle_format = path.suffix.lstrip(".").lower()
         if path.is_file() and subtitle_format in cls.SUPPORTED_EXTERNAL_FORMATS:
@@ -201,10 +203,10 @@ class SubtitleService:
         """Create a stable short ID for an external subtitle file.
 
         Args:
-            path: The subtitle file path.
+            path: Subtitle file path.
 
         Returns:
-            The stable external subtitle track ID.
+            Stable external subtitle track ID.
         """
         digest = hashlib.md5(str(path).encode(ENCODING)).hexdigest()
         return f"external-{digest[:12]}"
@@ -214,11 +216,11 @@ class SubtitleService:
         """Get a readable label for an external subtitle file.
 
         Args:
-            subtitle_path: The subtitle file path.
-            video_path: The related video file path.
+            subtitle_path: Subtitle file path.
+            video_path: Related video file path.
 
         Returns:
-            The readable external subtitle label.
+            Readable external subtitle label.
         """
         if not video_path:
             return subtitle_path.stem
@@ -229,10 +231,10 @@ class SubtitleService:
         """Infer a language marker from an external subtitle label.
 
         Args:
-            label: The readable subtitle label.
+            label: Readable subtitle label.
 
         Returns:
-            The inferred language marker, or `None` if it cannot be inferred.
+            Inferred language marker, or `None` if it cannot be inferred.
         """
         normalized = label.strip().replace("_", "-")
         if not normalized:
@@ -252,7 +254,7 @@ class SubtitleService:
         """Discover supported embedded subtitle streams in a local video file.
 
         Args:
-            video_path: The video file path.
+            video_path: Video file path.
 
         Returns:
             Subtitle tracks for supported embedded text subtitle streams.
@@ -278,12 +280,12 @@ class SubtitleService:
         """Resolve a supported embedded subtitle stream into a player track.
 
         Args:
-            video_path: The source video file path.
-            stream: The ffprobe subtitle stream metadata.
-            ordinal: The one-based supported subtitle stream ordinal.
+            video_path: Source video file path.
+            stream: Ffprobe subtitle stream metadata.
+            ordinal: One-based supported subtitle stream ordinal.
 
         Returns:
-            The resolved subtitle track, or `None` if the stream is unsupported.
+            Resolved subtitle track, or `None` if the stream is unsupported.
         """
         codec = str(stream.get("codec_name") or "").lower()
         if stream.get("codec_type") != "subtitle" or (
@@ -319,8 +321,8 @@ class SubtitleService:
         """Load an embedded subtitle stream as WebVTT content.
 
         Args:
-            video_path: The source video file path.
-            stream_index: The ffmpeg stream index to extract.
+            video_path: Source video file path.
+            stream_index: Ffmpeg stream index to extract.
 
         Returns:
             The WebVTT content and content type, or `None` if extraction failed.
@@ -366,7 +368,7 @@ class SubtitleService:
         """Probe embedded subtitle streams with ffprobe.
 
         Args:
-            video_path: The video file path.
+            video_path: Video file path.
 
         Returns:
             Raw ffprobe stream metadata for subtitle streams.
@@ -401,10 +403,10 @@ class SubtitleService:
 
     @classmethod
     async def _ffmpeg_path(cls) -> str:
-        """Get the ffmpeg executable path from global config or the default name.
+        """Get ffmpeg executable path from global config or the default name.
 
         Returns:
-            The ffmpeg executable name or path.
+            Ffmpeg executable name or path.
         """
         path = await GlobalConfig.get_or_none(key="ffmpeg.path")
         if path and isinstance(path.value, str) and Path(path.value).is_file():
@@ -413,10 +415,10 @@ class SubtitleService:
 
     @classmethod
     async def _ffprobe_path(cls) -> str:
-        """Get the ffprobe executable path from global config or the default name.
+        """Get ffprobe executable path from global config or the default name.
 
         Returns:
-            The ffprobe executable name or path.
+            Ffprobe executable name or path.
         """
         ffmpeg = await cls._ffmpeg_path()
         if ffmpeg != "ffmpeg":
@@ -430,11 +432,11 @@ class SubtitleService:
         """Create a stable short ID for an embedded subtitle stream.
 
         Args:
-            video_path: The source video file path.
-            stream_index: The subtitle stream index.
+            video_path: Source video file path.
+            stream_index: Subtitle stream index.
 
         Returns:
-            The stable embedded subtitle track ID.
+            Stable embedded subtitle track ID.
         """
         digest = hashlib.md5(str(video_path).encode(ENCODING)).hexdigest()
         return f"embedded-{digest[:12]}-{stream_index}"
@@ -444,11 +446,11 @@ class SubtitleService:
         """Get a readable label for an embedded subtitle stream.
 
         Args:
-            tags: The ffprobe stream tags.
-            ordinal: The one-based supported subtitle stream ordinal.
+            tags: Ffprobe stream tags.
+            ordinal: One-based supported subtitle stream ordinal.
 
         Returns:
-            The readable embedded subtitle label.
+            Readable embedded subtitle label.
         """
         title = tags.get("title")
         if isinstance(title, str) and title.strip():
@@ -461,10 +463,10 @@ class SubtitleService:
         """Get a language marker from ffprobe stream tags.
 
         Args:
-            tags: The ffprobe stream tags.
+            tags: Ffprobe stream tags.
 
         Returns:
-            The language marker, or `None` if it cannot be inferred.
+            Language marker, or `None` if it cannot be inferred.
         """
         language = tags.get("language")
         if not isinstance(language, str) or not language.strip():

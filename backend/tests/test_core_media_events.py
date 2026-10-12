@@ -58,8 +58,8 @@ def workspace(tmp_path, monkeypatch):
     """Isolate library locks and prevent application notifications.
 
     Args:
-        tmp_path: The temporary filesystem root.
-        monkeypatch: The fixture restoring replaced functions after the test.
+        tmp_path: Temporary filesystem root.
+        monkeypatch: Fixture restoring replaced functions after the test.
     """
     cache = tmp_path / "cache"
     cache.mkdir()
@@ -86,11 +86,11 @@ async def _library(tmp_path: Path, lib_type: LibType = LibType.COMIC) -> MediaLi
     """Create a library row without requiring its sources to exist.
 
     Args:
-        tmp_path: The temporary filesystem root.
-        lib_type: The library type, defaulting to comics.
+        tmp_path: Temporary filesystem root.
+        lib_type: Library type, defaulting to comics.
 
     Returns:
-        The library used by the event producer and coalescer.
+        Library used by event capture and merging.
     """
     return await MediaLib.create(
         name="Reading", dir=str(tmp_path / "Library"), lib_type=lib_type, priority=1
@@ -101,8 +101,8 @@ def _monitor(monkeypatch: pytest.MonkeyPatch, lib: MediaLib) -> LibWatcher:
     """Provide a local scan queue without starting a filesystem observer.
 
     Args:
-        monkeypatch: The fixture restoring the isolated watcher state.
-        lib: The library whose scan is observed.
+        monkeypatch: Fixture restoring the isolated watcher state.
+        lib: Library whose scan is observed.
 
     Returns:
         A watcher with an isolated event queue and scan status.
@@ -120,9 +120,9 @@ def test_reading_scan(tmp_path, monkeypatch, lib_type, initial):
     """Queue work scopes once while retaining registered empty and missing sources.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture observing worker execution and video isolation.
-        lib_type: The reading library type to scan.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture observing worker execution and video isolation.
+        lib_type: Reading library type to scan.
         initial: Whether to enter through the initial-scan path.
     """
 
@@ -174,7 +174,7 @@ def test_reading_scan(tmp_path, monkeypatch, lib_type, initial):
                 """Check that filesystem enumeration runs off the event loop.
 
                 Args:
-                    directory: The library root being enumerated.
+                    directory: Library root being enumerated.
 
                 Returns:
                     Its visible files and directories.
@@ -221,8 +221,8 @@ def test_scan_pending(tmp_path, monkeypatch):
     """Merge a scan with pending moves and newly arrived body modifications.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture providing the watcher queue.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture providing the watcher queue.
     """
 
     async def run():
@@ -290,9 +290,9 @@ def test_scan_unavailable(tmp_path, monkeypatch, problem):
     """Retain media and pending tasks when the root cannot be enumerated safely.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture simulating access failure.
-        problem: The root access or file-type failure.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture simulating access failure.
+        problem: Root access or file-type failure.
     """
 
     async def run():
@@ -334,9 +334,9 @@ def test_scan_ownership(tmp_path, monkeypatch, change):
     """Reject an enumeration after its library changes or is deleted.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture changing ownership after the worker returns.
-        change: The database change concurrent with enumeration.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture changing ownership after the worker returns.
+        change: Database change concurrent with enumeration.
     """
 
     async def run():
@@ -350,11 +350,11 @@ def test_scan_ownership(tmp_path, monkeypatch, change):
                 """Change library ownership after filesystem enumeration.
 
                 Args:
-                    function: The synchronous worker operation.
-                    args: The worker's positional arguments.
+                    function: Synchronous worker operation.
+                    *args: Worker's positional arguments.
 
                 Returns:
-                    The original directory listing with now-stale ownership.
+                    Original directory listing with now-stale ownership.
                 """
                 result = await to_thread(function, *args)
                 if change == "delete":
@@ -382,8 +382,8 @@ def test_scan_scope(tmp_path, scope):
     """Reject invalid scan scopes before modifying persisted filesystem events.
 
     Args:
-        tmp_path: The isolated library root.
-        scope: The invalid relative scan scope.
+        tmp_path: Isolated library root.
+        scope: Invalid relative scan scope.
     """
 
     async def run():
@@ -409,9 +409,9 @@ def test_scan_ingest(tmp_path, monkeypatch, lib_type):
     """Pass scan tasks to ingestion and reuse an unchanged published body index.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture providing the watcher queue.
-        lib_type: The novel or comic source ingested from the scan task.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture providing the watcher queue.
+        lib_type: Novel or comic source ingested from the scan task.
     """
 
     async def run():
@@ -452,9 +452,9 @@ def test_coalesce_burst(tmp_path, monkeypatch, lib_type, entry):
     """Collapse a producer burst and pass its scope to real work ingestion.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture used to observe post-commit notifications.
-        lib_type: The reading type whose body and metadata are imported.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture used to observe post-commit notifications.
+        lib_type: Reading type whose body and metadata are imported.
         entry: Whether to merge directly, consume live events or recover a queue.
     """
 
@@ -508,7 +508,7 @@ def test_coalesce_burst(tmp_path, monkeypatch, lib_type, entry):
                     """Stop the loop once it reloads the saved reading task.
 
                     Args:
-                        event: The raw event or saved task dequeued by the consumer.
+                        event: Raw event or saved task dequeued by the consumer.
 
                     Returns:
                         Whether the consumer performed work for this queued event.
@@ -575,8 +575,8 @@ def test_consume_reading_scope(tmp_path, kind):
     """Merge live body events into failed tasks without changing other work scopes.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        kind: The incoming filesystem event type.
+        tmp_path: Isolated filesystem root.
+        kind: Incoming filesystem event type.
     """
 
     async def run():
@@ -652,9 +652,9 @@ def test_consume_reading_pending(tmp_path, monkeypatch, kind):
     """Retain pending task protocols without invoking video or resetting retries.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture rejecting processing beyond raw event coalescing.
-        kind: The persisted task protocol to retain.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture rejecting processing beyond raw event coalescing.
+        kind: Persisted task protocol to retain.
     """
 
     async def run():
@@ -696,7 +696,7 @@ def test_coalesce_scopes(tmp_path):
     """Merge chapter scopes, whole-work changes and repeated calls without loss.
 
     Args:
-        tmp_path: The isolated filesystem root.
+        tmp_path: Isolated filesystem root.
     """
 
     async def run():
@@ -765,7 +765,7 @@ def test_coalesce_content(tmp_path):
     """Retain forced chapters when metadata expands the task to the whole work.
 
     Args:
-        tmp_path: The isolated filesystem root.
+        tmp_path: Isolated filesystem root.
     """
 
     async def run():
@@ -853,7 +853,7 @@ def test_coalesce_legacy(tmp_path, legacy):
     """Preserve metadata-only intent, rebuilding unknown legacy scopes conservatively.
 
     Args:
-        tmp_path: The isolated filesystem root.
+        tmp_path: Isolated filesystem root.
         legacy: Whether the saved task predates body-change tracking.
     """
 
@@ -891,7 +891,7 @@ def test_coalesce_moves(tmp_path, is_directory):
     """Keep cross-work moves in persisted order, including both library boundaries.
 
     Args:
-        tmp_path: The isolated filesystem root.
+        tmp_path: Isolated filesystem root.
         is_directory: Whether the moved source is a chapter directory or a page.
     """
 
@@ -950,7 +950,7 @@ def test_coalesce_isolation(tmp_path):
     """Ignore unsupported paths while preserving other libraries and event protocols.
 
     Args:
-        tmp_path: The isolated filesystem root.
+        tmp_path: Isolated filesystem root.
     """
 
     async def run():
@@ -1007,9 +1007,9 @@ def test_coalesce_transaction(tmp_path, monkeypatch, failure, consumer):
     """Keep late arrivals and roll back task writes on failure or cancellation.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture injecting a late write or interruption.
-        failure: The exception after a task write, or None to commit normally.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture injecting a late write or interruption.
+        failure: Exception after a task write, or None to commit normally.
         consumer: Whether to enter through the live watcher consumer.
     """
 
@@ -1100,8 +1100,8 @@ def test_coalesce_invalid_payload(tmp_path, payload):
     """Preserve raw events and all earlier task writes when a saved task is invalid.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        payload: The invalid persisted reconcile payload.
+        tmp_path: Isolated filesystem root.
+        payload: Invalid persisted reconcile payload.
     """
 
     async def run():
@@ -1133,8 +1133,8 @@ def test_coalesce_video(tmp_path, lib_type):
     """Reject video libraries without consuming their pending events.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        lib_type: The video library type to reject.
+        tmp_path: Isolated filesystem root.
+        lib_type: Video library type to reject.
     """
 
     async def run():
@@ -1157,9 +1157,9 @@ def test_coalesce_library_change(tmp_path, monkeypatch, change):
     """Recheck the library after waiting for its lock.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture injecting a change before lock acquisition.
-        change: The library mutation to simulate while waiting.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture injecting a change before lock acquisition.
+        change: Library mutation to simulate while waiting.
     """
 
     async def run():
@@ -1201,7 +1201,7 @@ def moment(monkeypatch):
     """Control persisted deadlines without sleeping or changing database timestamps.
 
     Args:
-        monkeypatch: The fixture restoring the task clock after the test.
+        monkeypatch: Fixture restoring the task clock after the test.
 
     Returns:
         A mutable list containing the current epoch timestamp in seconds.
@@ -1218,11 +1218,11 @@ async def _pending(
     """Create a body and a persisted task ready for its first observation.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        lib_type: The reading type, defaulting to a TXT novel.
+        tmp_path: Isolated filesystem root.
+        lib_type: Reading type, defaulting to a TXT novel.
 
     Returns:
-        The library, body path and coalesced event.
+        Library, body path and coalesced event.
     """
     lib = await _library(tmp_path, lib_type)
     body = Path(lib.dir) / (
@@ -1240,11 +1240,11 @@ async def _ready(task: MediaEvent, moment: list[float]) -> MediaEvent:
     """Capture a task after two stable observations across its quiet interval.
 
     Args:
-        task: The new or reset task whose source already exists.
-        moment: The controllable task clock to advance by two seconds.
+        task: New or reset task whose source already exists.
+        moment: Controllable task clock to advance by two seconds.
 
     Returns:
-        The prepared task with its library loaded, before any execution begins.
+        Prepared task with its library loaded, before any execution begins.
     """
     assert not await prepare_reading_event(task.id)
     moment[0] += 2
@@ -1438,10 +1438,10 @@ def test_consume_reading_ready(tmp_path, monkeypatch, moment, lib_type):
     """Ingest bodies and metadata through prepared events while retaining identity.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture rejecting video processing and workflows.
-        moment: The controllable task clock.
-        lib_type: The reading type passed through the real execution path.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture rejecting video processing and workflows.
+        moment: Controllable task clock.
+        lib_type: Reading type passed through the real execution path.
     """
 
     async def run():
@@ -1604,10 +1604,10 @@ def test_consume_reading_stale(tmp_path, monkeypatch, moment, change):
     """Reject superseded scopes and acknowledge departures before ingestion.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture rejecting premature ingestion.
-        moment: The controllable task clock.
-        change: The pending identity work or concurrent task mutation.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture rejecting premature ingestion.
+        moment: Controllable task clock.
+        change: Pending identity work or concurrent task mutation.
     """
 
     async def run():
@@ -1659,10 +1659,10 @@ def test_consume_reading_asset_move(tmp_path, moment, lib_type, asset):
     """Ingest atomic sidecar replacements without rebuilding unchanged bodies.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
-        lib_type: The reading library receiving the replacement.
-        asset: The external metadata or named cover published by a rename.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
+        lib_type: Reading library receiving the replacement.
+        asset: External metadata or named cover published by a rename.
     """
 
     async def run():
@@ -1710,8 +1710,8 @@ def test_consume_reading_page_move(tmp_path, moment, cross_chapter):
     """Rebuild page lists after image moves while retaining directory item IDs.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
         cross_chapter: Whether the page moves into another chapter in the same work.
     """
 
@@ -1760,8 +1760,8 @@ def test_consume_file_publish(tmp_path, moment, existing, temporary):
     """Publish temporary bodies without assigning an existing item a new identity.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
         existing: Whether a previously indexed body is being replaced.
         temporary: A temporary or hidden source name used by the external writer.
     """
@@ -1797,9 +1797,9 @@ def test_consume_file_conflict(tmp_path, moment, problem):
     """Persist retry state instead of transferring an ambiguous body identity.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
-        problem: The source reuse, target ownership, format or symlink conflict.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
+        problem: Source reuse, target ownership, format or symlink conflict.
     """
 
     async def run():
@@ -1858,8 +1858,8 @@ def test_consume_move_chain(tmp_path, moment, order, reverse):
     """Keep linked move facts across work tasks without registering a second item.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
         order: Whether a directory move precedes or follows the file move.
         reverse: Whether the last work's task runs before the first work's task.
     """
@@ -1922,10 +1922,10 @@ def test_consume_chain_order(tmp_path, moment, directory, first):
     """Retain one identity when any work starts consuming a continuous move chain.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
         directory: Whether whole work directories move instead of body files.
-        first: The original, intermediate or destination work to consume first.
+        first: Original, intermediate or destination work to consume first.
     """
 
     async def run():
@@ -1973,9 +1973,9 @@ def test_consume_mixed_failure(tmp_path, monkeypatch, moment, failure):
     """Roll back partial path updates and retain move facts until a safe retry.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture injecting failures or late events.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture injecting failures or late events.
+        moment: Controllable task clock.
         failure: A source failure, cancellation, conflicting owner or changed task.
     """
     from app.services import media as media_service
@@ -2017,8 +2017,8 @@ def test_consume_mixed_failure(tmp_path, monkeypatch, moment, failure):
                 """Add a late source event before entering the move transaction.
 
                 Args:
-                    event: The prepared task from the consumer.
-                    moves: The previously selected move facts.
+                    event: Prepared task from the consumer.
+                    moves: Previously selected move facts.
 
                 Returns:
                     Whether the move service still accepts the prepared task.
@@ -2085,9 +2085,9 @@ def test_consume_move_swap(tmp_path, monkeypatch, moment, directory, interrupt):
     """Exchange two sources once, including a restart after committing their paths.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture interrupting ingestion after the move transaction.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture interrupting ingestion after the move transaction.
+        moment: Controllable task clock.
         directory: Whether complete work directories move instead of body files.
         interrupt: Whether ingestion is cancelled after the swap commits.
     """
@@ -2163,8 +2163,8 @@ def test_consume_chain_boundary(tmp_path, moment, directory, shape):
     """Reconcile boundary crossings and defer unsupported intermediate depths.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
         directory: Whether whole work directories move instead of body files.
         shape: A branch, cycle, cross-library leg or intermediate depth change.
     """
@@ -2313,9 +2313,9 @@ def test_consume_chain_conflict(tmp_path, monkeypatch, moment, directory, proble
     """Reject reused or separately owned intermediate paths without rebinding IDs.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture inserting an owner just before the move service.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture inserting an owner just before the move service.
+        moment: Controllable task clock.
         directory: Whether whole work directories move instead of body files.
         problem: A reused path, persisted owner, symlink ancestor or late owner.
     """
@@ -2369,11 +2369,11 @@ def test_consume_chain_conflict(tmp_path, monkeypatch, moment, directory, proble
                     """Add a conflicting owner after the consumer's initial checks.
 
                     Args:
-                        args: Positional move service arguments.
-                        kwargs: Keyword move service arguments.
+                        *args: Positional move service arguments.
+                        **kwargs: Keyword move service arguments.
 
                     Returns:
-                        The wrapped service result if ownership validation succeeds.
+                        Wrapped service result if ownership validation succeeds.
                     """
                     await MediaItem.create(**owner)
                     return await operation(*args, **kwargs)
@@ -2414,12 +2414,12 @@ def test_consume_chain_recovery(
     """Resume a bound identity even when another move arrives after interruption.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture interrupting ingestion after binding the identity.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture interrupting ingestion after binding the identity.
+        moment: Controllable task clock.
         directory: Whether whole work directories move instead of body files.
         extended: Whether the second move happens only after the interruption.
-        failure: The cancellation or unexpected error interrupting ingestion.
+        failure: Cancellation or unexpected error interrupting ingestion.
     """
 
     async def run():
@@ -2489,9 +2489,9 @@ def test_consume_observed_directory(tmp_path, moment, lib_type):
     """Consume a directory move with watchdog's inferred descendant events.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
-        lib_type: The reading library containing the moved work.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
+        lib_type: Reading library containing the moved work.
     """
 
     async def run():
@@ -2530,9 +2530,9 @@ def test_consume_deleted_library(tmp_path, moment, lib_type, problem):
     """Preserve records if the library disappears after a task becomes ready.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
-        lib_type: The reading type whose library becomes unavailable.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
+        lib_type: Reading type whose library becomes unavailable.
         problem: A missing root, empty mount, last missing work or linked root.
     """
 
@@ -2565,8 +2565,8 @@ def test_consume_delete_scope(tmp_path, moment):
     """Remove only the selected missing chapter and retain other missing chapters.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -2607,10 +2607,10 @@ def test_consume_delete_recovery(tmp_path, monkeypatch, moment, failure):
     """Acknowledge an absent work after interruption following database cleanup.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture interrupting after deletion finishes.
-        moment: The controllable task clock.
-        failure: The cancellation or error interrupting the original task.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture interrupting after deletion finishes.
+        moment: Controllable task clock.
+        failure: Cancellation or error interrupting the original task.
     """
 
     async def run():
@@ -2633,11 +2633,11 @@ def test_consume_delete_recovery(tmp_path, monkeypatch, moment, failure):
                 """Interrupt after database deletion but before task completion.
 
                 Args:
-                    args: Positional cleanup arguments.
-                    kwargs: Keyword cleanup arguments.
+                    *args: Positional cleanup arguments.
+                    **kwargs: Keyword cleanup arguments.
 
                 Raises:
-                    BaseException: The injected consumer interruption.
+                    BaseException: Injected consumer interruption.
                 """
                 await operation(*args, **kwargs)
                 raise failure
@@ -2661,9 +2661,9 @@ def test_consume_missing_body(tmp_path, monkeypatch, moment):
     """Remove owned companions and confirm the resulting empty scope after stability.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture isolating file deletion from application settings.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture isolating file deletion from application settings.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -2702,9 +2702,9 @@ def test_consume_directory_publish(tmp_path, moment, lib_type):
     """Ingest an unregistered work published from a temporary directory.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
-        lib_type: The type of work published by an external directory rename.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
+        lib_type: Type of work published by an external directory rename.
     """
 
     async def run():
@@ -2737,9 +2737,9 @@ def test_consume_directory_conflict(tmp_path, moment, problem):
     """Retain directory move facts when source or destination ownership is unsafe.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
-        problem: The reused source, occupied target, missing target or target symlink.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
+        problem: Reused source, occupied target, missing target or target symlink.
     """
 
     async def run():
@@ -2801,9 +2801,9 @@ def test_consume_directory_recovery(tmp_path, monkeypatch, moment, failure):
     """Resume a whole collection after binding or old-work verification fails.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture failing ingestion or old-work directory enumeration.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture failing ingestion or old-work directory enumeration.
+        moment: Controllable task clock.
         failure: Consumer cancellation, unexpected ingestion error or root read failure.
     """
 
@@ -2877,9 +2877,9 @@ def test_consume_move_interrupted(tmp_path, monkeypatch, moment, cancel):
     """Resume a rebound file after interruption without rebinding or replacing its ID.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture interrupting ingestion after the move has committed.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture interrupting ingestion after the move has committed.
+        moment: Controllable task clock.
         cancel: Whether to simulate consumer cancellation instead of an exception.
     """
 
@@ -2932,10 +2932,10 @@ def test_consume_reading_interrupted(tmp_path, monkeypatch, moment, change):
     """Keep later work and retry interrupted ingestion without duplicating items.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture injecting changes after ingestion and before finish.
-        moment: The controllable task clock.
-        change: The source change, new event or interruption during execution.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture injecting changes after ingestion and before finish.
+        moment: Controllable task clock.
+        change: Source change, new event or interruption during execution.
     """
 
     async def run():
@@ -2948,11 +2948,11 @@ def test_consume_reading_interrupted(tmp_path, monkeypatch, moment, change):
                 """Interrupt after committing an index but before task acknowledgement.
 
                 Args:
-                    *args: The original positional ingestion arguments.
-                    **kwargs: The original keyword ingestion arguments.
+                    *args: Original positional ingestion arguments.
+                    **kwargs: Original keyword ingestion arguments.
 
                 Returns:
-                    The actual ingestion issues when execution is not interrupted.
+                    Actual ingestion issues when execution is not interrupted.
 
                 Raises:
                     ContentError: When simulating a controlled execution failure.
@@ -3022,9 +3022,9 @@ def test_reading_execution_retry(tmp_path, monkeypatch, moment, restart, recover
     """Schedule real parsing retries, allow other work and resume after new input.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture advancing consumer time and recording execution.
-        moment: The shared controllable observation and scheduling clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture advancing consumer time and recording execution.
+        moment: Shared controllable observation and scheduling clock.
         restart: Whether to resume after the first persisted execution failure.
         recover: Whether to replace the failed source and deliver a new event.
     """
@@ -3054,12 +3054,12 @@ def test_reading_execution_retry(tmp_path, monkeypatch, moment, restart, recover
                 """Record the time each real ingestion attempt starts.
 
                 Args:
-                    lib_id: The reading library being processed.
-                    work: The selected work directory.
-                    **kwargs: The prepared target and forced-body selections.
+                    lib_id: Reading library being processed.
+                    work: Selected work directory.
+                    **kwargs: Prepared target and forced-body selections.
 
                 Returns:
-                    The issues reported by actual metadata and body processing.
+                    Issues reported by actual metadata and body processing.
                 """
                 calls.append((work, moment[0]))
                 return await ingest(lib_id, work, **kwargs)
@@ -3068,7 +3068,7 @@ def test_reading_execution_retry(tmp_path, monkeypatch, moment, restart, recover
                 """Advance through retries and optionally deliver a corrected source.
 
                 Args:
-                    seconds: The consumer's sleep interval.
+                    seconds: Consumer's sleep interval.
 
                 Raises:
                     asyncio.CancelledError: After the final retry or recovery.
@@ -3114,9 +3114,9 @@ def test_reading_execution_recheck(tmp_path, monkeypatch, moment):
     """Resume a completion observation failure at its saved deadline.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture making only the first completion check fail.
-        moment: The shared controllable observation and scheduling clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture making only the first completion check fail.
+        moment: Shared controllable observation and scheduling clock.
     """
 
     async def run():
@@ -3132,11 +3132,11 @@ def test_reading_execution_recheck(tmp_path, monkeypatch, moment):
                 """Fail source verification immediately after the first real ingestion.
 
                 Args:
-                    *args: The original observation arguments.
-                    **kwargs: The selected work and targets.
+                    *args: Original observation arguments.
+                    **kwargs: Selected work and targets.
 
                 Returns:
-                    The actual source snapshot for other observations.
+                    Actual source snapshot for other observations.
 
                 Raises:
                     ContentError: On the first completion verification.
@@ -3150,7 +3150,7 @@ def test_reading_execution_recheck(tmp_path, monkeypatch, moment):
                 """Advance the clock without allowing generic error recovery sleeps.
 
                 Args:
-                    seconds: The consumer's sleep interval.
+                    seconds: Consumer's sleep interval.
 
                 Raises:
                     asyncio.CancelledError: Once recovery has completed.
@@ -3184,10 +3184,10 @@ def test_reading_schedule(tmp_path, monkeypatch, moment, lib_type, restart):
     """Observe stable work at its deadline without polling while idle.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture controlling the consumer clock and observations.
-        moment: The shared controllable observation and scheduling clock.
-        lib_type: The reading library type to schedule.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture controlling the consumer clock and observations.
+        moment: Shared controllable observation and scheduling clock.
+        lib_type: Reading library type to schedule.
         restart: Whether the first observation was saved before consumer startup.
     """
 
@@ -3213,7 +3213,7 @@ def test_reading_schedule(tmp_path, monkeypatch, moment, lib_type, restart):
                     **kwargs: Keyword source observation arguments.
 
                 Returns:
-                    The current source snapshot.
+                    Current source snapshot.
                 """
                 observed.append(moment[0])
                 return snapshot(*args, **kwargs)
@@ -3222,7 +3222,7 @@ def test_reading_schedule(tmp_path, monkeypatch, moment, lib_type, restart):
                 """Record stable tasks passed on for execution.
 
                 Args:
-                    event: The refreshed task after its quiet interval.
+                    event: Refreshed task after its quiet interval.
 
                 Returns:
                     False to isolate scheduling from ingestion and completion.
@@ -3234,7 +3234,7 @@ def test_reading_schedule(tmp_path, monkeypatch, moment, lib_type, restart):
                 """Advance time without adding real waiting to the test.
 
                 Args:
-                    seconds: The consumer's idle sleep duration.
+                    seconds: Consumer's idle sleep duration.
 
                 Raises:
                     asyncio.CancelledError: After checking two idle intervals.
@@ -3271,10 +3271,10 @@ def test_reading_schedule_retry(tmp_path, monkeypatch, moment, lib_type, restart
     """Retry unavailable work on schedule while another work becomes ready.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture injecting source failures and a controllable clock.
-        moment: The shared controllable observation and scheduling clock.
-        lib_type: The reading library type to schedule.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture injecting source failures and a controllable clock.
+        moment: Shared controllable observation and scheduling clock.
+        lib_type: Reading library type to schedule.
         restart: Whether two failures were persisted before consumer startup.
     """
 
@@ -3296,12 +3296,12 @@ def test_reading_schedule_retry(tmp_path, monkeypatch, moment, lib_type, restart
                 """Fail one work without delaying filesystem checks for the other.
 
                 Args:
-                    base_path: The library root being observed.
-                    work_path: The work selected by this task.
+                    base_path: Library root being observed.
+                    work_path: Work selected by this task.
                     targets: Its selected source containers.
 
                 Returns:
-                    The current snapshot for the healthy work.
+                    Current snapshot for the healthy work.
 
                 Raises:
                     ContentError: When observing the unavailable work.
@@ -3315,7 +3315,7 @@ def test_reading_schedule_retry(tmp_path, monkeypatch, moment, lib_type, restart
                 """Record the healthy task reaching the execution boundary.
 
                 Args:
-                    event: The stable task selected by the consumer.
+                    event: Stable task selected by the consumer.
 
                 Returns:
                     False to isolate source retries from task execution.
@@ -3327,7 +3327,7 @@ def test_reading_schedule_retry(tmp_path, monkeypatch, moment, lib_type, restart
                 """Advance through every persisted retry deadline.
 
                 Args:
-                    seconds: The consumer's idle sleep duration.
+                    seconds: Consumer's idle sleep duration.
 
                 Raises:
                     asyncio.CancelledError: After the failed task has stayed idle.
@@ -3368,10 +3368,10 @@ def test_reading_schedule_update(tmp_path, monkeypatch, moment, change):
     """Replace cached deadlines when persisted tasks change during a wait.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture delivering notifications during an idle interval.
-        moment: The shared controllable observation and scheduling clock.
-        change: The new input or deletion affecting the waiting task.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture delivering notifications during an idle interval.
+        moment: Shared controllable observation and scheduling clock.
+        change: New input or deletion affecting the waiting task.
     """
 
     async def run():
@@ -3401,7 +3401,7 @@ def test_reading_schedule_update(tmp_path, monkeypatch, moment, change):
                 """Reset a task just after its previous snapshot becomes ready.
 
                 Args:
-                    id: The task selected for stable observation.
+                    id: Task selected for stable observation.
 
                 Returns:
                     Readiness of the observed version before the concurrent reset.
@@ -3423,7 +3423,7 @@ def test_reading_schedule_update(tmp_path, monkeypatch, moment, change):
                     **kwargs: Keyword source observation arguments.
 
                 Returns:
-                    The current source snapshot.
+                    Current source snapshot.
                 """
                 observed.append(moment[0])
                 return snapshot(*args, **kwargs)
@@ -3432,10 +3432,10 @@ def test_reading_schedule_update(tmp_path, monkeypatch, moment, change):
                 """Record readiness while also processing new raw events.
 
                 Args:
-                    event: The task or raw event dequeued by the consumer.
+                    event: Task or raw event dequeued by the consumer.
 
                 Returns:
-                    The current consumer result.
+                    Current consumer result.
                 """
                 if (
                     event.event_type == "reconcile"
@@ -3449,7 +3449,7 @@ def test_reading_schedule_update(tmp_path, monkeypatch, moment, change):
                 """Deliver one change before the original deadline expires.
 
                 Args:
-                    seconds: The consumer's idle or post-processing interval.
+                    seconds: Consumer's idle or post-processing interval.
 
                 Raises:
                     asyncio.CancelledError: After the updated task becomes ready.
@@ -3509,9 +3509,9 @@ def test_reading_schedule_error(tmp_path, monkeypatch, moment):
     """Use normal error recovery when preparation did not persist a retry.
 
     Args:
-        tmp_path: The isolated library root.
-        monkeypatch: The fixture interrupting preparation without changing its task.
-        moment: The shared controllable observation and scheduling clock.
+        tmp_path: Isolated library root.
+        monkeypatch: Fixture interrupting preparation without changing its task.
+        moment: Shared controllable observation and scheduling clock.
     """
 
     async def run():
@@ -3544,10 +3544,10 @@ def test_prepare_stable(tmp_path, monkeypatch, moment, lib_type):
     """Resume a persisted delay and admit stable sources without consuming the task.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture counting source observations.
-        moment: The controllable task clock.
-        lib_type: The reading type passed through the readiness and ingestion steps.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture counting source observations.
+        moment: Controllable task clock.
+        lib_type: Reading type passed through the readiness and ingestion steps.
     """
 
     async def run():
@@ -3589,8 +3589,8 @@ def test_prepare_growth(tmp_path, moment):
     """Delay a growing source while allowing another work to become ready.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -3621,8 +3621,8 @@ def test_prepare_new_events(tmp_path, moment):
     """Invalidate an observed task when the same source produces another event.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -3648,9 +3648,9 @@ def test_prepare_unavailable(tmp_path, monkeypatch, moment):
     """Persist an access-error delay and require fresh observations after recovery.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture injecting an unavailable source.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture injecting an unavailable source.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -3700,10 +3700,10 @@ def test_prepare_backoff(tmp_path, monkeypatch, moment, lib_type):
     """Persist backoff across calls and stop observing after five source failures.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture injecting source failures and counting observations.
-        moment: The controllable task clock.
-        lib_type: The reading library type whose failed task will be retried.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture injecting source failures and counting observations.
+        moment: Controllable task clock.
+        lib_type: Reading library type whose failed task will be retried.
     """
 
     async def run():
@@ -3764,9 +3764,9 @@ def test_prepare_failed_isolation(tmp_path, monkeypatch, moment):
     """Keep a failed work dormant while another work completes its observations.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture counting filesystem observations.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture counting filesystem observations.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -3803,10 +3803,10 @@ def test_reading_event_interrupted(tmp_path, monkeypatch, moment, failure, finis
     """Leave the saved task intact when observation is interrupted unexpectedly.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture injecting the interruption.
-        moment: The controllable task clock.
-        failure: The exception raised by the worker invocation.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture injecting the interruption.
+        moment: Controllable task clock.
+        failure: Exception raised by the worker invocation.
         finishing: Whether interruption occurs during completion or preparation.
     """
 
@@ -3857,10 +3857,10 @@ def test_reading_event_race(tmp_path, monkeypatch, moment, change, failed, finis
     """Discard stale observations after unlocked I/O without overwriting new work.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture changing persisted work during observation.
-        moment: The controllable task clock.
-        change: The task or library mutation to inject after the source read.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture changing persisted work during observation.
+        moment: Controllable task clock.
+        change: Task or library mutation to inject after the source read.
         failed: Whether observation fails after the concurrent change.
         finishing: Whether the observed task is being completed or prepared.
     """
@@ -3877,12 +3877,12 @@ def test_reading_event_race(tmp_path, monkeypatch, moment, change, failed, finis
                 """Read sources, then mutate state before the task reacquires its lock.
 
                 Args:
-                    function: The synchronous source observer.
+                    function: Synchronous source observer.
                     *args: Its positional arguments.
                     **kwargs: Its keyword arguments.
 
                 Returns:
-                    The source digest computed before the simulated mutation.
+                    Source digest computed before the simulated mutation.
 
                 Raises:
                     ContentError: If the source observation is configured to fail.
@@ -3951,8 +3951,8 @@ def test_prepare_boundaries(tmp_path, moment):
     """Preserve wrong event types and invalid scopes instead of inspecting them.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -3986,9 +3986,9 @@ def test_finish_ingested(tmp_path, moment, lib_type):
     """Acknowledge real ingestion without consuming later raw events.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
-        lib_type: The reading type passed through ingestion and completion.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
+        lib_type: Reading type passed through ingestion and completion.
     """
 
     async def run():
@@ -4027,9 +4027,9 @@ def test_finish_changed(tmp_path, moment, change, failed):
     """Restart changed scopes without retrying an obsolete execution failure.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        moment: The controllable task clock.
-        change: The selected source, parent metadata or unselected sibling to change.
+        tmp_path: Isolated filesystem root.
+        moment: Controllable task clock.
+        change: Selected source, parent metadata or unselected sibling to change.
         failed: Whether execution also reported a controlled error.
     """
 
@@ -4078,9 +4078,9 @@ def test_finish_retry(tmp_path, monkeypatch, moment):
     """Bound real parsing failures and reset them only after renewed source work.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture checking failed-task observation suppression.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture checking failed-task observation suppression.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -4144,9 +4144,9 @@ def test_finish_unavailable(tmp_path, monkeypatch, moment):
     """Persist a failed completion recheck and require fresh stable observations.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture injecting a controlled source-read failure.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture injecting a controlled source-read failure.
+        moment: Controllable task clock.
     """
 
     async def run():
@@ -4181,10 +4181,10 @@ def test_finish_unprepared(tmp_path, monkeypatch, moment, state):
     """Keep tasks that have not met preparation requirements without reading files.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture tracking unexpected source reads.
-        moment: The controllable task clock.
-        state: The unprepared state or unrelated event type to preserve.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture tracking unexpected source reads.
+        moment: Controllable task clock.
+        state: Unprepared state or unrelated event type to preserve.
     """
 
     async def run():
@@ -4216,9 +4216,9 @@ def test_finish_write_failure(tmp_path, monkeypatch, moment, failed):
     """Retain the original task when acknowledgement or retry persistence fails.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture interrupting database persistence.
-        moment: The controllable task clock.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture interrupting database persistence.
+        moment: Controllable task clock.
         failed: Whether persisting a retry instead of deleting a completed task.
     """
 

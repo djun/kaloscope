@@ -17,7 +17,7 @@ class InputHandle(Handle):
         """Check if the given handle is equal to this handle.
 
         Args:
-            other: The handle to compare.
+            other: Handle to compare.
 
         Returns:
             True if the given handle is equal to this handle, False otherwise.

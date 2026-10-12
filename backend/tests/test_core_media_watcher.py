@@ -57,7 +57,7 @@ def test_event_thread(monkeypatch, event):
     """Dispatch observer-thread events safely onto the application's event loop.
 
     Args:
-        monkeypatch: The fixture replacing persistence with a completion signal.
+        monkeypatch: Fixture replacing persistence with a completion signal.
         event: A filesystem notification delivered by a background thread.
     """
 
@@ -72,7 +72,7 @@ def test_event_thread(monkeypatch, event):
             """Confirm delivery on the application's loop.
 
             Args:
-                incoming: The original filesystem notification.
+                incoming: Original filesystem notification.
             """
             assert asyncio.get_running_loop() is loop
             completed.set_result((incoming, context.get()))

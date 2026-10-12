@@ -58,7 +58,7 @@
   /**
    * Parse a downloader YAML document and require a top-level mapping.
    *
-   * @param source - The downloader YAML source.
+   * @param source - Downloader YAML source.
    * @returns The parsed YAML document.
    */
   function parseConfig(source: string): Document.Parsed<ParsedNode> {
@@ -96,7 +96,7 @@
   /**
    * Keep an empty authentication value as YAML `null`.
    *
-   * @param value - The editable authentication value.
+   * @param value - Editable authentication value.
    * @returns The original value or `null` when empty.
    */
   function authenticationValue(value: string): string | null {
@@ -106,7 +106,7 @@
   /**
    * Read the simple fields supported by a downloader YAML document.
    *
-   * @param source - The downloader YAML source.
+   * @param source - Downloader YAML source.
    * @returns The inferred fields and their editable values.
    */
   function readDownloaderConfig(source: string): DownloaderSimpleConfig {
@@ -180,8 +180,8 @@
   /**
    * Update only the simple fields already declared by a downloader YAML document.
    *
-   * @param source - The downloader YAML source.
-   * @param values - The edited simple field values.
+   * @param source - Downloader YAML source.
+   * @param values - Edited simple field values.
    * @returns The updated YAML source with advanced fields preserved.
    */
   function writeDownloaderConfig(source: string, values: DownloaderSimpleValues): string {
@@ -215,7 +215,7 @@
   /**
    * Read a simple configuration without propagating YAML parsing errors.
    *
-   * @param source - The downloader YAML source.
+   * @param source - Downloader YAML source.
    * @returns The simple configuration, or `null` when it cannot be read.
    */
   function tryReadDownloaderConfig(source: string): DownloaderSimpleConfig | null {
@@ -227,7 +227,7 @@
   }
 
   /**
-   * The default configuration template.
+   * Default configuration template.
    */
   const CONFIG_TEMPLATE = `
 # Name
@@ -258,7 +258,7 @@ methods:
 `.trimStart();
 
   /**
-   * The downloader presets.
+   * Downloader presets.
    */
   let presets: Record<string, string> | null = $state(null);
 </script>
@@ -332,7 +332,7 @@ methods:
   /**
    * Synchronize the selected preset, YAML document, simple fields, and editing mode.
    *
-   * @param nextPreset - The next preset key, or an empty string for a custom downloader.
+   * @param nextPreset - Next preset key, or an empty string for a custom downloader.
    * @param nextConfig - The YAML document to edit.
    */
   function applyConfig(nextPreset: string, nextConfig: string) {
@@ -348,7 +348,7 @@ methods:
   /**
    * Apply a preset and select its supported editing mode.
    *
-   * @param nextPreset - The next preset key, or an empty string for a custom downloader.
+   * @param nextPreset - Next preset key, or an empty string for a custom downloader.
    */
   function applyPreset(nextPreset: string) {
     applyConfig(nextPreset, presets?.[nextPreset] || CONFIG_TEMPLATE);
@@ -357,7 +357,7 @@ methods:
   /**
    * Select the first sorted preset for a new downloader.
    *
-   * @param availablePresets - The available downloader presets.
+   * @param availablePresets - Available downloader presets.
    */
   function applyDefaultPreset(availablePresets: Record<string, string>) {
     if (!id && !preset && config === CONFIG_TEMPLATE) {
@@ -369,7 +369,7 @@ methods:
   /**
    * Select a downloader preset after confirming that edited YAML can be replaced.
    *
-   * @param nextPreset - The preset selected by the user.
+   * @param nextPreset - Preset selected by the user.
    */
   function selectPreset(nextPreset: string) {
     if (nextPreset === preset) {
@@ -390,7 +390,7 @@ methods:
   /**
    * Switch between the simple form and complete YAML editor.
    *
-   * @param event - The mode switch change event.
+   * @param event - Mode switch change event.
    */
   function switchMode(event: Event) {
     const target = event.currentTarget as HTMLInputElement;
@@ -411,7 +411,7 @@ methods:
   /**
    * Check whether the source YAML declares an editable field.
    *
-   * @param field - The simple field name.
+   * @param field - Simple field name.
    * @returns Whether the field should be displayed.
    */
   function hasSimpleField(field: DownloaderSimpleField): boolean {
@@ -421,8 +421,8 @@ methods:
   /**
    * Update an editable value and synchronize it to the YAML document.
    *
-   * @param field - The simple value name.
-   * @param value - The new field value.
+   * @param field - Simple value name.
+   * @param value - New field value.
    */
   function updateSimpleValue<Key extends keyof DownloaderSimpleValues>(field: Key, value: DownloaderSimpleValues[Key]) {
     simple.values[field] = value;
@@ -432,8 +432,8 @@ methods:
   /**
    * Update an endpoint value and discard tools loaded from the previous endpoint.
    *
-   * @param field - The endpoint value name.
-   * @param value - The new endpoint value.
+   * @param field - Endpoint value name.
+   * @param value - New endpoint value.
    */
   function updateEndpointValue<Key extends 'secure' | 'host' | 'port'>(field: Key, value: DownloaderSimpleValues[Key]) {
     openlistTools = null;
@@ -453,7 +453,7 @@ methods:
   }
 
   /**
-   * Load the offline download tools exposed by the configured OpenList endpoint.
+   * Load offline download tools exposed by the configured OpenList endpoint.
    *
    * @returns A promise that resolves after the tool list request finishes.
    */
@@ -487,7 +487,7 @@ methods:
   /**
    * Save or update the downloader.
    *
-   * @param form - The form element.
+   * @param form - Form element.
    */
   function upsert(form: HTMLFormElement) {
     loading.start();

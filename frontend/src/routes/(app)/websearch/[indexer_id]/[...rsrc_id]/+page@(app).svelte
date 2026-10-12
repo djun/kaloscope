@@ -23,7 +23,7 @@
     }
   );
 
-  // the websearch result
+  // the search result
   let resource: Resource | null = $state(null);
   let mediaType: string | null = $derived.by(() => resource?.media_type ?? query.media_type);
   let videoType: string | null = $derived.by(() => resource?.video_type ?? query.video_type);
@@ -51,7 +51,7 @@
   /**
    * Run a task with cancellation, loading state, and error handling.
    *
-   * @param task - The task receiving the request identifier and cancellation signal.
+   * @param task - Task receiving the request identifier and cancellation signal.
    * @returns A promise that settles after loading or handling a failure.
    */
   async function withLoading(task: (requestId: number, signal: AbortSignal) => Promise<void>): Promise<void> {
@@ -75,7 +75,7 @@
   /**
    * Synchronize the chapter query before continuing a resource load.
    *
-   * @param chapterId - The chapter identifier, or `null` to remove the parameter.
+   * @param chapterId - Chapter identifier, or `null` to remove the parameter.
    * @returns A promise that settles after the query navigation.
    */
   async function updateChapterId(chapterId: string | null): Promise<void> {
@@ -92,8 +92,8 @@
   /**
    * Fetch resource content or the chapter directory from the workflow.
    *
-   * @param chapterId - The requested chapter, or `null` for the directory.
-   * @param signal - The signal cancelling a superseded request.
+   * @param chapterId - Requested chapter, or `null` for the directory.
+   * @param signal - Signal cancelling a superseded request.
    * @returns The resource returned by the workflow, or `null` when unavailable.
    */
   async function fetchResource(chapterId: string | null, signal: AbortSignal): Promise<Resource | null> {
@@ -122,7 +122,7 @@
   /**
    * Fetch and display the requested resource, including retries of the same chapter.
    *
-   * @param chapterId - The chapter to request, defaulting to the current URL.
+   * @param chapterId - Chapter to request, defaulting to the current URL.
    * @returns A promise that settles after loading and mounting the resource.
    */
   async function load(chapterId: string | null = null): Promise<void> {
@@ -149,8 +149,8 @@
    *
    * Synchronize a workflow's resolved video chapter when its ID matches the returned chapter list.
    *
-   * @param rsrc - The resource returned by the workflow.
-   * @param requestId - The request identifier used to ignore superseded loads.
+   * @param rsrc - Resource returned by the workflow.
+   * @param requestId - Request identifier used to ignore superseded loads.
    * @param next - Whether to reuse the video player for a direct chapter change.
    * @returns A promise that settles after mounting or requesting the first chapter.
    */
@@ -190,6 +190,7 @@
     if (!next) {
       refreshKey += 1;
     }
+
     // wait for the selected viewer to mount before loading its content
     await tick();
     if (requestId !== requestVersion) {
@@ -216,6 +217,7 @@
         images,
         image_count: rsrc.image_count,
         signal: abortController?.signal,
+        // load next comic page through the indexer graph
         loadImages: async ({ offset, signal }) => {
           const { data } = await api
             .post(`flow/graph/${indexer_id}/execute`, {
@@ -247,7 +249,7 @@
    *
    * Prefer direct video URLs and synchronize the chapter query before loading.
    *
-   * @param chapter - The chapter whose direct URL or workflow identifier to load.
+   * @param chapter - Chapter whose direct URL or workflow identifier to load.
    * @returns A promise that settles after loading the selected chapter.
    */
   async function onchange(chapter: Chapter): Promise<void> {

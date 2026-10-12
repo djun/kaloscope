@@ -43,9 +43,9 @@ class ProfileTags(TypedDict):
     """Validated tags parsed from a transcode profile name.
 
     Attributes:
-        quality: The parsed quality level, if recognized.
-        resolution: The parsed resolution limit, if recognized.
-        hwaccel: The parsed accelerator, or `None` for software and invalid profiles.
+        quality: Parsed quality level, if recognized.
+        resolution: Parsed resolution limit, if recognized.
+        hwaccel: Parsed accelerator, or `None` for software and invalid profiles.
     """
 
     quality: QualityLevel | None
@@ -59,11 +59,11 @@ class TranscodeStats:
 
     Attributes:
         finished: Whether the playlist contains an end marker.
-        duration: The combined duration of playlist segments in seconds.
-        segments: The number of segments referenced by the playlist.
-        size: The total size of files in the output directory in bytes.
-        progress: The estimated completion percentage, if available.
-        updated_at: The playlist modification time as an ISO 8601 timestamp.
+        duration: Combined duration of playlist segments in seconds.
+        segments: Number of segments referenced by the playlist.
+        size: Total size of files in the output directory in bytes.
+        progress: Estimated completion percentage, if available.
+        updated_at: Playlist modification time as an ISO 8601 timestamp.
     """
 
     finished: bool = False
@@ -78,11 +78,11 @@ def estimate_progress(encoded_duration: float, duration: float | None) -> int | 
     """Estimate transcode progress from encoded and source durations.
 
     Args:
-        encoded_duration: The duration already encoded, in seconds.
-        duration: The total source duration in seconds, if known.
+        encoded_duration: Duration already encoded, in seconds.
+        duration: Total source duration in seconds, if known.
 
     Returns:
-        The estimated percentage capped at 99, or `None` if unavailable.
+        Estimated percentage capped at 99, or `None` if unavailable.
     """
     if duration and duration > 0 and encoded_duration > 0:
         return min(99, max(0, int(encoded_duration / duration * 100)))
@@ -97,10 +97,10 @@ def parse_profile(profile: str) -> ProfileTags:
     callers can still display the raw profile as a fallback tag.
 
     Args:
-        profile: The transcode profile directory name.
+        profile: Transcode profile directory name.
 
     Returns:
-        The parsed quality, resolution, and hardware acceleration tags.
+        Parsed quality, resolution, and hardware acceleration tags.
     """
     quality, sep1, rest = profile.partition("_")
     resolution, sep2, hwaccel = rest.rpartition("_")
@@ -129,14 +129,14 @@ def parse_profile(profile: str) -> ProfileTags:
 
 
 def output_dir(media_hash: str, profile: str) -> Path:
-    """Get the deterministic output directory for the transcoded HLS files.
+    """Get deterministic output directory for the transcoded HLS files.
 
     Args:
-        media_hash: The media file hash.
-        profile: The transcode profile identifier.
+        media_hash: Media file hash.
+        profile: Transcode profile identifier.
 
     Returns:
-        The output directory path.
+        Output directory path.
     """
     return Path(KaloscopeConfig.get_workspace("transcoded")) / media_hash / profile
 
@@ -144,14 +144,14 @@ def output_dir(media_hash: str, profile: str) -> Path:
 def acquire_output_lock(out_dir: Path | str) -> FileLock | None:
     """Try to lock a transcode output directory without blocking.
 
-    The lock file is stored outside the output directory so the directory can
+    Lock file is stored outside the output directory so the directory can
     be removed safely while the lock remains held.
 
     Args:
-        out_dir: The transcode output directory to lock.
+        out_dir: Transcode output directory to lock.
 
     Returns:
-        The acquired lock, or `None` when another process holds it.
+        Acquired lock, or `None` when another process holds it.
     """
     out_dir = Path(out_dir)
     lock_dir = out_dir.parents[1] / ".locks"
@@ -170,7 +170,8 @@ def output_stats(out_dir: Path | str, duration: float | None = None) -> Transcod
 
     Args:
         out_dir: The HLS output directory.
-        duration: The total source duration in seconds, if known.
+        duration: Total source duration in seconds, if known. `None` leaves total
+            duration unknown.
 
     Returns:
         Statistics derived from the output files and playlist.
@@ -215,8 +216,9 @@ def scan_outputs(
     """Scan the transcoded workspace for finished and interrupted HLS outputs.
 
     Args:
-        root: The transcode root directory, or `None` to use the workspace.
-        exclude_ids: Task IDs to skip before reading their output files.
+        root: Transcode root directory, or `None` to use the workspace.
+        exclude_ids: Task IDs to skip before reading their output files. `None` excludes
+            no task IDs.
 
     Returns:
         Task snapshots derived from HLS output directories.
@@ -275,9 +277,9 @@ def delete_output(
     """Delete a deterministic transcode output directory.
 
     Args:
-        media_hash: The source media hash directory name.
-        profile: The transcode profile directory name.
-        root: The transcode root directory, or `None` to use the workspace.
+        media_hash: Source media hash directory name.
+        profile: Transcode profile directory name.
+        root: Transcode root directory, or `None` to use the workspace.
 
     Returns:
         `True` if the output directory existed and was deleted.
@@ -341,7 +343,7 @@ def cleanup_stale_hls(out_dir: Path):
     """Remove stale HLS files before rebuilding an incomplete transcode.
 
     Args:
-        out_dir: The output directory to clean.
+        out_dir: Output directory to clean.
     """
     targets = [
         out_dir / "index.m3u8",
@@ -355,7 +357,7 @@ def cleanup_stale_hls(out_dir: Path):
 
 
 def is_complete(m3u8_path: Path) -> bool:
-    """Check whether the M3U8 playlist file exists and contains the endlist tag.
+    """Check whether the M3U8 playlist file exists and contains the end marker.
 
     Args:
         m3u8_path: The M3U8 file path.
@@ -381,9 +383,10 @@ async def wait_segment(
 
     Args:
         m3u8_path: The M3U8 file path.
-        proc: The ffmpeg subprocess to watch.
-        timeout: The max seconds to wait.
-        interval: The polling interval in seconds.
+        proc: Ffmpeg subprocess to watch. `None` waits without checking process
+            exit.
+        timeout: Max seconds to wait. Defaults to `_SEGMENT_WAIT_TIMEOUT`.
+        interval: Polling interval in seconds. Defaults to `_SEGMENT_WAIT_INTERVAL`.
 
     Returns:
         `True` if a segment was detected within the timeout, `False` otherwise.

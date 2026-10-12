@@ -75,10 +75,10 @@ export const api = ky.create({
 });
 
 /**
- * Proxies the image URL through the server.
+ * Proxy the image URL through the server.
  *
- * @param url - The original URL of the image.
- * @param policy - The policy for proxying the image.
+ * @param url - Original URL of the image.
+ * @param policy - Policy for proxying the image.
  * @returns The proxied URL of the image.
  */
 export function proxyImage(url: string | null, policy: boolean | 'auto' | 'store' = false): string | null {
@@ -128,7 +128,7 @@ export function proxyImage(url: string | null, policy: boolean | 'auto' | 'store
 }
 
 /**
- * Get the current user's role, retaining fetched details in the shared store.
+ * Get current user's role, retaining fetched details in the shared store.
  *
  * @returns The current user's role.
  */

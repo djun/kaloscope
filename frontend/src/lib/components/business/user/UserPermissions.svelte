@@ -9,6 +9,11 @@
   // the modal dialog instance
   let modal: Modal;
   let userId = $state(0);
+  /**
+   * Load selected user permissions before opening the editor.
+   *
+   * @param uid - User ID whose permissions will be edited.
+   */
   export const showModal = (uid: number) => {
     userId = uid;
     init().then(() => modal.show());
@@ -62,7 +67,7 @@
   /**
    * Toggle an ID in the selected list.
    *
-   * @param ids - The current selected IDs.
+   * @param ids - Current selected IDs.
    * @param id - The ID to toggle.
    */
   function toggle(ids: number[], id: number): number[] {
@@ -70,7 +75,7 @@
   }
 
   /**
-   * Save the permissions.
+   * Save permissions.
    */
   async function save() {
     loading.start();

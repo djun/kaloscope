@@ -27,7 +27,7 @@
   /**
    * Close all dropdowns except the current one.
    *
-   * @param currentTarget - The current dropdown's event target.
+   * @param currentTarget - Current dropdown's event target.
    */
   export function closeDropdowns(currentTarget?: EventTarget & HTMLElement) {
     document.querySelectorAll('details.dropdown').forEach((dropdown) => {

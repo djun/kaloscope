@@ -14,13 +14,13 @@ class VariableService(BaseService[GlobalVariable], model=GlobalVariable):
         """Create or update a global variable.
 
         Args:
-            obj: The global variable data.
+            obj: Global variable data.
 
         Raises:
             KaloscopeException: If the key already exists.
 
         Returns:
-            The global variable instance.
+            Global variable instance.
         """
         # check if the key already exists
         filter = ~Q(id=obj.id) if obj.id else Q()

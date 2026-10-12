@@ -50,7 +50,7 @@ def _source(
     """Write an isolated EPUB with one spine member and declared image candidates.
 
     Args:
-        tmp_path: The isolated source directory.
+        tmp_path: Isolated source directory.
         body: XHTML body markup; defaults to a simple paragraph.
         head: Optional head markup; empty by default.
         document: Full XHTML bytes, or None to build them from head and body.
@@ -86,7 +86,7 @@ def _read(path: Path, resource_id: str = "chapter") -> XhtmlDocument:
     """Read one fixture document inside the stable archive context.
 
     Args:
-        path: The isolated EPUB path.
+        path: Isolated EPUB path.
         resource_id: A manifest ID; defaults to the fixture's spine document.
 
     Returns:
@@ -101,7 +101,7 @@ def _text(document: XhtmlDocument) -> str:
     """Join visible text for assertions without including image candidates.
 
     Args:
-        document: The converted fixture.
+        document: Converted fixture.
 
     Returns:
         Text in reading order, with block and list-item boundaries retained.
@@ -351,12 +351,12 @@ def test_selected_member(tmp_path, monkeypatch):
         """Record members read by the XHTML converter.
 
         Args:
-            archive: The stable fixture archive.
-            member: The selected member.
+            archive: Stable fixture archive.
+            member: Selected member.
             limit: Its byte budget.
 
         Returns:
-            The unchanged bounded member bytes.
+            Unchanged bounded member bytes.
         """
         calls.append(member.filename)
         return read(archive, member, limit)
@@ -445,9 +445,9 @@ def test_external_access(tmp_path, monkeypatch, declaration, body, code):
             """Fail on any attempt to access external XML resources.
 
             Args:
-                url: The requested external location.
+                url: Requested external location.
                 public_id: Its optional identifier.
-                context: The parser context.
+                context: Parser context.
 
             Raises:
                 AssertionError: For every attempted external read.
@@ -459,10 +459,10 @@ def test_external_access(tmp_path, monkeypatch, declaration, body, code):
         """Install a resolver that traps filesystem and network access.
 
         Args:
-            kwargs: Options passed unchanged to the XML parser.
+            **kwargs: Options passed unchanged to the XML parser.
 
         Returns:
-            The parser with an external access trap.
+            Parser with an external access trap.
         """
         result = parser(**kwargs)
         result.resolvers.add(DenyResolver())
@@ -524,8 +524,8 @@ def test_source_changed(tmp_path, monkeypatch, action):
         """Change the source after the selected member has been consumed.
 
         Args:
-            archive: The open fixture archive.
-            member: The selected member.
+            archive: Open fixture archive.
+            member: Selected member.
             limit: Its byte budget.
 
         Returns:

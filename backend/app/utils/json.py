@@ -23,10 +23,10 @@ def default(obj):
     See https://github.com/ijl/orjson?tab=readme-ov-file#default for more details.
 
     Args:
-        obj: The object to serialize.
+        obj: Object to serialize.
 
     Returns:
-        The serialized object.
+        Serialized object.
     """
     if isinstance(obj, set):
         return list(obj)
@@ -46,10 +46,11 @@ def try_loads(string: str, *, with_comments: bool = False) -> JSONType:
 
     Args:
         string: The JSON string to deserialize.
-        with_comments: Whether to support comments in the JSON string.
+        with_comments: Whether to support comments in the JSON string. Defaults to
+            `False`.
 
     Returns:
-        The deserialized Python object if successful, None otherwise.
+        Deserialized Python object if successful, None otherwise.
     """
 
     # https://code.visualstudio.com/docs/languages/json#_json-with-comments
@@ -78,10 +79,10 @@ def escape(string: str) -> str:
     """Escape special characters in a string.
 
     Args:
-        string: The string to escape.
+        string: String to escape.
 
     Returns:
-        The escaped string.
+        Escaped string.
     """
     return dumps(string).decode(ENCODING)[1:-1]
 
@@ -90,9 +91,9 @@ def pretty(obj: Any) -> str:
     """Serialize an object to a pretty-printed JSON string.
 
     Args:
-        obj: The object to serialize.
+        obj: Object to serialize.
 
     Returns:
-        The pretty-printed JSON string.
+        Pretty-printed JSON string.
     """
     return dumps(obj, option=orjson.OPT_INDENT_2).decode(ENCODING)

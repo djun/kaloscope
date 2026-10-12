@@ -41,10 +41,10 @@ def _package(
     spine: str = _SPINE,
     metadata: str = "",
 ) -> bytes:
-    """Build the package XML used by isolated fixtures.
+    """Build package XML used by isolated fixtures.
 
     Args:
-        version: The package version; defaults to EPUB 3.
+        version: Package version; defaults to EPUB 3.
         items: Manifest entries; defaults to two chapters, cover and navigation.
         spine: Ordered references; defaults to chapter two then auxiliary chapter one.
         metadata: Optional rendering or cover declarations; empty by default.
@@ -68,12 +68,12 @@ def _source(
     """Write a real EPUB with optional replacements and missing members.
 
     Args:
-        tmp_path: The isolated test directory.
+        tmp_path: Isolated test directory.
         files: Member overrides; None uses defaults and None values remove members.
-        compression: The method for content and XML; defaults to Deflate.
+        compression: Method for content and XML; defaults to Deflate.
 
     Returns:
-        The source path with an uncompressed leading mimetype entry.
+        Source path with an uncompressed leading mimetype entry.
     """
     entries: dict[str, bytes | None] = {
         "mimetype": b"application/epub+zip",
@@ -103,7 +103,7 @@ def _load(path: Path) -> EpubPackage:
     """Inspect a fixture inside the shared stable-archive context.
 
     Args:
-        path: The isolated EPUB source.
+        path: Isolated EPUB source.
 
     Returns:
         Its package structure after source stability checks have completed.
@@ -450,12 +450,12 @@ def test_package_reads(tmp_path, monkeypatch):
         """Record which resources are read during package inspection.
 
         Args:
-            archive: The validated archive.
-            member: The selected member.
-            limit: The uncompressed byte budget.
+            archive: Validated archive.
+            member: Selected member.
+            limit: Uncompressed byte budget.
 
         Returns:
-            The actual member bytes.
+            Actual member bytes.
         """
         calls.append((member.filename, limit))
         return read(archive, member, limit)
@@ -478,12 +478,12 @@ def test_source_changed(tmp_path, monkeypatch, change):
         """Change the source after reading the package XML.
 
         Args:
-            archive: The validated archive.
-            member: The selected member.
-            limit: The uncompressed byte budget.
+            archive: Validated archive.
+            member: Selected member.
+            limit: Uncompressed byte budget.
 
         Returns:
-            The bytes read before replacing or deleting the source.
+            Bytes read before replacing or deleting the source.
         """
         data = read(archive, member, limit)
         if member.filename == "OEBPS/book.opf":
@@ -523,7 +523,7 @@ def test_xml_external_access(tmp_path, monkeypatch):
             """Fail if any external resolution is attempted.
 
             Args:
-                url: The requested external location.
+                url: Requested external location.
                 public_id: Its optional public identifier.
                 context: The XML parser context.
 
@@ -537,10 +537,10 @@ def test_xml_external_access(tmp_path, monkeypatch):
         """Add a resolver that detects external network or filesystem access.
 
         Args:
-            kwargs: Options forwarded unchanged to the original XML parser.
+            **kwargs: Options forwarded unchanged to the original XML parser.
 
         Returns:
-            The parser with an external access trap.
+            Parser with an external access trap.
         """
         result = parser(**kwargs)
         result.resolvers.add(DenyResolver())

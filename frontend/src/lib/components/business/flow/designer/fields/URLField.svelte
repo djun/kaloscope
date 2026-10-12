@@ -39,7 +39,7 @@
   }
 
   /**
-   * Update the URL field data.
+   * Update URL field data.
    */
   function updateFieldData() {
     url = urlWrapper.standardize(url);

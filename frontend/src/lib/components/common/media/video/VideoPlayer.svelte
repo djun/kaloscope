@@ -10,7 +10,7 @@
   import type DefinitionsPlugin from './plugins/definitions';
 
   /**
-   * The type of the video player options.
+   * Type of the video player options.
    */
   export type VideoPlayerOptions = {
     /** The width of the container. */
@@ -22,7 +22,7 @@
   };
 
   /**
-   * The type of the video options.
+   * Type of the video options.
    */
   export type VideoOptions = {
     url: string;
@@ -33,9 +33,9 @@
     startTime: number;
     /** The type of the video source, e.g., 'mp4', 'flv', 'hls', etc. */
     videoType: string;
-    /** The danmakus (video comments) to be displayed on the video. */
+    /** The overlay comments (video comments) to be displayed on the video. */
     danmakus: Danmaku[];
-    /** The danmaku server configured for the current media library. */
+    /** The comment server configured for the current media library. */
     danmakuServer: string;
     /** The video chapters for TV shows or multi-part videos. */
     chapters: Chapter[];
@@ -59,8 +59,8 @@
    *
    * Use absolute media proxy URLs so plugins can report network errors.
    *
-   * @param url - The app URL or inline `MPD` XML.
-   * @param videoType - The source video type.
+   * @param url - App URL or inline `MPD` XML.
+   * @param videoType - Source video type.
    * @returns A playback URL or a data URL for inline `MPD` XML.
    */
   function resolvePlaybackUrl(url: string, videoType?: string | null): string {
@@ -88,8 +88,8 @@
   /**
    * Records the user's watch history when the player is destroyed.
    *
-   * @param player - The player instance.
-   * @param owner - The account that opened this player; undefined skips recording.
+   * @param player - Player instance.
+   * @param owner - Account that opened this player; undefined skips recording.
    */
   async function recordHistory(player: Player | null, owner: number | undefined) {
     const current = get(user);
@@ -146,14 +146,14 @@
   const id: string = `player-${uuidv4()}`;
   // video container
   let container: HTMLDivElement;
-  // danmaku container
+  // overlay comment container
   let danmakuContainer: HTMLDivElement;
 
   // the player instance
   let player: Player | null = $state(null);
   // the video settings instance
   let videoSettings: VideoSettings;
-  // the danmaku server URL
+  // the comment server URL
   let danmakuServer: string | null = $state(null);
 
   // the plugins used in the player
@@ -234,9 +234,9 @@
   };
 
   /**
-   * Extracts the definitions from the video options.
+   * Extract the definitions from the video options.
    *
-   * @param options - The video options.
+   * @param options - Video options.
    * @returns The list of definitions.
    */
   const extractDefinitions = (options: VideoOptions): Definition[] => {
@@ -250,9 +250,9 @@
   };
 
   /**
-   * Extracts the chapters from the video options.
+   * Extract the chapters from the video options.
    *
-   * @param options - The video options.
+   * @param options - Video options.
    * @returns The list of chapters.
    */
   const extractChapters = (options: VideoOptions): Chapter[] => {
@@ -269,7 +269,7 @@
   };
 
   /**
-   * The playback rates available for the player.
+   * Playback rates available for the player.
    *
    * https://h5player.bytedance.com/plugins/internalplugins/playbackrate.html#list
    */
@@ -287,7 +287,7 @@
    *
    * Reuse the chapter directory and clear previous definition options for `next` loads.
    *
-   * @param options - The video options.
+   * @param options - Video options.
    * @returns A promise that settles after initializing or updating the player.
    */
   export async function mount(options: VideoOptions) {
@@ -298,7 +298,7 @@
     let url = resolvePlaybackUrl(options.url, options.videoType);
     danmakuServer = options.danmakuServer ?? null;
 
-    // store the raw danmakus for later use
+    // store the raw overlay comments for later use
     videoSettings.setDanmakus(options.danmakus);
 
     // reset the transcode auto-retry flag so a new video gets its own retry
@@ -359,7 +359,7 @@
       },
       danmu: {
         comments: formatDanmakus(options.danmakus, danmakuContainer),
-        // the danmaku plugin will start automatically when the `TIME_UPDATE` event is emitted
+        // the comment overlay plugin will start automatically when the `TIME_UPDATE` event is emitted
         // https://github.com/bytedance/xgplayer/blob/main/packages/xgplayer/src/plugins/danmu/index.js#L91
         defaultOff: true,
         closeDefaultBtn: true,
@@ -435,7 +435,7 @@
   /**
    * Listens to player events and executes the corresponding actions.
    *
-   * @param player - The player instance.
+   * @param player - Player instance.
    */
   function listenEvents(player: Player) {
     player.once(Events.PLAYING, () => {
@@ -449,7 +449,7 @@
     });
 
     player.on(Events.PLAYNEXT, () => {
-      // update the danmakus when the next video is played
+      // update the overlay comments when the next video is played
       videoSettings.loadLocalDanmakus();
       // update the subtitles when the next local video is played
       videoSettings.loadLocalSubtitles();
@@ -540,7 +540,7 @@
   /**
    * Uses the plugin hooks to customize the player behavior.
    *
-   * @param player - The player instance.
+   * @param player - Player instance.
    */
   function usePluginHooks(player: Player) {
     player.usePluginHooks('mobile', 'videoClick', () => {
@@ -608,11 +608,11 @@
   });
 </script>
 
-<!-- The video player container. -->
+<!-- the video player container -->
 <div bind:this={container} class="relative" style:width style:height>
   <div {id}></div>
 
-  <!-- The danmaku container. -->
+  <!-- the overlay comment container -->
   <div
     bind:this={danmakuContainer}
     class="pointer-events-none absolute inset-0 layer-0 overflow-visible! text-stroke"
@@ -622,7 +622,7 @@
   ></div>
 </div>
 
-<!-- The video settings component. -->
+<!-- the video settings component -->
 <VideoSettings bind:this={videoSettings} {player} {danmakuServer} />
 
 <style>

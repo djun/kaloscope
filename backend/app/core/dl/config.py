@@ -16,10 +16,10 @@ def encrypt_config(config: str) -> str:
     """Encrypt the complete downloader YAML when the secret key is enabled.
 
     Args:
-        config: The downloader YAML configuration.
+        config: Downloader YAML configuration.
 
     Returns:
-        The encrypted configuration, or the original configuration when disabled.
+        Encrypted configuration, or the original configuration when disabled.
     """
     if not KaloscopeConfig.get().secret_key_enabled:
         return config
@@ -30,10 +30,10 @@ def decrypt_config(config: str) -> str:
     """Decrypt the complete downloader YAML when the secret key is enabled.
 
     Args:
-        config: The stored downloader YAML configuration.
+        config: Stored downloader YAML configuration.
 
     Returns:
-        The decrypted configuration, or the original configuration when disabled.
+        Decrypted configuration, or the original configuration when disabled.
     """
     if not KaloscopeConfig.get().secret_key_enabled:
         return config
@@ -44,13 +44,13 @@ def load_config(config: str) -> RpcConfig | OpenListConfig:
     """Load a downloader configuration selected by its `driver` field.
 
     Args:
-        config: The downloader YAML configuration.
+        config: Downloader YAML configuration.
 
     Raises:
         KaloscopeException: If the configuration cannot be parsed or validated.
 
     Returns:
-        The validated downloader configuration.
+        Validated downloader configuration.
     """
     try:
         yaml_config = yaml.safe_load(config)
@@ -72,13 +72,13 @@ def load_config(config: str) -> RpcConfig | OpenListConfig:
 
 
 def load_driver(config: str) -> RpcDriver | OpenListDriver:
-    """Load the downloader driver selected by its configuration.
+    """Load downloader driver selected by its configuration.
 
     Args:
-        config: The downloader YAML configuration.
+        config: Downloader YAML configuration.
 
     Returns:
-        The downloader driver created from the configuration.
+        Downloader driver created from the configuration.
     """
     downloader_config = load_config(config)
     return _DRIVER_FACTORIES[downloader_config.driver](downloader_config)

@@ -66,7 +66,14 @@ media = Blueprint("media", url_prefix="/media")
 @media.get("/lib/list")
 @authorize()
 async def list_libraries(request: Request) -> HTTPResponse:
-    """List the media libraries."""
+    """List the media libraries.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Response containing the requested data.
+    """
     queries = []
     # filter the libraries by the user's permissions
     user: UserInfo = request.ctx.user
@@ -95,7 +102,15 @@ async def list_libraries(request: Request) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def sort_libraries(_, body: IDs) -> HTTPResponse:
-    """Sort the media libraries."""
+    """Sort the media libraries.
+
+    Args:
+        _: Unused request.
+        body: Record IDs in display order.
+
+    Returns:
+        Empty response on success.
+    """
     await MediaLibService.update_priorities(body.ids)
     return empty()
 
@@ -104,7 +119,15 @@ async def sort_libraries(_, body: IDs) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=MediaLibUpsert)
 async def upsert_library(_, body: MediaLibUpsert) -> HTTPResponse:
-    """Create or update a media library."""
+    """Create or update a media library.
+
+    Args:
+        _: Unused request.
+        body: Media library paths and settings.
+
+    Returns:
+        Response containing the requested data.
+    """
     lib = await MediaLibService.upsert(body)
     return json(await MediaLibService.dump(lib))
 
@@ -113,7 +136,15 @@ async def upsert_library(_, body: MediaLibUpsert) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_libraries(_, body: IDs) -> HTTPResponse:
-    """Delete the media libraries."""
+    """Delete the media libraries.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     for id in body.ids:
         try:
             await MediaLibService.delete(int(id))
@@ -127,7 +158,15 @@ async def delete_libraries(_, body: IDs) -> HTTPResponse:
 @media.get("/lib/<id:int>/scan")
 @authorize(role=UserRole.ADMIN)
 async def scan_library(request: Request, id: int) -> HTTPResponse:
-    """Scan the media library."""
+    """Scan the media library.
+
+    Args:
+        request: Incoming request with session and application context.
+        id: Media library ID.
+
+    Returns:
+        Empty response on success.
+    """
     lib = await MediaLib.get(id=id)
     watcher: LibWatcher = request.app.ctx.lib_watcher
     try:
@@ -141,7 +180,15 @@ async def scan_library(request: Request, id: int) -> HTTPResponse:
 @authorize()
 @validate(query=MediaQuery)
 async def list_items(request: Request, query: MediaQuery) -> HTTPResponse:
-    """List the media items."""
+    """List the media items.
+
+    Args:
+        request: Incoming request with session and application context.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     queries = [
         Q(visible=True),
         Q(parent_id__isnull=True) | Q(parent__visible=True),
@@ -171,7 +218,15 @@ async def list_items(request: Request, query: MediaQuery) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=MediaDel)
 async def delete_items(_, body: MediaDel) -> HTTPResponse:
-    """Delete the media items."""
+    """Delete the media items.
+
+    Args:
+        _: Unused request.
+        body: Media item IDs and local file deletion options.
+
+    Returns:
+        Empty response on success.
+    """
     for id in body.ids:
         try:
             await MediaItemService.delete(int(id), body.local)
@@ -190,8 +245,8 @@ async def get_item_details(request: Request, id: int) -> HTTPResponse:
     """Get current file metadata for an accessible media item.
 
     Args:
-        request: The authenticated request with loaded library permissions.
-        id: The requested media item ID.
+        request: Authenticated request with loaded library permissions.
+        id: Requested media item ID.
 
     Returns:
         Details with current NFO, OPF or ComicInfo metadata.
@@ -211,8 +266,8 @@ async def get_item_cover(request: Request, id: int) -> HTTPResponse:
     """Serve the current reading cover without accepting a client filesystem path.
 
     Args:
-        request: The authenticated request with loaded library permissions.
-        id: The reading item whose server-selected cover is requested.
+        request: Authenticated request with loaded library permissions.
+        id: Reading item whose server-selected cover is requested.
 
     Returns:
         Bounded image bytes with their verified MIME type and no browser caching.
@@ -260,9 +315,9 @@ async def get_item_content(
     """Serve indexed novel content or a bounded page of comic image URLs.
 
     Args:
-        request: The authenticated request with loaded library permissions.
-        id: The requested reading item ID.
-        query: The optional chapter, expected version and comic pagination.
+        request: Authenticated request with loaded library permissions.
+        id: Requested reading item ID.
+        query: Optional chapter, expected version and comic pagination.
 
     Returns:
         Reading content with private caching disabled and a bounded JSON body.
@@ -297,10 +352,10 @@ async def get_item_asset(
     """Serve one indexed image after revalidating access, source and content version.
 
     Args:
-        request: The authenticated request, optionally carrying If-None-Match.
-        id: The source item owning the requested resource.
-        asset_id: The opaque image ID from its content response.
-        query: The required published content version.
+        request: Authenticated request, optionally carrying If-None-Match.
+        id: Source item owning the requested resource.
+        asset_id: Opaque image ID from its content response.
+        query: Required published content version.
 
     Returns:
         Verified image bytes, or 304 only after the same access and source checks.
@@ -340,9 +395,9 @@ async def save_metadata(_, body: MediaMetadata, id: int) -> HTTPResponse:
     """Save a confirmed reading candidate before reporting success.
 
     Args:
-        _: The authenticated administrator's request.
-        body: The selected workflow and complete metadata candidate.
-        id: The existing reading work or comic chapter to update.
+        _: Authenticated administrator's request.
+        body: Selected workflow and complete metadata candidate.
+        id: Existing reading work or comic chapter to update.
 
     Returns:
         An empty response after file publication and list-summary synchronization.
@@ -365,9 +420,9 @@ async def generate_nfo(_, body: MediaMetadata, id: int) -> HTTPResponse:
     """Validate and save video metadata before refreshing dependent episodes.
 
     Args:
-        _: The authenticated administrator's request.
-        body: The selected workflow and metadata candidate.
-        id: The top-level video item receiving the metadata.
+        _: Authenticated administrator's request.
+        body: Selected workflow and metadata candidate.
+        id: Top-level video item receiving the metadata.
 
     Returns:
         An empty response after saving and synchronizing the metadata.
@@ -416,7 +471,15 @@ async def generate_nfo(_, body: MediaMetadata, id: int) -> HTTPResponse:
 @media.get("/title")
 @validate(query=MediaResource)
 async def get_item_title(_, query: MediaResource) -> HTTPResponse:
-    """Extract a scrape title from the media resource path."""
+    """Extract a scrape title from the media resource path.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     path = Path(query.path)
     return json({"title": extract_title(path.name if path.is_dir() else path.stem)})
 
@@ -424,7 +487,15 @@ async def get_item_title(_, query: MediaResource) -> HTTPResponse:
 @media.get("/probe")
 @validate(query=MediaResource)
 async def probe_media_metadata(_, query: MediaResource) -> HTTPResponse:
-    """Probe media duration and embedded chapters via ffprobe."""
+    """Probe media duration and embedded chapters via ffprobe.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     path = query.path
     if not await MediaItem.filter(path=path).exists():
         raise ForbiddenException(ErrorCode.PERMISSION_DENIED)
@@ -450,7 +521,15 @@ async def probe_media_metadata(_, query: MediaResource) -> HTTPResponse:
 async def get_item_stream(
     request: Request, query: TranscodeQuery
 ) -> HTTPResponse | ResponseStream:
-    """Get the media item stream with optional real-time ffmpeg transcoding."""
+    """Get media item stream with optional real-time ffmpeg transcoding.
+
+    Args:
+        request: Incoming request with session and application context.
+        query: Query filters and options.
+
+    Returns:
+        File response or streamed content.
+    """
     path = query.path
     if not await MediaItem.filter(path=path).exists():
         raise ForbiddenException(ErrorCode.PERMISSION_DENIED)
@@ -506,7 +585,18 @@ async def get_item_stream(
 async def serve_hls_file(
     _, hash: str, profile: str, filename: str, ext: str
 ) -> HTTPResponse | ResponseStream:
-    """Serve any file from an HLS output directory (M3U8 playlist or TS segment)."""
+    """Serve any file from an HLS output directory (M3U8 playlist or TS segment).
+
+    Args:
+        _: Unused request.
+        hash: Media source hash.
+        profile: Transcode profile name.
+        filename: Output file name without the extension.
+        ext: Output file extension.
+
+    Returns:
+        File response or streamed content.
+    """
     file_path = (output_dir(hash, profile) / f"{filename}.{ext}").resolve()
     transcoded = Path(KaloscopeConfig.get_workspace("transcoded")).resolve()
     if not file_path.is_relative_to(transcoded):
@@ -540,13 +630,26 @@ async def serve_hls_file(
 async def proxy_remote_media(
     request: Request, query: RemoteProxy
 ) -> HTTPResponse | ResponseStream:
-    """Proxy a remote media stream from the given URL."""
+    """Proxy a remote media stream from the given URL.
+
+    Args:
+        request: Incoming request with session and application context.
+        query: Query filters and options.
+
+    Returns:
+        File response or streamed content.
+    """
     url, headers = remote_proxy_request(
         query.url, query.referer, query.ua, request.headers
     )
     client: httpx.AsyncClient = request.app.ctx.httpx
 
     async def _stream(stream):
+        """Forward remote media bytes and selected response headers.
+
+        Args:
+            stream: Outgoing response stream.
+        """
         try:
             async with client.stream("GET", url, headers=headers) as r:
                 stream.response.status = r.status_code
@@ -571,7 +674,15 @@ async def proxy_remote_media(
 @media.get("/transcode/list")
 @validate(query=TranscodeTaskQuery)
 async def list_transcodes(_, query: TranscodeTaskQuery) -> HTTPResponse:
-    """List in-memory and finished transcode tasks."""
+    """List in-memory and finished transcode tasks.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     tasks = await list_tasks()
 
     # attach media item info to tasks if available
@@ -635,7 +746,15 @@ async def list_transcodes(_, query: TranscodeTaskQuery) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def stop_transcodes(_, body: IDs) -> HTTPResponse:
-    """Stop running transcode tasks by ID."""
+    """Stop running transcode tasks by ID.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Response containing the requested data.
+    """
     ids = await stop_tasks([str(id) for id in body.ids])
     return json({"ids": ids})
 
@@ -644,6 +763,14 @@ async def stop_transcodes(_, body: IDs) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_transcodes(_, body: IDs) -> HTTPResponse:
-    """Delete non-running transcode outputs by ID."""
+    """Delete non-running transcode outputs by ID.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Response containing the requested data.
+    """
     ids = await delete_tasks([str(id) for id in body.ids])
     return json({"ids": ids})

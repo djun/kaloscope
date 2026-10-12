@@ -41,7 +41,7 @@
   /**
    * Toggle on/off the interactivity.
    *
-   * @param value - The specific value to set, or toggle if not provided.
+   * @param value - Specific value to set, or toggle if not provided.
    */
   function toggleInteractivity(value?: boolean) {
     interactive = value ?? !interactive;
@@ -53,7 +53,7 @@
   /**
    * Toggle on/off the minimap.
    *
-   * @param value - The specific value to set, or toggle if not provided.
+   * @param value - Specific value to set, or toggle if not provided.
    */
   function toggleMinimap(value?: boolean) {
     $minimap = value ?? !$minimap;
@@ -189,7 +189,7 @@
   let publishable: boolean = $derived(!(saving || (readonly && graph?.state === 'published') || nodes.length === 0));
 
   /**
-   * Save the flow graph.
+   * Save flow graph.
    */
   function save() {
     if (saving || !savable) {

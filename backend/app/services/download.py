@@ -64,11 +64,11 @@ class DownloaderService(BaseService[Downloader], model=Downloader):
         """Serialize a downloader with decrypted driver metadata.
 
         Args:
-            obj: The downloader to serialize.
-            kwargs: The serialization options forwarded to `BaseService.dump`.
+            obj: Downloader to serialize.
+            **kwargs: Serialization options forwarded to `BaseService.dump`.
 
         Returns:
-            The serialized downloader and driver capabilities.
+            Serialized downloader and driver capabilities.
         """
         data = await super().dump(obj, **kwargs)
         if "config" not in data:
@@ -93,11 +93,11 @@ class DownloaderService(BaseService[Downloader], model=Downloader):
         """Serialize downloader objects with driver metadata.
 
         Args:
-            objects: The downloader objects or unresolved query set.
-            kwargs: The serialization options forwarded to `BaseService.dump_list`.
+            objects: Downloader objects or unresolved query set.
+            **kwargs: Serialization options forwarded to `BaseService.dump_list`.
 
         Returns:
-            The serialized downloader records.
+            Serialized downloader records.
         """
         if isinstance(objects, QuerySet):
             objects = await objects
@@ -105,10 +105,10 @@ class DownloaderService(BaseService[Downloader], model=Downloader):
 
     @classmethod
     async def get_presets(cls) -> dict[str, str]:
-        """Get the downloader presets.
+        """Get downloader presets.
 
         Returns:
-            The downloader presets.
+            Downloader presets.
         """
         presets = {}
         for file in cls.PRESETS_PATH.iterdir():
@@ -120,10 +120,10 @@ class DownloaderService(BaseService[Downloader], model=Downloader):
     @classmethod
     @atomic()
     async def update_priorities(cls, ids: list):
-        """Update the downloader priorities.
+        """Update downloader priorities.
 
         Args:
-            ids: The sorted downloader IDs.
+            ids: Sorted downloader IDs.
         """
         downloaders = await Downloader.all()
         if set(ids) != set(d.id for d in downloaders):
@@ -140,13 +140,13 @@ class DownloaderService(BaseService[Downloader], model=Downloader):
         """Create or update a downloader.
 
         Args:
-            obj: The downloader data.
+            obj: Downloader data.
 
         Raises:
             KaloscopeException: If the name already exists.
 
         Returns:
-            The downloader instance.
+            Downloader instance.
         """
         # load the YAML configuration
         driver = load_driver(obj.config)
@@ -197,10 +197,10 @@ class DownloadDirService(BaseService[DownloadDir], model=DownloadDir):
         """Create or update a download directory.
 
         Args:
-            path: The download directory path.
+            path: Download directory path.
 
         Returns:
-            The download directory instance.
+            Download directory instance.
         """
         dir = await DownloadDir.get_or_none(path=path)
         if dir is not None:
@@ -218,11 +218,11 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Serialize one task with driver capabilities and offline-job errors.
 
         Args:
-            obj: The download task to serialize.
-            kwargs: The serialization options forwarded to `BaseService.dump`.
+            obj: Download task to serialize.
+            **kwargs: Serialization options forwarded to `BaseService.dump`.
 
         Returns:
-            The enriched serialized task.
+            Enriched serialized task.
         """
         return (await cls._dump_tasks([obj], **kwargs))[0]
 
@@ -231,11 +231,11 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Serialize task objects with driver capabilities and job errors.
 
         Args:
-            objects: The download tasks or unresolved query set.
-            kwargs: The serialization options forwarded to `BaseService.dump`.
+            objects: Download tasks or unresolved query set.
+            **kwargs: Serialization options forwarded to `BaseService.dump`.
 
         Returns:
-            The enriched serialized tasks.
+            Enriched serialized tasks.
         """
         if isinstance(objects, QuerySet):
             objects = await objects
@@ -246,11 +246,11 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Serialize a resolved task batch without repeated related queries.
 
         Args:
-            tasks: The resolved download tasks.
-            kwargs: The serialization options forwarded to `BaseService.dump`.
+            tasks: Resolved download tasks.
+            **kwargs: Serialization options forwarded to `BaseService.dump`.
 
         Returns:
-            The enriched serialized tasks in input order.
+            Enriched serialized tasks in input order.
         """
         if not tasks:
             return []
@@ -299,15 +299,16 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Build common persistence values from a normalized request.
 
         Args:
-            downloader_id: The owning downloader ID.
-            request: The normalized driver request.
-            name: The optional driver-provided task name.
+            downloader_id: Owning downloader ID.
+            request: Normalized driver request.
+            name: Optional driver-provided task name. `None` uses the normalized
+                source hash.
 
         Raises:
             ValueError: If `request` has no normalized identity.
 
         Returns:
-            The common `DownloadTask` field values.
+            Common `DownloadTask` field values.
         """
         identity = request.identity
         if identity is None:
@@ -334,11 +335,11 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Normalize one source according to driver source capabilities.
 
         Args:
-            driver: The target downloader driver.
-            request: The request containing a torrent or raw source.
+            driver: Target downloader driver.
+            request: Request containing a torrent or raw source.
 
         Returns:
-            The request with normalized identity and source fields, or `None` when
+            Request with normalized identity and source fields, or `None` when
             the source is invalid or unsupported.
         """
         source_types = driver.source_types
@@ -384,8 +385,8 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Validate a source against one downloader driver.
 
         Args:
-            downloader_id: The downloader ID.
-            source: The source string to validate.
+            downloader_id: Downloader ID.
+            source: Source string to validate.
 
         Returns:
             `True` if the driver accepts the source, otherwise `False`.
@@ -400,8 +401,8 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Check if the info hash already exists.
 
         Args:
-            hash: The info hash.
-            hash_v2: The info hash v2.
+            hash: Info hash.
+            hash_v2: Info hash v2. `None` checks only the version 1 hash.
 
         Returns:
             `True` if the info hash already exists, otherwise `False`.
@@ -417,10 +418,10 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Add a download task and wake synchronization after committing.
 
         Args:
-            add: The download task details.
+            add: Download task details.
 
         Returns:
-            The added download task.
+            Added download task.
         """
         downloader = await Downloader.get(id=add.downloader_id)
         driver = load_driver(decrypt_config(downloader.config))
@@ -471,12 +472,12 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         outer transaction commits.
 
         Args:
-            downloader_id: The downloader ID.
-            driver: The driver used for submission.
-            request: The normalized download request.
+            downloader_id: Downloader ID.
+            driver: Driver used for submission.
+            request: Normalized download request.
 
         Returns:
-            The persisted download task.
+            Persisted download task.
         """
         identity = request.identity
         draft = driver.prepare(request)
@@ -519,12 +520,12 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Persist a driver draft and notify recovery before remote submission.
 
         Args:
-            downloader_id: The owning downloader ID.
-            driver: The driver used for remote submission.
-            draft: The task and optional offline-job persistence draft.
+            downloader_id: Owning downloader ID.
+            driver: Driver used for remote submission.
+            draft: Task and optional offline-job persistence draft.
 
         Returns:
-            The persisted task updated with its submission snapshot.
+            Persisted task updated with its submission snapshot.
         """
         request = draft.request
         # persist recovery metadata before the remote submission can become uncertain
@@ -589,7 +590,7 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Pause a download task and notify synchronization after local changes.
 
         Args:
-            id: The download task ID.
+            id: Download task ID.
 
         Returns:
             A deferred command for offline jobs, or `None` for immediate actions.
@@ -612,7 +613,7 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Start a download task and notify synchronization after local changes.
 
         Args:
-            id: The download task ID.
+            id: Download task ID.
 
         Returns:
             A deferred command for offline jobs, or `None` for immediate actions.
@@ -635,7 +636,7 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Retry a download task and notify synchronization after local changes.
 
         Args:
-            id: The download task ID.
+            id: Download task ID.
 
         Returns:
             A deferred command for offline jobs, or `None` for immediate actions.
@@ -665,8 +666,8 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
         """Delete a download task and notify synchronization after committing.
 
         Args:
-            id: The download task ID.
-            local: Whether to delete the local files.
+            id: Download task ID.
+            local: Whether to delete the local files. Defaults to `False`.
 
         Returns:
             A deferred command for offline jobs, or `None` for immediate actions.
@@ -743,10 +744,10 @@ class DownloadTaskService(BaseService[DownloadTask], model=DownloadTask):
 
     @classmethod
     async def stats(cls) -> DownloadStats:
-        """Get the download statistics.
+        """Get download statistics.
 
         Returns:
-            The download statistics object.
+            Download statistics object.
         """
         count = (
             await DownloadTask.annotate(count=Count("id"))
@@ -785,10 +786,10 @@ class DownloadPlanService(BaseService[DownloadPlan], model=DownloadPlan):
         """Create or update a download plan.
 
         Args:
-            obj: The download plan data.
+            obj: Download plan data.
 
         Returns:
-            The download plan instance.
+            Download plan instance.
         """
         data = obj.model_dump(exclude={"id"})
         if obj.id:

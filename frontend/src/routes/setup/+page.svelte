@@ -18,9 +18,9 @@
   }));
 
   /**
-   * Create the first admin user and redirect to login page.
+   * Create first admin user and redirect to login page.
    *
-   * @param data - The form data.
+   * @param data - Form data.
    */
   function createAdmin(data: FormData) {
     if (data.get('password') !== data.get('confirm_pwd')) {

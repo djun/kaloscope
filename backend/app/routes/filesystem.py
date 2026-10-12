@@ -28,7 +28,15 @@ class ListRequest(BaseModel):
 @filesystem.get("/list")
 @validate(query=ListRequest)
 async def list_files(_, query: ListRequest) -> HTTPResponse:
-    """List the files in the given directory."""
+    """List the files in the given directory.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     path = Path(query.path or _ANCHOR)
     if not os.access(path, os.R_OK) or not path.is_dir():
         raise BadRequestException
@@ -36,15 +44,30 @@ async def list_files(_, query: ListRequest) -> HTTPResponse:
     if expand_to is not None and not os.access(expand_to, os.R_OK):
         expand_to = None
 
-    # check if the path is readable under the current listing filter
     def _readable(p: Path, *, only_dirs: bool) -> bool:
+        """Check read access under the directory listing filter.
+
+        Args:
+            p: File or directory path to inspect.
+            only_dirs: Restrict matches to directories when `True`.
+
+        Returns:
+            Whether the path is readable and matches the filter.
+        """
         try:
             return os.access(p, os.R_OK) and (not only_dirs or p.is_dir())
         except OSError:
             return False
 
-    # check if the directory can be expanded in the current listing filter
     def _expandable(p: Path) -> bool:
+        """Check whether the directory has any visible listing entries.
+
+        Args:
+            p: File or directory path to inspect.
+
+        Returns:
+            Whether at least one child passes the current listing filter.
+        """
         try:
             return any(
                 _readable(child, only_dirs=query.only_dirs) for child in p.iterdir()
@@ -52,15 +75,29 @@ async def list_files(_, query: ListRequest) -> HTTPResponse:
         except OSError:
             return False
 
-    # check if the directory is physically empty
     def _is_empty(p: Path) -> bool:
+        """Check whether a directory is empty without consuming its entries.
+
+        Args:
+            p: File or directory path to inspect.
+
+        Returns:
+            Whether the directory is empty; `False` if it cannot be read.
+        """
         try:
             return next(p.iterdir(), None) is None
         except OSError:
             return False
 
-    # check if the file is hidden
     def _is_hidden(p: Path) -> bool:
+        """Check platform attributes or a leading dot for hidden files.
+
+        Args:
+            p: File or directory path to inspect.
+
+        Returns:
+            Whether the path is hidden.
+        """
         if sys.platform == "win32":
             try:
                 return bool(p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_HIDDEN)
@@ -68,8 +105,15 @@ async def list_files(_, query: ListRequest) -> HTTPResponse:
                 return False
         return p.name.startswith(".")
 
-    # recursively build the file entry
     def _build_entry(p: Path) -> dict:
+        """Build a file entry and expand children along the selected path.
+
+        Args:
+            p: File or directory path to inspect.
+
+        Returns:
+            File entry with any requested child entries.
+        """
         absolute_path = str(p.resolve())
         is_dir = p.is_dir()
         is_empty = _is_empty(p) if is_dir else None
@@ -120,7 +164,15 @@ class StatsRequest(BaseModel):
 @filesystem.get("/stats")
 @validate(query=StatsRequest)
 async def get_stats(_, query: StatsRequest) -> HTTPResponse:
-    """Get the statistics of the given path."""
+    """Get statistics of the given path.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     path = Path(query.path)
     if not os.access(path, os.R_OK):
         raise BadRequestException
@@ -130,7 +182,7 @@ async def get_stats(_, query: StatsRequest) -> HTTPResponse:
         "name": path.name,
         "path": absolute_path,
         "is_dir": path.is_dir(),
-        "readable": True,  # os.access(path, os.R_OK),
+        "readable": True,
         "writable": os.access(path, os.W_OK),
         "size": format_bytes(path.stat().st_size),
     }
@@ -152,7 +204,15 @@ class CreateDirRequest(BaseModel):
 @filesystem.post("/mkdir")
 @validate(json=CreateDirRequest)
 async def create_dir(_, body: CreateDirRequest) -> HTTPResponse:
-    """Create a child directory in the given parent directory."""
+    """Create a child directory in the given parent directory.
+
+    Args:
+        _: Unused request.
+        body: Parent path and child directory name.
+
+    Returns:
+        Response containing the requested data.
+    """
     parent = Path(body.parent)
     name = body.name.strip()
     if (
@@ -189,7 +249,15 @@ class DeleteDirRequest(BaseModel):
 @filesystem.post("/rmdir")
 @validate(json=DeleteDirRequest)
 async def delete_dir(_, body: DeleteDirRequest) -> HTTPResponse:
-    """Delete an empty directory and return its parent directory."""
+    """Delete an empty directory and return its parent directory.
+
+    Args:
+        _: Unused request.
+        body: Empty directory path to delete.
+
+    Returns:
+        Response containing the requested data.
+    """
     path = Path(body.path)
     parent = path.parent
     if not path.is_dir() or parent == path:

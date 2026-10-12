@@ -1,4 +1,4 @@
-"""Test danmaku matching, cache updates, and server error recovery."""
+"""Test overlay comment matching, cache updates, and server error recovery."""
 
 import asyncio
 import json

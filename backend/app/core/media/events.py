@@ -54,10 +54,10 @@ def _reading_event_identity(event: MediaEvent) -> tuple:
     """Identify the persisted task version used during unlocked work.
 
     Args:
-        event: The task captured before observation or execution.
+        event: Task captured before observation or execution.
 
     Returns:
-        The ownership, scope, payload and revision that must still match at completion.
+        Ownership, scope, payload and revision that must still match at completion.
     """
     return (
         event.lib_id,
@@ -74,8 +74,8 @@ def _defer_reading_task(payload: ReadingReconcile, error: ContentError):
     """Apply the shared retry limit without changing scopes or source observations.
 
     Args:
-        payload: The current task payload whose retry state will be updated.
-        error: The controlled source or execution failure to persist.
+        payload: Current task payload whose retry state will be updated.
+        error: Controlled source or execution failure to persist.
     """
     payload.attempts = min(payload.attempts + 1, len(_RETRY_DELAYS) + 1)
     payload.error_code = error.code
@@ -102,11 +102,13 @@ async def coalesce_reading_events(
     This preparation step does not execute or acknowledge reconciliation tasks.
 
     Args:
-        lib_id: The reading library whose persisted events should be coalesced.
-        scan_works: Work directories to check incrementally, including missing
+        lib_id: Reading library whose persisted events should be coalesced.
+        scan_works: Work directories to check incrementally, including missing `None`
+            merges only saved filesystem events.
             registered works. None merges only filesystem events. Scans preserve
             pending moves and forced rebuilds without forcing unchanged bodies.
-        force_targets: Containers within scan_works whose damaged caches must be
+        force_targets: Containers within scan_works whose damaged caches must be `None`
+            forces no additional containers.
             rebuilt. None keeps scans incremental.
         missing_only: Only enqueue scan scopes without a pending task. Defaults to
             False so explicit scans reset failed work. Reader retries use True.
@@ -226,6 +228,7 @@ async def coalesce_reading_events(
                 [work] if work in batch.targets else sorted(set(batch.targets))
             )
             batch.force_targets = [work] if work in forced else sorted(set(forced))
+
             # a move spanning works belongs to both tasks with the same event ID
             moves: dict[int, ReadingMove] = {}
             for move in batch.moves:
@@ -262,14 +265,14 @@ async def coalesce_reading_events(
 async def prepare_reading_event(event_id: int) -> bool:
     """Check a saved task's sources twice across a persisted quiet interval.
 
-    The serial library consumer calls this outside its lock. Filesystem work runs
+    Serial library consumer calls this outside its lock. Filesystem work runs
     outside locks and transactions; future-dated and failed tasks return immediately.
     Source errors retry after 2, 5, 15 and 30 seconds, stopping at the fifth failure.
     New events reset retries and invalidate any in-flight observation. Readiness
     neither executes nor acknowledges a task, and does not establish source ownership.
 
     Args:
-        event_id: The persisted reconcile event to inspect, reloaded on every call.
+        event_id: Persisted reconcile event to inspect, reloaded on every call.
 
     Returns:
         True for two matching observations at least two seconds apart. False for
@@ -349,7 +352,7 @@ async def finish_reading_event(
     ingestion nor decides whether a missing source is safe to remove.
 
     Args:
-        event: The unmodified, prepared task snapshot with its library loaded.
+        event: Unmodified, prepared task snapshot with its library loaded.
         error: A controlled execution failure; None reports successful processing
             of every scope, including any required moves and deletion cleanup.
 

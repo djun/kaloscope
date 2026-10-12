@@ -2,7 +2,7 @@
   import type { FlowRepo, Resp } from '$lib/types';
 
   /**
-   * The flow repositories.
+   * Flow repositories.
    */
   let repos: FlowRepo[] = $state([]);
 </script>
@@ -39,7 +39,7 @@
   /**
    * Add a GitHub repository.
    *
-   * @param url - The input URL.
+   * @param url - Input URL.
    */
   function addRepo(url: string | undefined) {
     if (!url) {
@@ -71,7 +71,7 @@
   /**
    * Delete a GitHub repository.
    *
-   * @param repo - The repository to delete.
+   * @param repo - Repository to delete.
    */
   function deleteRepo(repo: FlowRepo) {
     repo.loading = false;

@@ -7,7 +7,7 @@ from app.utils.numeral import cn_to_int
 # pattern to match common separators: dot, underscore, hyphen, space, star
 _SEPARATOR_PATTERN = re.compile(r"[._\-\s★☆]+")
 
-# pattern to match the leading noise prefix like [SubGroup], (SiteName), 【字幕组】 etc.
+# pattern to match the leading noise prefix like [SubGroup], (SiteName), 【字幕组】 etc
 _PREFIX_PATTERN = re.compile(r"^[\[\(【][^\]\)】]*[\]\)】]\s*")
 
 # pattern to match a leading metadata prefix after the release group
@@ -58,7 +58,7 @@ _YEAR_PATTERN = re.compile(
     r"(?!\d|[xX]\d{3,4}|[A-Za-z])[\)\]）]?"
 )
 
-# season pattern: S01, S01E01, s1, Season 1, 第1季, 第二季, 第二期 etc.
+# season pattern: S01, S01E01, s1, Season 1, 第1季, 第二季, 第二期 etc
 _SEASON_PATTERN = re.compile(
     r"""
     (?:
@@ -76,7 +76,7 @@ _SEASON_PATTERN = re.compile(
     re.VERBOSE | re.IGNORECASE,
 )
 
-# episode pattern: E01, ep1, [01], 第1集, 第一话 etc.
+# episode pattern: E01, ep1, [01], 第1集, 第一话 etc
 _EPISODE_PATTERN = re.compile(
     r"""
     (?:
@@ -184,10 +184,10 @@ def extract_year(name: str) -> int | None:
     """Extract the release year from a media file name.
 
     Args:
-        name: The raw file name or path stem string.
+        name: Raw file name or path stem string.
 
     Returns:
-        The four-digit year as an integer, or `None` if not found.
+        Four-digit year as an integer, or `None` if not found.
     """
     match = _YEAR_PATTERN.search(name)
     if match:
@@ -199,10 +199,10 @@ def extract_season(name: str) -> int | None:
     """Extract the season number from a media file name.
 
     Args:
-        name: The raw file name or path stem string.
+        name: Raw file name or path stem string.
 
     Returns:
-        The season number as an integer, or `None` if not found.
+        Season number as an integer, or `None` if not found.
     """
     match = _SEASON_PATTERN.search(name)
     if match:
@@ -218,10 +218,10 @@ def extract_episode(name: str) -> int | None:
     """Extract the episode number from a media file name.
 
     Args:
-        name: The raw file name or path stem string.
+        name: Raw file name or path stem string.
 
     Returns:
-        The episode number as an integer, or `None` if not found.
+        Episode number as an integer, or `None` if not found.
     """
     match = _EPISODE_PATTERN.search(name)
     if match:
@@ -238,7 +238,7 @@ def extract_title(name: str) -> str:
     etc.) from the input string.
 
     Args:
-        name: The raw file name or path stem string.
+        name: Raw file name or path stem string.
 
     Returns:
         A cleaned title string suitable for media scraping.

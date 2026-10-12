@@ -30,7 +30,7 @@ from app.utils.disk import format_bytes
 
 
 class TaskState(StrEnum):
-    """Lifecycle state of a transcode task."""
+    """State of a transcode task."""
 
     RUNNING = "running"
     STOPPING = "stopping"
@@ -63,7 +63,7 @@ class RuntimeTask(TypedDict):
 class TaskSnapshot(TypedDict):
     """API-facing task metadata enriched with HLS output statistics.
 
-    The process start identifier remains internal, while scanned output
+    Process start identifier remains internal, while scanned output
     directories use `None` for fields that cannot be reconstructed.
     """
 
@@ -95,7 +95,7 @@ _TASKS_LOCK = threading.RLock()
 
 
 def _task_store():
-    """Return the cross-worker task store and lock, with a test fallback.
+    """Return cross-worker task store and lock, with a test fallback.
 
     Returns:
         A tuple containing the task mapping and its synchronization lock.
@@ -111,8 +111,8 @@ def _same_task(current: RuntimeTask, expected: RuntimeTask) -> bool:
     """Check whether two task records describe the same process run.
 
     Args:
-        current: The record currently stored for a task ID.
-        expected: The earlier record associated with the operation.
+        current: Record currently stored for a task ID.
+        expected: Earlier record associated with the operation.
 
     Returns:
         `True` when both records identify the same ffmpeg process run.
@@ -125,7 +125,7 @@ async def _process_start_id(pid: int) -> str | None:
     """Read a process start identifier without blocking the event loop.
 
     Args:
-        pid: The process identifier to inspect.
+        pid: Process identifier to inspect.
 
     Returns:
         A platform-prefixed start identifier, or `None` when unavailable.
@@ -174,15 +174,15 @@ async def register_task(
     """Register a newly started ffmpeg process in the shared task store.
 
     Args:
-        media_path: The source media file path.
-        media_hash: The source media hash.
-        options: The transcode parameters used by the process.
+        media_path: Source media file path.
+        media_hash: Source media hash.
+        options: Transcode parameters used by the process.
         out_dir: The HLS output directory.
-        proc: The running ffmpeg subprocess.
-        duration: The total source duration in seconds, if known.
+        proc: Running ffmpeg subprocess.
+        duration: Total source duration in seconds, if known.
 
     Returns:
-        The registered task ID.
+        Registered task ID.
     """
     task_id = f"{media_hash}:{options.profile}"
     process_start_id = await _process_start_id(proc.pid)
@@ -219,9 +219,10 @@ async def finish_task(
     """Update a registered ffmpeg task to its terminal state.
 
     Args:
-        task_id: The registered task ID.
-        returncode: The ffmpeg process exit code.
-        error_msg: The captured ffmpeg error message, if available.
+        task_id: Registered task ID.
+        returncode: Ffmpeg process exit code.
+        error_msg: Captured ffmpeg error message, if available. `None` stores no
+            failure detail.
     """
     tasks, lock = _task_store()
     lock.acquire()
@@ -302,10 +303,10 @@ def _task_snapshot(task: RuntimeTask) -> TaskSnapshot:
     """Convert shared task metadata into an API-friendly dictionary.
 
     Args:
-        task: The stored runtime task metadata.
+        task: Stored runtime task metadata.
 
     Returns:
-        The task metadata enriched with output statistics.
+        Task metadata enriched with output statistics.
     """
     stats = output_stats(task["out_dir"], task["duration"])
     state = task["state"]
@@ -343,7 +344,7 @@ async def stop_tasks(ids: list[str]) -> list[str]:
     """Request termination for running shared transcode tasks.
 
     Args:
-        ids: The task IDs to stop.
+        ids: Task IDs to stop.
 
     Returns:
         The IDs of running tasks claimed by the request.
@@ -434,10 +435,10 @@ async def delete_tasks(ids: list[str]) -> list[str]:
     """Delete non-running transcode outputs and remove runtime records.
 
     Args:
-        ids: The task IDs to delete.
+        ids: Task IDs to delete.
 
     Returns:
-        The task IDs removed from the task store or output workspace.
+        Task IDs removed from the task store or output workspace.
     """
     # collect candidates before filesystem I/O outside the shared lock
     candidates: list[tuple[str, RuntimeTask | None, str, str, Path | None]] = []

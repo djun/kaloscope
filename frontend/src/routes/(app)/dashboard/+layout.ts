@@ -2,6 +2,10 @@ import { api } from '$lib/api';
 import type { FlowGraph, Page, Resp } from '$lib/types';
 import type { LayoutLoad } from './$types';
 
+/**
+ * Load indexer graphs that provide dashboard boards.
+ * @returns Data used by the layout or page.
+ */
 export const load: LayoutLoad = async () => {
   let graphs: FlowGraph[] = [];
 

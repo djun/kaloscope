@@ -70,8 +70,8 @@
   /**
    * Generate ellipsis number flag for pagination.
    *
-   * @param left - The left number.
-   * @param right - The right number.
+   * @param left - Left number.
+   * @param right - Right number.
    * @returns The ellipsis number flag.
    */
   function ellipsis(left: number, right: number) {

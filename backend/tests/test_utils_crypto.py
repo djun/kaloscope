@@ -18,7 +18,7 @@ def test_roundtrip(plain_text: str):
 
 
 def test_legacy_ciphertext():
-    """Keep ciphertext created with the default key compatible."""
+    """Keep encrypted text created with the default key compatible."""
     encrypted = "JwQLDhAaTwMAKBMJGw=="
 
     assert xor_encrypt("legacy secret") == encrypted

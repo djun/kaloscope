@@ -16,7 +16,7 @@
   const loading = createLoading();
 
   /**
-   * Get the downloaders.
+   * Get download clients.
    */
   function getAll() {
     loading.start();
@@ -30,7 +30,7 @@
   /**
    * Delete a downloader by ID.
    *
-   * @param id - The downloader ID.
+   * @param id - Downloader ID.
    */
   function del(id: number) {
     loading.start();
@@ -41,7 +41,7 @@
   }
 
   /**
-   * Sort the downloaders.
+   * Sort the download clients.
    */
   const sort = debounce(() => {
     const ids = downloaders.map((downloader) => downloader.id);

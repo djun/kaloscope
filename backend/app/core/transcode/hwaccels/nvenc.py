@@ -10,15 +10,36 @@ class NVENC(HWAccelStrategy):
     """NVIDIA NVENC H.264 encoding strategy."""
 
     async def resolve_device(self, context: TranscodeContext) -> str | None:
-        """Use the default CUDA device selected by the current command path."""
+        """Use the default CUDA device selected by the current command path.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Device identifier, or `None` for the default device.
+        """
         return "0"
 
     def keep_hardware_frames(self, context: TranscodeContext) -> bool:
-        """Return system frames when HDR requires the standard CPU filter."""
+        """Return system frames when HDR requires the standard CPU filter.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Whether subsequent filters can use frames in device memory.
+        """
         return not context.needs_tonemap and super().keep_hardware_frames(context)
 
     def transform_filters(self, context: TranscodeContext) -> list[str]:
-        """Build eligible CUDA deinterlace and scale filters."""
+        """Build eligible CUDA filters for field conversion and scaling.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Ordered hardware filter expressions.
+        """
         parity = context.field_parity
         if context.needs_rotation or context.needs_tonemap:
             return []
@@ -43,7 +64,14 @@ class NVENC(HWAccelStrategy):
         return filters
 
     def transform_filter_names(self, context: TranscodeContext) -> set[str]:
-        """Return filter names required by the selected CUDA transforms."""
+        """Return filter names required by the selected CUDA transforms.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Filter names required by the hardware transforms.
+        """
         filters = self.transform_filters(context)
         names: set[str] = set()
         if any(value.startswith("yadif_cuda") for value in filters):
@@ -53,7 +81,14 @@ class NVENC(HWAccelStrategy):
         return names
 
     def transform_download_format(self, context: TranscodeContext) -> str:
-        """Return the CPU format produced after downloading CUDA transforms."""
+        """Return CPU format produced after downloading CUDA transforms.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Software pixel format used to receive hardware frames.
+        """
         if context.needs_scale and not context.needs_tonemap:
             return "yuv420p"
         return super().transform_download_format(context)
@@ -62,7 +97,7 @@ class NVENC(HWAccelStrategy):
         """Build CUDA or CPU filters and normalize output to 8-bit YUV.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             Filters for the prepared frame-memory and geometry path.
@@ -95,7 +130,7 @@ class NVENC(HWAccelStrategy):
         """Build NVENC preset and constrained bitrate options.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg options for the selected quality preset and bitrate.

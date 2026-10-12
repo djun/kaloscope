@@ -35,6 +35,18 @@ class MergeNode(Node):
         **kwargs,
     ) -> OutputHandle | None:
         # discard this input if already done
+        """Emit once enough inputs arrive or the configured wait expires.
+
+        Args:
+            node_data: Configured fields and mutable node state.
+            source: Incoming source, or `None` when unavailable.
+            sources: Connected sources; `None` leaves the configured input limit
+                unchanged.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+
+        Returns:
+            Output handle for the first completed merge; `STOP` for other inputs.
+        """
         if node_data.get(_DONE):
             return STOP
 
@@ -77,7 +89,7 @@ def _done(node_data: dict):
     """Mark the merge node as done and signal any waiting coroutines.
 
     Args:
-        node_data: The node data.
+        node_data: Node data.
     """
     node_data[_DONE] = True
     node_data.pop(_RECEIVED, None)

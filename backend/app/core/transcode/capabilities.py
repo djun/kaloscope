@@ -28,13 +28,13 @@ class FFmpegCapabilities:
     """Capabilities advertised by one FFmpeg executable and video encoder.
 
     Attributes:
-        executable: The executable name or path, resolved absolutely when available.
-        encoders: The advertised audio and video encoder names.
-        filters: The advertised filter names.
-        hwaccels: The advertised hardware acceleration methods.
-        bsfs: The advertised bitstream filter names.
-        muxers: The advertised output muxer names.
-        encoder_options: The selected encoder's private option names.
+        executable: Executable name or path, resolved absolutely when available.
+        encoders: Advertised audio and video encoder names.
+        filters: Advertised filter names.
+        hwaccels: Advertised hardware acceleration methods.
+        bsfs: Advertised encoded stream filter names.
+        muxers: Advertised output container format names.
+        encoder_options: Selected encoder's private option names.
     """
 
     executable: str
@@ -46,26 +46,85 @@ class FFmpegCapabilities:
     encoder_options: frozenset[str]
 
     def supports_encoder(self, name: str) -> bool:
+        """Check whether FFmpeg lists the requested encoder.
+
+        Args:
+            name: FFmpeg encoder name.
+
+        Returns:
+            Whether the name appears in the capability list.
+        """
         return name in self.encoders
 
     def supports_filter(self, name: str) -> bool:
+        """Check whether FFmpeg lists the requested filter.
+
+        Args:
+            name: FFmpeg filter name.
+
+        Returns:
+            Whether the name appears in the capability list.
+        """
         return name in self.filters
 
     def supports_hwaccel(self, name: str) -> bool:
+        """Check whether FFmpeg lists the requested hardware acceleration method.
+
+        Args:
+            name: FFmpeg hardware acceleration method name.
+
+        Returns:
+            Whether the name appears in the capability list.
+        """
         return name in self.hwaccels
 
     def supports_bsf(self, name: str) -> bool:
+        """Check whether FFmpeg lists the requested encoded stream filter.
+
+        Args:
+            name: FFmpeg encoded stream filter name.
+
+        Returns:
+            Whether the name appears in the capability list.
+        """
         return name in self.bsfs
 
     def supports_muxer(self, name: str) -> bool:
+        """Check whether FFmpeg lists the requested output format.
+
+        Args:
+            name: FFmpeg output format name.
+
+        Returns:
+            Whether the name appears in the capability list.
+        """
         return name in self.muxers
 
     def supports_encoder_option(self, name: str) -> bool:
+        """Check whether FFmpeg lists the requested encoder option.
+
+        Args:
+            name: FFmpeg encoder option name.
+
+        Returns:
+            Whether the name appears in the capability list.
+        """
         return name in self.encoder_options
 
 
 def _parse_listing(kind: str, output: str) -> set[str]:
-    """Parse names from one FFmpeg capability-listing command."""
+    """Extract supported names from FFmpeg command output.
+
+    Args:
+        kind: Capability group to parse.
+        output: Combined command output.
+
+    Returns:
+        Advertised capability names.
+
+    Raises:
+        ValueError: If the capability group is unknown.
+    """
     names: set[str] = set()
     for line in output.splitlines():
         parts = line.split()
@@ -94,12 +153,30 @@ def _parse_listing(kind: str, output: str) -> set[str]:
 
 
 def _parse_encoder_options(output: str) -> set[str]:
-    """Parse private AVOption names from FFmpeg encoder help."""
+    """Read private option names from FFmpeg encoder help.
+
+    Args:
+        output: Encoder help output.
+
+    Returns:
+        Private encoder option names.
+    """
     return set(re.findall(r"^\s+-([^\s]+)\s+", output, flags=re.MULTILINE))
 
 
 async def _query_ffmpeg(executable: str, *args: str) -> str:
-    """Run one bounded FFmpeg information query and return combined output."""
+    """Run a bounded FFmpeg capability query.
+
+    Args:
+        executable: FFmpeg command name or path.
+        *args: Capability query arguments.
+
+    Returns:
+        Combined standard output and error text.
+
+    Raises:
+        RuntimeError: If the query fails or times out.
+    """
     proc = await asyncio.create_subprocess_exec(
         executable,
         "-hide_banner",
@@ -129,7 +206,14 @@ async def _query_ffmpeg(executable: str, *args: str) -> str:
 
 
 async def _read_stderr_tail(stream: asyncio.StreamReader) -> bytes:
-    """Drain stderr while retaining only a bounded byte tail."""
+    """Drain standard error and retain only the bounded tail.
+
+    Args:
+        stream: Process standard error stream.
+
+    Returns:
+        Final error bytes within the configured limit.
+    """
     tail = bytearray()
     while chunk := await stream.read(4096):
         tail.extend(chunk)
@@ -139,7 +223,11 @@ async def _read_stderr_tail(stream: asyncio.StreamReader) -> bytes:
 
 
 async def _kill_and_reap_probe(proc: asyncio.subprocess.Process):
-    """Best-effort terminate and reap one probe within a fixed bound."""
+    """Stop the probe and wait briefly for process cleanup.
+
+    Args:
+        proc: Running probe process.
+    """
     if proc.returncode is None:
         with contextlib.suppress(ProcessLookupError):
             proc.kill()
@@ -148,7 +236,15 @@ async def _kill_and_reap_probe(proc: asyncio.subprocess.Process):
 
 
 async def _run_ffmpeg_probe(executable: str, args: list[str]) -> tuple[bool, str]:
-    """Run one bounded FFmpeg runtime probe without creating output files."""
+    """Run a bounded probe without creating output files.
+
+    Args:
+        executable: FFmpeg command name or path.
+        args: Probe arguments.
+
+    Returns:
+        Success flag and error detail.
+    """
     try:
         proc = await asyncio.create_subprocess_exec(
             executable,
@@ -178,7 +274,14 @@ async def _run_ffmpeg_probe(executable: str, args: list[str]) -> tuple[bool, str
 
 
 def _resolved_executable(executable: str) -> str:
-    """Return a stable absolute executable path when one can be resolved."""
+    """Resolve a command path when the executable is available.
+
+    Args:
+        executable: Command name or path.
+
+    Returns:
+        Absolute path, or the original value if resolution fails.
+    """
     resolved = shutil.which(executable)
     if resolved:
         return str(Path(resolved).resolve())
@@ -196,10 +299,10 @@ async def require_hardware_encoder(
 
     Args:
         executable: The FFmpeg executable name or path.
-        strategy: The hardware strategy identifier.
-        encoder: The selected FFmpeg video encoder.
-        device: The selected hardware device identifier.
-        args: The one-frame encoder probe arguments.
+        strategy: Hardware strategy identifier.
+        encoder: Selected FFmpeg video encoder.
+        device: Selected hardware device identifier.
+        args: One-frame encoder probe arguments.
 
     Raises:
         RuntimeError: If the encoder probe cannot produce one frame.
@@ -225,7 +328,18 @@ def _decode_cache_key(
     media_path: str,
     stream_index: int,
 ) -> tuple[str, str, str | None, str, int, int, int] | None:
-    """Build a source-state cache key for one hardware decode probe."""
+    """Include source size and modification time in the probe key.
+
+    Args:
+        executable: Resolved FFmpeg path.
+        strategy: Hardware strategy name.
+        device: Selected device, or `None` for the default device.
+        media_path: Source file path.
+        stream_index: Video stream index.
+
+    Returns:
+        Cache key, or `None` if the source cannot be inspected.
+    """
     path = Path(media_path).resolve()
     try:
         stat = path.stat()
@@ -254,11 +368,11 @@ async def probe_hardware_decode(
 
     Args:
         executable: The FFmpeg executable name or path.
-        strategy: The hardware strategy identifier.
-        device: The selected hardware device identifier.
-        media_path: The source media path.
-        stream_index: The selected video stream index.
-        args: The one-frame decode probe arguments.
+        strategy: Hardware strategy identifier.
+        device: Selected hardware device identifier.
+        media_path: Source media path.
+        stream_index: Selected video stream index.
+        args: One-frame decode probe arguments.
 
     Returns:
         Whether the source frame decoded and downloaded successfully.
@@ -292,12 +406,12 @@ async def probe_hardware_transform(
 
     Args:
         executable: The FFmpeg executable name or path.
-        strategy: The hardware strategy identifier.
-        device: The selected hardware device identifier.
-        media_path: The source media path.
-        stream_index: The selected video stream index.
-        signature: The hardware filter graph string used in cache keys.
-        args: The one-frame transform probe arguments.
+        strategy: Hardware strategy identifier.
+        device: Selected hardware device identifier.
+        media_path: Source media path.
+        stream_index: Selected video stream index.
+        signature: Hardware filter graph string used in cache keys.
+        args: One-frame transform probe arguments.
 
     Returns:
         Whether the source frame completed every requested hardware transform.
@@ -324,10 +438,10 @@ async def load_ffmpeg_capabilities(executable: str, encoder: str) -> FFmpegCapab
 
     Args:
         executable: The FFmpeg executable name or path.
-        encoder: The selected video encoder name.
+        encoder: Selected video encoder name.
 
     Returns:
-        The cached or newly discovered capability snapshot.
+        Cached or newly discovered capability snapshot.
 
     Raises:
         OSError: If the FFmpeg process cannot be started.

@@ -15,7 +15,7 @@ export type Enum = {
 /**
  * Create an enum.
  *
- * @param object - The object to convert to an enum.
+ * @param object - Object to convert to an enum.
  * @returns The enum.
  */
 export function createEnum<T extends Enum>(object: T): T {
@@ -25,7 +25,7 @@ export function createEnum<T extends Enum>(object: T): T {
 /**
  * Convert an enum to an array of options for a select input.
  *
- * @param enumObject - The enum to convert.
+ * @param enumObject - Enum to convert.
  * @param enumAll - Whether to include an `all` option.
  * @returns An array of options.
  */

@@ -17,7 +17,17 @@ image = Blueprint("image")
 
 @image.get("/<dir>/<filename:ext=jpg|jpeg|png|gif|webp>")
 async def get_image(_, dir: str, filename: str, ext: str) -> HTTPResponse:
-    """Get an image from the given path."""
+    """Get an image from the given path.
+
+    Args:
+        _: Unused request.
+        dir: Image cache subdirectory.
+        filename: Output file name without the extension.
+        ext: Output file extension.
+
+    Returns:
+        Response containing the requested data.
+    """
     image_dir = Path(KaloscopeConfig.get_workspace("images")) / dir
     image_path = image_dir / f"{filename}.{ext}"
     if not image_path.exists():
@@ -39,7 +49,15 @@ async def get_image(_, dir: str, filename: str, ext: str) -> HTTPResponse:
 async def proxy_remote_image(
     request: Request, query: RemoteProxy
 ) -> HTTPResponse | ResponseStream:
-    """Proxy a remote image from the given URL."""
+    """Proxy a remote image from the given URL.
+
+    Args:
+        request: Incoming request with session and application context.
+        query: Query filters and options.
+
+    Returns:
+        File response or streamed content.
+    """
     url = query.url
     store = query.store
 
@@ -69,6 +87,11 @@ async def proxy_remote_image(
     client: httpx.AsyncClient = request.app.ctx.httpx
 
     async def _stream(stream):
+        """Forward remote image bytes and optionally save a local copy.
+
+        Args:
+            stream: Outgoing response stream.
+        """
         try:
             async with client.stream("GET", url, headers=headers) as r:
                 stream.response.status = r.status_code

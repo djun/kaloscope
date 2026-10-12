@@ -69,6 +69,16 @@ class HTTPNode(Node):
 
     @classmethod
     async def execute(cls, *, node_data: dict[str, Any], context: Context, **kwargs):
+        """Send the configured request and merge its rendered response.
+
+        Args:
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+
+        Raises:
+            KaloscopeException: If the HTTP request fails.
+        """
         method = cast(HttpMethod, str(cls.method.extract(node_data)))
         url = cls.url.extract(node_data, context=context)
         timeout = cls.timeout.extract(node_data)

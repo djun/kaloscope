@@ -65,8 +65,8 @@ class FFmpegCompletion:
     """Bounded FFmpeg process result shared with startup and task tracking.
 
     Attributes:
-        returncode: The process return code, or `None` when unavailable.
-        state: The application-level terminal classification.
+        returncode: Process return code, or `None` when unavailable.
+        state: Application-level terminal classification.
         error: A bounded and redacted stderr summary.
     """
 
@@ -78,7 +78,15 @@ class FFmpegCompletion:
     def from_exit(
         cls, returncode: int | None, error: str | None = None
     ) -> "FFmpegCompletion":
-        """Classify a normal process exit code."""
+        """Classify a process exit code.
+
+        Args:
+            returncode: Process exit code, or `None` when unavailable.
+            error: Failure detail; `None` means no detail was captured.
+
+        Returns:
+            Completion record with the classified process state.
+        """
         if returncode == 0:
             state = CompletionState.FINISHED
         elif returncode == 255:
@@ -89,7 +97,15 @@ class FFmpegCompletion:
 
 
 def _stderr_detail(data: bytes, redactions: dict[str, str] | None = None) -> str | None:
-    """Format a bounded recent stderr detail with sensitive paths redacted."""
+    """Format a bounded recent stderr detail with sensitive paths redacted.
+
+    Args:
+        data: Captured process error bytes.
+        redactions: Secrets to hide; `None` hides no extra secrets.
+
+    Returns:
+        Safe error text, or `None` when no detail remains.
+    """
     if not data:
         return None
     detail = data.decode(errors="replace")
@@ -109,10 +125,10 @@ def _stderr_detail(data: bytes, redactions: dict[str, str] | None = None) -> str
 
 
 async def _ffmpeg() -> str:
-    """Get the ffmpeg executable path from global config or default to "ffmpeg".
+    """Get ffmpeg executable path from global config or default to "ffmpeg".
 
     Returns:
-        The ffmpeg executable name or path.
+        Ffmpeg executable name or path.
     """
     from app.models.general import GlobalConfig
 
@@ -126,7 +142,7 @@ async def _ffprobe() -> str:
     """Resolve ffprobe next to a configured ffmpeg or use "ffprobe".
 
     Returns:
-        The ffprobe executable name or path.
+        Ffprobe executable name or path.
     """
     ffmpeg = await _ffmpeg()
     if ffmpeg != "ffmpeg":
@@ -137,7 +153,15 @@ async def _ffprobe() -> str:
 
 
 def _optional_int(value: object, *, positive: bool = False) -> int | None:
-    """Parse an integer field while rejecting booleans and invalid values."""
+    """Parse an integer field while rejecting booleans and invalid values.
+
+    Args:
+        value: Raw media metadata value.
+        positive: Reject zero and negative values when `True`; defaults to `False`.
+
+    Returns:
+        Parsed integer, or `None` for invalid values.
+    """
     if isinstance(value, bool):
         return None
     if isinstance(value, int):
@@ -155,7 +179,14 @@ def _optional_int(value: object, *, positive: bool = False) -> int | None:
 
 
 def _optional_flag(value: object) -> bool | None:
-    """Parse an ffprobe 0/1 flag while preserving a missing value."""
+    """Parse an ffprobe 0/1 flag while preserving a missing value.
+
+    Args:
+        value: Raw media metadata value.
+
+    Returns:
+        Parsed boolean, or `None` for invalid values.
+    """
     parsed = _optional_int(value)
     if parsed == 0:
         return False
@@ -165,7 +196,14 @@ def _optional_flag(value: object) -> bool | None:
 
 
 def _pixel_format_bit_depth(pixel_format: str | None) -> int | None:
-    """Infer component bit depth from a known FFmpeg pixel-format name."""
+    """Infer component bit depth from a known FFmpeg pixel-format name.
+
+    Args:
+        pixel_format: FFmpeg pixel format name.
+
+    Returns:
+        Bits per component, or `None` for an unknown format.
+    """
     if not pixel_format:
         return None
     name = pixel_format.lower()
@@ -181,7 +219,14 @@ def _pixel_format_bit_depth(pixel_format: str | None) -> int | None:
 
 
 def _parse_sample_aspect_ratio(value: object) -> tuple[int, int] | None:
-    """Parse and reduce a positive FFprobe sample-aspect-ratio value."""
+    """Parse and reduce a positive FFprobe sample-aspect-ratio value.
+
+    Args:
+        value: Raw media metadata value.
+
+    Returns:
+        Positive sample aspect ratio, or `None` for invalid input.
+    """
     if not isinstance(value, str):
         return None
     match = re.fullmatch(r"\s*(\d+)\s*[:/]\s*(\d+)\s*", value)
@@ -195,7 +240,14 @@ def _parse_sample_aspect_ratio(value: object) -> tuple[int, int] | None:
 
 
 def _parse_frame_rate(value: object) -> Fraction | None:
-    """Parse a positive FFprobe frame-rate rational without losing precision."""
+    """Parse a positive FFprobe frame-rate rational without losing precision.
+
+    Args:
+        value: Raw media metadata value.
+
+    Returns:
+        Positive frame rate, or `None` for invalid input.
+    """
     if not isinstance(value, str):
         return None
     try:
@@ -206,7 +258,14 @@ def _parse_frame_rate(value: object) -> Fraction | None:
 
 
 def _parse_rotation(value: object) -> int | None:
-    """Convert FFprobe counter-clockwise rotation to canonical clockwise degrees."""
+    """Convert FFprobe counter-clockwise rotation to canonical clockwise degrees.
+
+    Args:
+        value: Raw media metadata value.
+
+    Returns:
+        Supported rotation in degrees, or `None` for invalid input.
+    """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     raw = float(value)
@@ -224,8 +283,8 @@ async def _probe_hdr10_plus(media_path: str, stream_index: int) -> bool:
     """Detect HDR10+ dynamic metadata from the selected stream's first frame.
 
     Args:
-        media_path: The media file path to probe.
-        stream_index: The selected video stream index.
+        media_path: Media file path to probe.
+        stream_index: Selected video stream index.
 
     Returns:
         Whether the first decoded frame carries SMPTE ST 2094-40 metadata.
@@ -293,7 +352,7 @@ async def probe_media(media_path: str) -> MediaProbe:
     """Probe the container and select its primary video and audio streams.
 
     Args:
-        media_path: The media file path to probe.
+        media_path: Media file path to probe.
 
     Returns:
         Named probe values. Invalid or unavailable metadata uses the
@@ -514,6 +573,7 @@ async def probe_media(media_path: str) -> MediaProbe:
 
         avg_frame_rate = _parse_frame_rate(stream.get("avg_frame_rate"))
         r_frame_rate = _parse_frame_rate(stream.get("r_frame_rate"))
+
         # frame probing is reserved for plausible PQ sources to avoid extra work
         if (
             video_index is not None
@@ -551,20 +611,36 @@ async def probe_media(media_path: str) -> MediaProbe:
 
 
 def _require_video_stream(metadata: MediaProbe) -> int:
-    """Return the selected video index or reject unsupported media input."""
+    """Return selected video index or reject unsupported media input.
+
+    Args:
+        metadata: Parsed source metadata.
+
+    Returns:
+        Selected video stream index.
+    """
     if metadata.video_stream_index is None:
         raise RuntimeError("Input has no transcodable video stream")
     return metadata.video_stream_index
 
 
 def _require_supported_hdr(metadata: MediaProbe):
-    """Reject HDR formats that cannot be decoded through a compatible base layer."""
+    """Reject HDR formats that cannot be decoded through a compatible base layer.
+
+    Args:
+        metadata: Parsed source metadata.
+    """
     if classify_hdr(metadata) is HDRType.DOVI_ONLY:
         raise RuntimeError("Dolby Vision-only input is not supported")
 
 
 def _require_supported_geometry(metadata: MediaProbe, options: TranscodeOptions):
-    """Reject unsupported rotation or an incomplete required geometry plan."""
+    """Reject unsupported rotation or an incomplete required geometry plan.
+
+    Args:
+        metadata: Parsed source metadata.
+        options: Requested output options.
+    """
     rotation = metadata.rotation or 0
     if rotation not in {0, 90, 180, 270}:
         raise RuntimeError(f"Unsupported video rotation: {rotation} degrees")
@@ -576,7 +652,11 @@ def _require_supported_geometry(metadata: MediaProbe, options: TranscodeOptions)
 
 
 async def _prepare_hardware(context: TranscodeContext):
-    """Prepare selected hardware before building the real transcode command."""
+    """Prepare selected hardware before building the real transcode command.
+
+    Args:
+        context: Source metadata, output options and hardware decisions.
+    """
     from app.core.transcode.hwaccels import get_hwaccel
 
     strategy = get_hwaccel(context.options.hwaccel)
@@ -594,9 +674,9 @@ async def ensure_transcode(
     the first segment before returning so playback can begin immediately.
 
     Args:
-        media_path: The source media file path.
-        media_hash: The media file hash used as part of the output path.
-        options: The transcode parameters (encoder, quality, resolution).
+        media_path: Source media file path.
+        media_hash: Media file hash used as part of the output path.
+        options: Transcode parameters (encoder, quality, resolution).
 
     Returns:
         A tuple of `(media_hash, profile)`.
@@ -695,18 +775,18 @@ async def ensure_transcode(
 async def _build_hls_cmd(
     input_path: str, out_dir: Path, context: TranscodeContext
 ) -> list[str]:
-    """Build the ffmpeg command line for HLS transcoding.
+    """Build ffmpeg command line for HLS transcoding.
 
     Combines strategy-specific decoding, encoding, filtering, and keyframe
     arguments with shared audio, timestamp, and HLS output settings.
 
-    The command structure, argument ordering, and per-encoder parameters are
+    Command structure, argument ordering, and per-encoder parameters are
     referenced from Jellyfin: https://github.com/jellyfin/jellyfin
 
     Args:
-        input_path: The source media file path.
-        out_dir: The output directory for M3U8 playlist and TS segments.
-        context: The runtime transcode context.
+        input_path: Source media file path.
+        out_dir: Output directory for M3U8 playlist and TS segments.
+        context: Runtime transcode context.
 
     Returns:
         A list of command-line arguments ready for `asyncio.create_subprocess_exec`.
@@ -838,7 +918,12 @@ async def _build_hls_cmd(
 
 
 def _validate_capabilities(context: TranscodeContext, video_filters: list[str]):
-    """Reject capabilities that remain mandatory in the generated command."""
+    """Reject capabilities that remain mandatory in the generated command.
+
+    Args:
+        context: Source metadata, output options and hardware decisions.
+        video_filters: Filters selected for the output command.
+    """
     capabilities = context.capabilities
     if capabilities is None:
         return
@@ -874,10 +959,10 @@ def _acquire_lock(out_dir: Path) -> FileLock | None:
     Uses the shared non-blocking output lock also used by deletion operations.
 
     Args:
-        out_dir: The output directory to lock.
+        out_dir: Output directory to lock.
 
     Returns:
-        The acquired `FileLock` instance if successful,
+        Acquired `FileLock` instance if successful,
         or `None` if another process holds the lock.
     """
     lock = acquire_output_lock(out_dir)
@@ -909,7 +994,7 @@ async def _terminate_ffmpeg(proc: asyncio.subprocess.Process):
     instead of replacing the original setup exception.
 
     Args:
-        proc: The ffmpeg subprocess that failed before monitor handoff.
+        proc: Ffmpeg subprocess that failed before monitor handoff.
     """
     try:
         if proc.returncode is None:
@@ -944,11 +1029,14 @@ async def _monitor_ffmpeg(
     cancellation.
 
     Args:
-        proc: The ffmpeg subprocess to monitor.
+        proc: Ffmpeg subprocess to monitor.
         lock: The `FileLock` instance.
-        task_id: The registered task ID, if task tracking is enabled.
-        completion: The future that receives the process result, if requested.
-        redactions: Sensitive stderr values mapped to safe placeholders.
+        task_id: Registered task ID, if task tracking is enabled. `None` skips task
+            tracking.
+        completion: Future that receives the process result, if requested. `None`
+            skips delivery to a completion future.
+        redactions: Sensitive stderr values mapped to safe placeholders. `None` hides
+            no extra secrets.
     """
     try:
         stderr_data = bytearray()
@@ -1015,10 +1103,12 @@ def _start_monitor(
     """Start and retain an ffmpeg monitor task until it finishes.
 
     Args:
-        proc: The ffmpeg subprocess to monitor.
+        proc: Ffmpeg subprocess to monitor.
         lock: The `FileLock` held for the output directory.
-        task_id: The registered transcode task ID, if available.
-        redactions: Sensitive stderr values mapped to safe placeholders.
+        task_id: Registered transcode task ID, if available. `None` skips task
+            tracking.
+        redactions: Sensitive stderr values mapped to safe placeholders. `None` hides
+            no extra secrets.
 
     Returns:
         A future resolved with the monitored FFmpeg process result.
@@ -1029,7 +1119,11 @@ def _start_monitor(
     )
 
     def _done(task: asyncio.Task[FFmpegCompletion]):
-        """Remove a completed monitor and consume its exception."""
+        """Remove a completed monitor and consume its exception.
+
+        Args:
+            task: Completed process monitor task.
+        """
         _MONITOR_TASKS.discard(task)
         if task.cancelled():
             if not completion.done():

@@ -8,10 +8,13 @@ from app.models.user import Permissions, PermType, UserInfo, UserPermission, Use
 
 
 def authorize(role: UserRole | None = None):
-    """Decorator to authorize a user based on their role and permissions.
+    """Require a logged-in user and optionally a specific role.
 
     Args:
-        role: The required role for the user. If None, any logged in user is allowed.
+        role: Required role; `None` allows any logged-in user by default.
+
+    Returns:
+        Route decorator that checks the session and loads user permissions.
     """
 
     def decorator(func):
@@ -22,7 +25,6 @@ def authorize(role: UserRole | None = None):
 
             user: UserInfo = request.ctx.user
             if role is not None:
-                # valid user role if role is specified
                 if user.role != role:
                     raise ForbiddenException
             elif user.role != UserRole.ADMIN:
@@ -48,10 +50,13 @@ def authorize(role: UserRole | None = None):
 
 
 def request_ctx(ctx: dict):
-    """Sets the context for the request.
+    """Attach context values before calling the route handler.
 
     Args:
-        ctx: The context to set.
+        ctx: Values to attach to the request context.
+
+    Returns:
+        Route decorator that populates the request context.
     """
 
     def decorator(func):
@@ -72,10 +77,13 @@ def request_ctx(ctx: dict):
 
 
 def before(method: str):
-    """Decorator to execute a method before the main method is called.
+    """Call a hook before the wrapped method.
 
     Args:
-        method: The method to execute.
+        method: Name of the instance hook to call without arguments.
+
+    Returns:
+        Method decorator that runs the hook before the wrapped call.
     """
 
     def decorator(func):
@@ -90,10 +98,13 @@ def before(method: str):
 
 
 def after(method: str):
-    """Decorator to execute a method after the main method returns.
+    """Call a hook after the wrapped method returns.
 
     Args:
-        method: The method to execute.
+        method: Name of the instance hook to call without arguments.
+
+    Returns:
+        Method decorator that runs the hook after a successful call.
     """
 
     def decorator(func):

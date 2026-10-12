@@ -19,7 +19,7 @@ def sqlite_migrations(monkeypatch):
     """Use the application's SQLite compatibility patches in isolated tests.
 
     Args:
-        monkeypatch: The fixture restoring schema editor methods after each test.
+        monkeypatch: Fixture restoring schema editor methods after each test.
     """
     for name in ("_alter_field", "remove_field"):
         monkeypatch.setattr(SqliteSchemaEditor, name, getattr(SqliteSchemaEditor, name))

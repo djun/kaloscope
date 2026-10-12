@@ -12,7 +12,14 @@ class QSV(HWAccelStrategy):
     """Intel Quick Sync Video H.264 encoding strategy."""
 
     async def resolve_device(self, context: TranscodeContext) -> str | None:
-        """Resolve the required VAAPI-backed QSV render node."""
+        """Resolve the required VAAPI-backed QSV render node.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Device identifier, or `None` for the default device.
+        """
         device = await resolve_vaapi_device()
         if not device:
             raise RuntimeError(
@@ -21,7 +28,14 @@ class QSV(HWAccelStrategy):
         return device
 
     def encoder_probe_args(self, context: TranscodeContext) -> list[str]:
-        """Build a synthetic VAAPI-backed QSV upload and encode probe."""
+        """Build a synthetic VAAPI-backed QSV upload and encode probe.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            FFmpeg arguments for a one-frame encoder check.
+        """
         return [
             "-init_hw_device",
             f"qsv=qs:hw,child_device={context.device},child_device_type=vaapi",
@@ -44,11 +58,25 @@ class QSV(HWAccelStrategy):
         ]
 
     def allows_decode(self, context: TranscodeContext) -> bool:
-        """Keep HDR sources on CPU decoding."""
+        """Keep HDR sources on CPU decoding.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Whether source decoding can be checked with this strategy.
+        """
         return not context.needs_tonemap and super().allows_decode(context)
 
     def transform_filters(self, context: TranscodeContext) -> list[str]:
-        """Combine eligible SDR transforms in a single QSV VPP filter."""
+        """Combine eligible SDR transforms in a single QSV VPP filter.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Ordered hardware filter expressions.
+        """
         if context.needs_tonemap:
             return []
         options: list[str] = []
@@ -73,7 +101,14 @@ class QSV(HWAccelStrategy):
         return filters
 
     def transform_filter_names(self, context: TranscodeContext) -> set[str]:
-        """Return filter names required by the selected QSV transforms."""
+        """Return filter names required by the selected QSV transforms.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Filter names required by the hardware transforms.
+        """
         if not self.transform_filters(context):
             return set()
         names = {"vpp_qsv"}
@@ -84,20 +119,34 @@ class QSV(HWAccelStrategy):
         return names
 
     def transform_download_format(self, context: TranscodeContext) -> str:
-        """Return the CPU format produced after downloading QSV transforms."""
+        """Return CPU format produced after downloading QSV transforms.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Software pixel format used to receive hardware frames.
+        """
         if self.transform_filters(context):
             return "nv12"
         return super().transform_download_format(context)
 
     def keep_decode_on_fallback(self, context: TranscodeContext) -> bool:
-        """QSV CPU transforms use the established software decode path."""
+        """QSV CPU transforms use the established software decode path.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Whether decoded frames can be copied to CPU filters.
+        """
         return False
 
     async def input_args(self, context: TranscodeContext) -> list[str]:
         """Initialize QSV through a VAAPI-backed DRM render device.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             Device initialization plus hardware decoding options for eligible
@@ -131,7 +180,7 @@ class QSV(HWAccelStrategy):
         """Choose NV12 conversion for the current frame-memory location.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             CPU HDR tone mapping followed by upload, a software format filter,
@@ -162,7 +211,7 @@ class QSV(HWAccelStrategy):
         is not available here.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg QSV rate-control and buffer options.

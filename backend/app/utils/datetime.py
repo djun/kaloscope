@@ -10,11 +10,11 @@ def duration(
     """Convert a duration to a human-readable format.
 
     Args:
-        value: The duration value.
-        unit: The input unit; defaults to milliseconds.
+        value: Duration value.
+        unit: Input unit; defaults to milliseconds.
 
     Returns:
-        The human-readable duration string, e.g. "01:23:45".
+        Human-readable duration string, e.g. "01:23:45".
     """
     match unit:
         case "milliseconds":

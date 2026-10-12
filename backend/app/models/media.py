@@ -207,7 +207,7 @@ class MediaLibUpsert(BaseModel):
         """Validate the library type, directory and rename template.
 
         Returns:
-            The validated library settings.
+            Validated library settings.
 
         Raises:
             ValueError: If the library type, directory or template is invalid.
@@ -402,6 +402,14 @@ class TranscodeQuery(MediaResource):
         kwargs: dict[str, Any] = {}
 
         async def _option(key: str) -> Any:
+            """Use a query option or fall back to the global setting.
+
+            Args:
+                key: Transcode option name.
+
+            Returns:
+                Selected option value, or `None` when unset.
+            """
             value = getattr(self, key)
             if value is not None:
                 kwargs[key] = value

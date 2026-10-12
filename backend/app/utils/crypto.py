@@ -18,11 +18,11 @@ def load_key(app_config: KaloscopeConfig, *, create: bool = False) -> bytes:
     """Configure the active secret key from the application configuration.
 
     Args:
-        app_config: The application configuration.
-        create: Whether to create the key file when absent.
+        app_config: Application configuration.
+        create: Whether to create the key file when absent. Defaults to `False`.
 
     Returns:
-        The active secret key bytes.
+        Active secret key bytes.
     """
     global _KEY_BYTES
     if not app_config.secret_key_enabled:
@@ -36,6 +36,11 @@ def load_key(app_config: KaloscopeConfig, *, create: bool = False) -> bytes:
 
 
 def _create_key(path: Path):
+    """Create secret key exclusively with owner-only permissions.
+
+    Args:
+        path: Secret key file path; an existing key is preserved.
+    """
     try:
         descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     except FileExistsError:
@@ -51,6 +56,17 @@ def _create_key(path: Path):
 
 
 def _key_bytes(key: str | bytes | None) -> bytes:
+    """Resolve explicit key bytes or use the active instance key.
+
+    Args:
+        key: Text or byte key; `None` uses the active instance key.
+
+    Returns:
+        Nonempty key bytes.
+
+    Raises:
+        ValueError: If an explicit key is empty.
+    """
     if key is None:
         return _KEY_BYTES
     if isinstance(key, str):
@@ -61,13 +77,13 @@ def _key_bytes(key: str | bytes | None) -> bytes:
 
 
 def encrypt(password: str) -> str:
-    """Encrypt the password using PBKDF2-HMAC-SHA256.
+    """Hash a password using PBKDF2-HMAC-SHA256.
 
     Args:
-        password: The password to encrypt.
+        password: Password to hash.
 
     Returns:
-        The encrypted password.
+        Hexadecimal password hash.
     """
     salt = _KEY_BYTES
     hash = hashlib.pbkdf2_hmac("sha256", password.encode(ENCODING), salt, 100000)
@@ -78,7 +94,7 @@ def xor(input_bytes: bytes, *, key: str | bytes | None = None) -> bytes:
     """XOR the input bytes with the key bytes.
 
     Args:
-        input_bytes: The input bytes.
+        input_bytes: Input bytes.
         key: An optional custom key. The active secret key is used by default.
 
     Returns:
@@ -95,11 +111,11 @@ def xor_encrypt(plain_text: str, *, key: str | bytes | None = None) -> str:
     """Encrypt the plain text using XOR operation with Base64 encoding.
 
     Args:
-        plain_text: The plain text to encrypt.
+        plain_text: Plain text to encrypt.
         key: An optional custom key. The active secret key is used by default.
 
     Returns:
-        The encrypted string in Base64 format.
+        Encrypted string in Base64 format.
     """
     encrypted_bytes = xor(plain_text.encode(ENCODING), key=key)
     return base64.b64encode(encrypted_bytes).decode(ENCODING)
@@ -109,11 +125,11 @@ def xor_decrypt(encrypted_text: str, *, key: str | bytes | None = None) -> str:
     """Decrypt the encrypted text using XOR operation from Base64 format.
 
     Args:
-        encrypted_text: The encrypted text in Base64 format.
+        encrypted_text: Encrypted text in Base64 format.
         key: An optional custom key. The active secret key is used by default.
 
     Returns:
-        The decrypted plain text.
+        Decrypted plain text.
     """
     encrypted_bytes = base64.b64decode(encrypted_text)
     return xor(encrypted_bytes, key=key).decode(ENCODING)

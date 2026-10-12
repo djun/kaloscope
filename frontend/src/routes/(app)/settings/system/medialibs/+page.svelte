@@ -19,7 +19,7 @@
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
-   * Get the media libraries.
+   * Get media libraries.
    *
    * @param retry - Whether this search is a retry attempt.
    */
@@ -46,7 +46,7 @@
   /**
    * Scan a media library by ID.
    *
-   * @param id - The media library ID.
+   * @param id - Media library ID.
    */
   function scan(id: number) {
     loading.start();
@@ -59,7 +59,7 @@
   /**
    * Delete a media library by ID.
    *
-   * @param id - The media library ID.
+   * @param id - Media library ID.
    */
   function del(id: number) {
     loading.start();

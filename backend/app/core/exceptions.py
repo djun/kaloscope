@@ -90,11 +90,11 @@ def content_error(
     """Map a controlled reading failure to the shared HTTP content contract.
 
     Args:
-        error: The source, cache or resource failure reported by the service.
+        error: Source, cache or resource failure reported by the service.
         headers: Optional response headers, omitted for ordinary JSON requests.
 
     Returns:
-        The application exception carrying a stable error code and HTTP status.
+        Application exception carrying a stable error code and HTTP status.
     """
     status = {
         "bad_request": 400,
@@ -113,11 +113,11 @@ async def error_handler(request: Request, exception: Exception):
     See https://sanic.dev/en/guide/best-practices/exceptions.html for more details.
 
     Args:
-        request: The request object.
-        exception: The exception object.
+        request: Request object.
+        exception: Exception object.
 
     Raises:
-        KaloscopeException: The wrapped exception.
+        KaloscopeException: Wrapped exception.
 
     Returns:
         The `404.html` page for all `404` errors.

@@ -39,8 +39,8 @@ class NovelNode(Node):
         """Preview novel candidates or save the first automatic result as OPF.
 
         Args:
-            node_data: The response template and optional force-end setting.
-            context: The workflow context with server-selected source boot parameters.
+            node_data: Response template and optional force-end setting.
+            context: Workflow context with server-selected source boot parameters.
             **kwargs: Additional execution arguments supplied by the flow engine.
 
         Raises:

@@ -6,7 +6,7 @@ import './index.css';
  */
 export default class Gradient extends Plugin {
   /**
-   * The xgplayer plugin name.
+   * Xgplayer plugin name.
    */
   static get pluginName() {
     return 'gradient';

@@ -51,7 +51,7 @@ class CoverReference(BaseModel):
         """Require one reference form and reject unsafe URL schemes.
 
         Returns:
-            The validated hint, still requiring source-boundary resolution.
+            Validated hint, still requiring source-boundary resolution.
 
         Raises:
             ValueError: If the hint is ambiguous or has an unsafe URL spelling.
@@ -78,7 +78,7 @@ class ReadingMetadata(BaseModel):
     """Keep normalized reading details for the current operation only.
 
     Empty strings and lists mean missing; zero and false remain valid values.
-    Only authors and pencillers or explicitly credited illustrators share the
+    Only authors and pencil artists or explicitly credited illustrators share the
     public creator fields. Other creative roles are not silently combined.
     """
 
@@ -119,7 +119,7 @@ class ReadingMetadata(BaseModel):
 
         Args:
             value: An input field before its declared type is validated.
-            info: The field and input mode, used for JSON arrays and decimal numbers.
+            info: Field and input mode, used for JSON arrays and decimal numbers.
 
         Returns:
             Stripped text, an ordered distinct tuple, or the unchanged value.
@@ -149,7 +149,7 @@ class ReadingMetadata(BaseModel):
         """Normalize and verify a declared ISBN without inventing a book identifier.
 
         Args:
-            value: The declared ISBN, or None when absent.
+            value: Declared ISBN, or None when absent.
 
         Returns:
             A valid ISBN-10 or ISBN-13 without spacing or hyphens.
@@ -193,10 +193,10 @@ def _read_xml(data: bytes, root_tags: set[str]) -> etree._Element:
 
     Args:
         data: A complete metadata document obtained by a caller-owned bounded read.
-        root_tags: The exact supported namespace-qualified document elements.
+        root_tags: Exact supported namespace-qualified document elements.
 
     Returns:
-        The validated XML root, without following references or loading a schema.
+        Validated XML root, without following references or loading a schema.
 
     Raises:
         ContentError: If XML is malformed, unsafe, unsupported or over limits.
@@ -438,7 +438,7 @@ def parse_opf(data: bytes) -> ParsedMetadata:
 def parse_comicinfo(data: bytes) -> ParsedMetadata:
     """Read ComicInfo fields without changing page order or following cover hints.
 
-    Only Writer and Penciller populate the public creator fields. Other creative
+    Only `Writer` and `Penciller` populate the public creator fields. Other creative
     roles remain unsupported rather than being mislabeled as the same role.
 
     Args:
@@ -521,8 +521,8 @@ def merge_metadata(
     are filled only when compatible with the already selected date components.
 
     Args:
-        external: The item's current valid external fields, or None if unavailable.
-        embedded: The item's current valid embedded fields, or None if unavailable.
+        external: Item's current valid external fields, or None if unavailable.
+        embedded: Item's current valid embedded fields, or None if unavailable.
         parent: Current metadata of a verified direct comic parent; None for novels
             and standalone comics. Only the four public fields may be inherited.
 
@@ -566,11 +566,12 @@ def render_metadata(
     a descriptive OPF sidecar, not an EPUB package containing readable body files.
 
     Args:
-        metadata: The normalized candidate with a nonempty title.
-        format: The external OPF or ComicInfo format selected by the library.
+        metadata: Normalized candidate with a nonempty title.
+        format: External OPF or ComicInfo format selected by the library.
         identifier: A stable local UUID for OPF without ISBN, retained by the caller
             across publication retries and ignored for ComicInfo.
         legacy: Reproduce earlier bytes only to recognize interrupted publications;
+            Defaults to `False`.
             False by default for all new writes.
 
     Returns:

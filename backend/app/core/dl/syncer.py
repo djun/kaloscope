@@ -75,7 +75,7 @@ _SYNC_STATES = (
 def notify_download_changes():
     """Wake download synchronization after task changes have committed.
 
-    Standalone callers without an application leave recovery to syncer startup.
+    Standalone callers defer recovery until download synchronization starts.
     """
     try:
         shared = getattr(Sanic.get_app(), "shared_ctx", None)
@@ -89,14 +89,14 @@ def notify_download_changes():
 def submission_lock(job_uuid: str) -> FileLock:
     """Create a native file lock for submission and recovery.
 
-    The operating system releases the lock when the submitting process exits.
+    Operating system releases the lock when the submitting process exits.
     All application workers use the same job-scoped path in `workspace/temp`.
 
     Args:
-        job_uuid: The offline job UUID shared by submission and recovery.
+        job_uuid: Offline job UUID shared by submission and recovery.
 
     Returns:
-        A nonblocking native file lock for the job.
+        A native file lock acquired without waiting for the job.
     """
     name = hashlib.sha256(job_uuid.encode()).hexdigest()
     return FileLock(
@@ -133,46 +133,46 @@ class DLSyncer:
 
     @cached_property
     def _syncer_lock(self) -> Lock:
-        """Get the shared synchronizer ownership lock.
+        """Get shared synchronizer ownership lock.
 
         Returns:
-            The process-shared ownership lock.
+            Process-shared ownership lock.
         """
         return self._app.shared_ctx.dl_syncer_lock
 
     @cached_property
     def _syncer_flag(self) -> Event:
-        """Get the shared synchronizer ownership flag.
+        """Get shared synchronizer ownership flag.
 
         Returns:
-            The process-shared ownership flag.
+            Process-shared ownership flag.
         """
         return self._app.shared_ctx.dl_syncer_flag
 
     @cached_property
     def _sync_fast(self) -> Event:
-        """Get the shared fast-synchronization flag.
+        """Get shared fast-synchronization flag.
 
         Returns:
-            The process-shared fast-mode flag.
+            Process-shared fast-mode flag.
         """
         return self._app.shared_ctx.dl_sync_fast
 
     @cached_property
     def _sync_requested(self) -> Event:
-        """Get the shared notification for committed download changes.
+        """Get shared notification for committed download changes.
 
         Returns:
-            The process-shared synchronization request flag.
+            Process-shared synchronization request flag.
         """
         return self._app.shared_ctx.dl_sync_requested
 
     @cached_property
     def _task_actions(self) -> DictProxy[int, _DownloadCommand]:
-        """Get the shared pending task-action mapping.
+        """Get shared pending task-action mapping.
 
         Returns:
-            The process-shared commands keyed by local task ID.
+            Process-shared commands keyed by local task ID.
         """
         return self._app.shared_ctx.dl_task_actions
 
@@ -195,10 +195,10 @@ class DLSyncer:
         """Publish a task action and wake the synchronizer owner.
 
         Args:
-            task_id: The local download task ID.
-            action: The requested driver action.
-            state: The task state observed by the publisher.
-            local: Whether task deletion includes local files.
+            task_id: Local download task ID.
+            action: Requested driver action.
+            state: Task state observed by the publisher.
+            local: Whether task deletion includes local files. Defaults to `False`.
         """
         self._task_actions[task_id] = (action, state, local)
         self._sync_requested.set()
@@ -224,10 +224,10 @@ class DLSyncer:
         """Get a driver cached for the current encrypted configuration.
 
         Args:
-            downloader: The persisted downloader definition.
+            downloader: Persisted downloader definition.
 
         Returns:
-            The reusable driver for `downloader`.
+            Reusable driver for `downloader`.
         """
         cached = self._drivers.get(downloader.id)
         if cached is not None and cached[0] == downloader.config:
@@ -242,7 +242,7 @@ class DLSyncer:
         """Close cached drivers that are no longer needed.
 
         Args:
-            downloader_ids: The downloader IDs to close, or `None` for all drivers.
+            downloader_ids: Downloader IDs to close, or `None` for all drivers.
         """
         ids = set(self._drivers) if downloader_ids is None else downloader_ids
         drivers = [
@@ -375,7 +375,7 @@ class DLSyncer:
         """Read the earliest durable deletion deadline after processing actions.
 
         Returns:
-            The next deletion deadline, or `None` when no deletion is pending.
+            Next deletion deadline, or `None` when no deletion is pending.
         """
         job = await (
             OfflineDownloadJob.filter(delete_due_at__not_isnull=True)
@@ -502,8 +502,8 @@ async def sync_tasks(
     """Synchronize the download tasks with the specified downloader.
 
     Args:
-        tasks: The download tasks.
-        driver: The downloader driver.
+        tasks: Download tasks.
+        driver: Downloader driver.
     """
     if isinstance(driver, RpcDriver):
         await _sync_rpc_tasks(driver, tasks)
@@ -546,7 +546,7 @@ async def _complete_openlist_tasks(task_ids: list[int]):
     """Retry OpenList transfers before acknowledging completion or notifying users.
 
     Args:
-        task_ids: The tasks selected for this synchronization cycle.
+        task_ids: Tasks selected for this synchronization cycle.
     """
     jobs = await OfflineDownloadJob.filter(
         download_id__in=task_ids,
@@ -559,6 +559,7 @@ async def _complete_openlist_tasks(task_ids: list[int]):
         try:
             if not await transfer_files(task, task.files, job_id=job.job_uuid):
                 raise RuntimeError("Media library transfer is incomplete")
+
             # commit the notification and acknowledgement together after file transfer
             async with in_transaction() as connection:
                 updated = await (
@@ -617,8 +618,8 @@ async def _sync_rpc_tasks(driver: RpcDriver, tasks: list[DownloadTask]):
     Keep known files when a response omits a usable file list.
 
     Args:
-        driver: The configured RPC downloader driver.
-        tasks: The local tasks assigned to `driver`.
+        driver: Configured RPC downloader driver.
+        tasks: Local tasks assigned to `driver`.
     """
     client = driver.client
     variables = {
@@ -790,14 +791,14 @@ def _relative_files(directory: str, files: list[str]) -> list[str]:
     Resolve symbolic links when the original directory prefix does not match.
 
     Args:
-        directory: The configured download directory.
-        files: The relative or absolute file paths returned by the downloader.
+        directory: Configured download directory.
+        files: Relative or absolute file paths returned by the downloader.
 
     Raises:
         ValueError: If an absolute file path is outside the download directory.
 
     Returns:
-        The file paths relative to the configured download directory.
+        File paths relative to the configured download directory.
     """
     root = Path(directory)
     resolved_root = None
@@ -821,11 +822,11 @@ async def resolve_details(client: RpcClient, unique: dict) -> dict | None:
     """Resolve the details of a download task.
 
     Args:
-        client: The downloader RPC client.
-        unique: The unique identifier of the download task.
+        client: Downloader RPC client.
+        unique: Unique identifier of the download task.
 
     Returns:
-        The resolved task details, or `None` if they are unavailable.
+        Resolved task details, or `None` if they are unavailable.
     """
     result = await client.call("details", unique)
     if not isinstance(result, dict):
@@ -849,7 +850,7 @@ def _followed_by(result: dict) -> tuple[bool, str | None]:
     placeholder entry. Once the metadata is resolved, aria2 creates the actual
     download task and exposes its GID via the `followedBy` field. This
     function detects that metadata state and returns the followed GID so the
-    syncer can track the real download task instead of the ephemeral metadata
+    download monitor can track the real task instead of temporary metadata
     task.
 
     Args:
@@ -885,11 +886,11 @@ def _transfer_names(task: DownloadTask, files: list[str]) -> list[str]:
     """Apply the download task's destination-name substitution.
 
     Args:
-        task: The download task containing the substitution pattern and replacement.
-        files: The relative file paths within the download directory.
+        task: Download task containing the substitution pattern and replacement.
+        files: Relative file paths within the download directory.
 
     Returns:
-        The destination paths in input order, or the original paths if substitution
+        Destination paths in input order, or the original paths if substitution
         is disabled or produces duplicate names.
     """
     new_files = files
@@ -920,8 +921,8 @@ def _same_transfer_file(source: Path, destination: Path) -> bool:
     """Check whether two transfer paths identify the same filesystem object.
 
     Args:
-        source: The original download file.
-        destination: The candidate library file or link.
+        source: Original download file.
+        destination: Candidate library file or link.
 
     Returns:
         `True` if both paths identify the same file, or `False` if their identities
@@ -936,11 +937,11 @@ def _same_transfer_file(source: Path, destination: Path) -> bool:
 async def backfill_transfer_targets(lib: MediaLib):
     """Recover published transfers and record their library destinations.
 
-    The caller must hold the library lock. Save confirmed paths before cleanup,
+    Caller must hold the library lock. Save confirmed paths before cleanup,
     preserving recorded destinations when name substitution is invalid.
 
     Args:
-        lib: The media library whose existing transfer destinations are recorded.
+        lib: Media library whose existing transfer destinations are recorded.
 
     Raises:
         OSError: If cleanup for an interrupted transfer fails.
@@ -1011,9 +1012,9 @@ async def transfer_files(
     Save each destination before cleaning up its transfer markers.
 
     Args:
-        task: The download task.
-        files: The relative file paths within the download directory.
-        job_id: The offline job UUID for recoverable copy publication, or `None` to
+        task: Download task.
+        files: Relative file paths within the download directory.
+        job_id: Offline job UUID for recoverable copy publication, or `None` to
             derive a stable identifier from the download task ID.
 
     Returns:
@@ -1130,7 +1131,7 @@ async def check_download_plans():
     if not plans:
         return
 
-    # load the drivers of the associated downloaders
+    # load the drivers of the associated download clients
     drivers: dict[int, DownloaderDriver] = {}
     for downloader_id in {plan.downloader_id for plan in plans}:
         try:
@@ -1162,8 +1163,9 @@ async def execute_download_plan(
     """Execute a single download plan.
 
     Args:
-        plan: The download plan.
-        driver: The driver of the associated downloader.
+        plan: Download plan.
+        driver: Driver of the associated downloader. `None` loads the plan's
+            configured driver.
     """
     # load the driver if not provided
     if driver is None:
@@ -1179,7 +1181,11 @@ async def execute_download_plan(
     seen_links: set[str] = set()
 
     async def _record_history(magnet: MagnetLink):
-        """Record the magnet link in the download plan history."""
+        """Record the magnet link in the download plan history.
+
+        Args:
+            magnet: Submitted magnet and its available hashes.
+        """
         filter: dict[str, Any] = {"plan_id": plan.id}
         if magnet.info_hash is not None:
             filter["info_hash"] = magnet.info_hash
@@ -1198,7 +1204,16 @@ async def execute_download_plan(
         magnets: list[MagnetLink],
         *args: Q,
     ) -> tuple[set[str], set[str]]:
-        """Query matching records by magnet hashes and return both hash sets."""
+        """Query matching records by magnet hashes and return both hash sets.
+
+        Args:
+            model: Model containing previously handled hashes.
+            magnets: Candidate magnet links.
+            *args: Additional database filters.
+
+        Returns:
+            Matching version 1 and version 2 hash sets.
+        """
         hashes = [m.info_hash for m in magnets if m.info_hash]
         hashes_v2 = [m.info_hash_v2 for m in magnets if m.info_hash_v2]
         if not hashes and not hashes_v2:
@@ -1217,7 +1232,7 @@ async def execute_download_plan(
         )
 
     async def _magnet_links() -> list[MagnetLink] | None:
-        """Get the magnet links from the graph execution result of the download plan."""
+        """Get magnet links from the graph execution result of the download plan."""
         # prepare the boot parameters for graph execution
         bootparams = {
             "$start": "search_start",

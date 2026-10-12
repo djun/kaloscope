@@ -1,12 +1,12 @@
 import Keyboard from 'xgplayer/es/plugins/keyboard';
 
 /**
- * The trigger action that hides the playback rate note.
+ * Trigger action that hides the playback rate note.
  */
 const PLAYBACK_RATE_HIDDEN = 'auto';
 
 /**
- * The trigger action that shows the playback rate note.
+ * Trigger action that shows the playback rate note.
  */
 const PLAYBACK_RATE_VISIBLE = 'playbackrate';
 
@@ -15,7 +15,7 @@ const PLAYBACK_RATE_VISIBLE = 'playbackrate';
  */
 export default class KeyboardWithPlaybackRateNote extends Keyboard {
   /**
-   * The lazily-created playback rate note trigger.
+   * Lazily-created playback rate note trigger.
    */
   private playbackRateTrigger: HTMLElement | null = null;
 
@@ -39,7 +39,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   /**
    * End long-press forward playback from a window-level `keyup`.
    *
-   * @param event - The released keyboard event.
+   * @param event - Released keyboard event.
    */
   private onWindowKeyUp = (event: KeyboardEvent) => {
     if (this.shouldStopForward(event)) {
@@ -48,7 +48,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   };
 
   /**
-   * Initializes the built-in keyboard shortcuts and registers cleanup for interrupted key presses.
+   * Initialize the built-in keyboard shortcuts and registers cleanup for interrupted key presses.
    */
   afterCreate() {
     super.afterCreate();
@@ -58,7 +58,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   /**
    * Switches to the temporary forward playback rate and shows the matching note.
    *
-   * @param event - The keyboard event that triggered the long-press action.
+   * @param event - Keyboard event that triggered the long-press action.
    */
   changePlaybackRate(event: Event) {
     super.changePlaybackRate(event);
@@ -71,7 +71,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   /**
    * Defers the first right-arrow seek until keyup so long presses do not seek before switching speed.
    *
-   * @param event - The keyboard event that may start or continue a press.
+   * @param event - Keyboard event that may start or continue a press.
    */
   handleKeyDown(event: KeyboardEvent) {
     if (this.shouldDeferForwardSeek(event)) {
@@ -88,7 +88,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   /**
    * Restores the original playback rate only when the forward key or window focus ends the long press.
    *
-   * @param event - The keyup or blur event that may end the long-press action.
+   * @param event - Keyup or blur event that may end the long-press action.
    */
   handleKeyUp(event: Event) {
     const shouldStop = this.shouldStopForward(event);
@@ -113,7 +113,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   }
 
   /**
-   * Removes listeners and the lazily-created note trigger when the player is destroyed.
+   * Remove listeners and the lazily-created note trigger when the player is destroyed.
    */
   destroy() {
     super.destroy();
@@ -124,9 +124,9 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   }
 
   /**
-   * Checks whether an event should stop the temporary forward playback rate.
+   * Check whether an event should stop the temporary forward playback rate.
    *
-   * @param event - The keyup or blur event to check.
+   * @param event - Keyup or blur event to check.
    * @returns Whether the event should restore the original playback rate.
    */
   private shouldStopForward(event: Event) {
@@ -137,9 +137,9 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   }
 
   /**
-   * Checks whether the initial forward seek should be delayed until keyup.
+   * Check whether the initial forward seek should be delayed until keyup.
    *
-   * @param event - The keyboard event to check.
+   * @param event - Keyboard event to check.
    * @returns Whether the event should be held as a pending short-press seek.
    */
   private shouldDeferForwardSeek(event: KeyboardEvent) {
@@ -153,9 +153,9 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   }
 
   /**
-   * Checks whether a keyboard event belongs to the forward shortcut.
+   * Check whether a keyboard event belongs to the forward shortcut.
    *
-   * @param event - The event to check.
+   * @param event - Event to check.
    * @returns Whether the event is the configured forward key.
    */
   private isForwardKey(event: Event) {
@@ -166,7 +166,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   /**
    * Prevents the browser and xgplayer default shortcut handling for a deferred keydown.
    *
-   * @param event - The event to stop.
+   * @param event - Event to stop.
    */
   private preventDefault(event: KeyboardEvent) {
     event.preventDefault();
@@ -203,7 +203,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   }
 
   /**
-   * Gets or creates the trigger element that uses xgplayer mobile's playback-rate note CSS.
+   * Get or creates the trigger element that uses xgplayer mobile's playback-rate note CSS.
    *
    * @returns The trigger element, or null if the player root is not ready.
    */
@@ -237,7 +237,7 @@ export default class KeyboardWithPlaybackRateNote extends Keyboard {
   }
 
   /**
-   * Updates the note text from the current keyboard playback-rate config and xgplayer i18n.
+   * Update note text from the current keyboard playback-rate config and xgplayer i18n.
    */
   private updatePlaybackRateNote() {
     const span = this.playbackRateTrigger?.querySelector('span');

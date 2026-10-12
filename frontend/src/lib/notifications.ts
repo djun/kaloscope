@@ -6,7 +6,7 @@ import type { Notification as AppNotification } from '$lib/types';
 export const KALOSCOPE_NOTIFICATION = 'kaloscope_notification';
 
 /**
- * The minimal notification data sent from the app shell to the service worker.
+ * Minimal notification data sent from the app shell to the service worker.
  */
 export type ServiceWorkerNotificationPayload = {
   id: number;
@@ -37,8 +37,8 @@ export type NotificationDispatchState = {
  * For example, `{ error: 'x' }` becomes `{ error: 'x', has_error: 'yes' }`,
  * which lets ICU select messages hide optional fragments without per-template code.
  *
- * @param values - The values passed to the i18n formatter.
- * @param optionalKeys - The keys that are optional and should be checked for presence.
+ * @param values - Values passed to the i18n formatter.
+ * @param optionalKeys - Keys that are optional and should be checked for presence.
  * @returns The values with derived `has_*` flags.
  */
 export function withConditionalFlags(
@@ -66,7 +66,7 @@ export function withConditionalFlags(
 }
 
 /**
- * Create the client-side state used to avoid sending the same unread notification repeatedly.
+ * Create client-side state used to avoid sending the same unread notification repeatedly.
  *
  * @returns The initial dispatch state.
  */
@@ -80,7 +80,7 @@ export function createNotificationDispatchState(): NotificationDispatchState {
 /**
  * Request browser notification permission and normalize unsupported browsers.
  *
- * @param notificationApi - The browser notification API to request permission from.
+ * @param notificationApi - Browser notification API to request permission from.
  * @returns The resolved notification permission, or unsupported when the API is unavailable.
  */
 export async function requestWebNotificationPermission(notificationApi?: {
@@ -104,8 +104,8 @@ export async function requestWebNotificationPermission(notificationApi?: {
  * Convert unread API records into service worker payloads that have not been sent yet.
  *
  * @param notifications - The API notification records to inspect.
- * @param state - The dispatch state used to skip notifications that were already considered.
- * @param format - The formatter that converts an API notification into display text.
+ * @param state - Dispatch state used to skip notifications that were already considered.
+ * @param format - Formatter that converts an API notification into display text.
  * @returns The service worker notification payloads for newly received unread notifications.
  */
 export function collectServiceWorkerNotifications(

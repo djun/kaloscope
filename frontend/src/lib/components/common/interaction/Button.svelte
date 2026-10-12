@@ -35,7 +35,7 @@
   }>;
 
   /**
-   * The preset size styles for the button.
+   * Preset size styles for the button.
    */
   const PRESETS = {
     xs: {

@@ -12,13 +12,27 @@ system = Blueprint("system", url_prefix="/system")
 
 @system.get("/platform")
 async def get_platform(_) -> HTTPResponse:
-    """Get the current platform."""
+    """Get current platform.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Response containing the requested data.
+    """
     return json({"platform": sys.platform})
 
 
 @system.get("/version")
 async def get_app_version(_) -> HTTPResponse:
-    """Get the current application version."""
+    """Get current application version.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Response containing the requested data.
+    """
     try:
         with open(_PYPROJECT, "rb") as f:
             data = tomllib.load(f)

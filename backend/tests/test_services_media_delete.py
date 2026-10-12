@@ -26,8 +26,8 @@ def workspace(tmp_path, monkeypatch):
     """Keep locks and filesystem deletion inside the test directory.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture restoring application configuration.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture restoring application configuration.
     """
     cache = tmp_path / "cache"
     cache.mkdir()
@@ -56,11 +56,11 @@ async def _source(tmp_path: Path, layout: str) -> tuple[MediaLib, MediaItem]:
     """Create a flat movie or a directory with two video parts and local artwork.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        layout: The flat, movie, show or season layout to create.
+        tmp_path: Isolated filesystem root.
+        layout: Flat, movie, show or season layout to create.
 
     Returns:
-        The library and its first video item.
+        Library and its first video item.
     """
     root = tmp_path / "Library"
     directory = root if layout == "flat" else root / "Work"
@@ -166,7 +166,7 @@ def test_video_delete(tmp_path, monkeypatch, layout, group, local):
                 """Verify file deletion runs off the event loop.
 
                 Args:
-                    path: The selected body or companion.
+                    path: Selected body or companion.
                 """
                 assert threading.get_ident() != main_thread and not path.is_dir()
                 removed.append(path)
@@ -310,9 +310,9 @@ def test_video_delete_restored(tmp_path, monkeypatch):
                 """Restore a body immediately before filesystem cleanup.
 
                 Args:
-                    items: The selected database rows.
-                    others: The surviving rows protecting shared files.
-                    **kwargs: The cleanup mode forwarded to the original helper.
+                    items: Selected database rows.
+                    others: Surviving rows protecting shared files.
+                    **kwargs: Cleanup mode forwarded to the original helper.
                 """
                 video.write_bytes(b"restored")
                 return remove(items, others, **kwargs)
@@ -389,7 +389,7 @@ def test_video_delete_retry(tmp_path, monkeypatch, failure):
                 """Simulate partial deletion or a source appearing during cleanup.
 
                 Args:
-                    path: The next selected file.
+                    path: Next selected file.
                 """
                 if failure == "subtitle" and path == subtitle:
                     raise PermissionError("unavailable")
@@ -404,10 +404,10 @@ def test_video_delete_retry(tmp_path, monkeypatch, failure):
                 """Fail the media transaction after history cleanup.
 
                 Args:
-                    query: The pending deletion query.
+                    query: Pending deletion query.
 
                 Returns:
-                    The original deletion count for other models.
+                    Original deletion count for other models.
                 """
                 if query.model is MediaItem:
                     raise RuntimeError("database failure")
@@ -417,12 +417,12 @@ def test_video_delete_retry(tmp_path, monkeypatch, failure):
                 """Cancel only after the active filesystem writer returns.
 
                 Args:
-                    function: The selected filesystem operation.
+                    function: Selected filesystem operation.
                     *args: Its positional arguments.
                     **kwargs: Its keyword arguments.
 
                 Returns:
-                    The original result for other operations.
+                    Original result for other operations.
                 """
                 result = await write(function, *args, **kwargs)
                 if function is media_service._delete_media_files:

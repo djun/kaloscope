@@ -38,8 +38,8 @@
   /**
    * Search for flow templates.
    *
-   * @param page - The page number.
-   * @param size - The page size.
+   * @param page - Page number.
+   * @param size - Page size.
    */
   function search(page: number = 1, size: number = pagination.size) {
     loading.start();
@@ -70,7 +70,7 @@
   /**
    * Get a unique name based on the template name.
    *
-   * @param tmpl - The selected flow template.
+   * @param tmpl - Selected flow template.
    * @param callback - Callback function to handle the unique name.
    */
   function getUniqueName(tmpl: FlowTemplate, callback: (name: string) => void) {
@@ -91,8 +91,8 @@
   /**
    * Reference a flow template.
    *
-   * @param id - The flow template ID.
-   * @param name - The name of the new flow graph.
+   * @param id - Flow template ID.
+   * @param name - Name of the new flow graph.
    */
   function refTmpl(id: number, name: string) {
     loading.start();
@@ -110,8 +110,8 @@
   /**
    * Copy a flow template.
    *
-   * @param id - The flow template ID.
-   * @param name - The name of the new flow graph.
+   * @param id - Flow template ID.
+   * @param name - Name of the new flow graph.
    */
   function copyTmpl(id: number, name: string) {
     loading.start();

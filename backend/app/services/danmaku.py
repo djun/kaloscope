@@ -18,12 +18,12 @@ from app.models.media import Language, LibType, MediaItem, MediaResource
 from app.utils import json
 from app.utils.asyncio import write_in_thread
 
-# the display mode of the danmaku
+# the display mode of the overlay comment
 type Mode = Literal["scroll", "top", "bottom"]
 
 
 class Danmaku(BaseModel):
-    """The data model for a single danmaku."""
+    """The data model for a single overlay comment."""
 
     # unique id
     id: str | None = None
@@ -38,7 +38,7 @@ class Danmaku(BaseModel):
 
 
 class DanmakuAnime(BaseModel):
-    """Describe an anime returned by the danmaku server."""
+    """Describe an anime returned by the comment server."""
 
     anime_id: str
     anime_title: str | None = None
@@ -52,21 +52,21 @@ class DanmakuAnime(BaseModel):
 
 
 class DanmakuMeta(DanmakuAnime):
-    """The metadata for a danmaku collection."""
+    """The metadata for a comment collection."""
 
     episode_id: str
     episode_title: str | None = None
 
 
 class DanmakuWrapper(BaseModel):
-    """The wrapper for danmakus with additional metadata."""
+    """The wrapper for overlay comments with additional metadata."""
 
     metadata: DanmakuMeta | None = None
     comments: list[Danmaku]
 
 
 class DanmakuQuery(MediaResource):
-    """Query anime or episodes from the danmaku server."""
+    """Query anime or episodes from the comment server."""
 
     title: str
 
@@ -78,23 +78,23 @@ class AnimeConfirm(MediaResource):
 
 
 class EpisodeConfirm(MediaResource):
-    """The model for confirming the danmaku match for a media resource."""
+    """The model for confirming the comment match for a media resource."""
 
     metadata: DanmakuMeta
 
 
 class DanmakuService:
-    """The service class for all danmaku related operations."""
+    """The service class for all comment overlay operations."""
 
     @classmethod
     def _base_url(cls, server: str) -> str:
-        """Get the base URL for the danmaku server API.
+        """Get base URL for the comment server API.
 
         Args:
-            server: The danmaku server base URL.
+            server: Comment server base URL.
 
         Returns:
-            The base URL for the danmaku server API.
+            Base URL for the comment server API.
         """
         base_url = server.rstrip("/")
         if base_url.endswith(("/v2", "/api/v2")):
@@ -107,7 +107,7 @@ class DanmakuService:
 
         Args:
             url: The URL to append to.
-            params: The query parameters to append.
+            params: Query parameters to append.
 
         Returns:
             The URL with the query parameters appended.
@@ -119,13 +119,13 @@ class DanmakuService:
 
     @classmethod
     def _cache_path(cls, media: MediaItem) -> Path:
-        """Get the local danmaku cache path for a media item.
+        """Get local overlay comment cache path for a media item.
 
         Args:
-            media: The media item instance.
+            media: Media item instance.
 
         Returns:
-            The local danmaku cache path.
+            Local overlay comment cache path.
         """
         if media.danmaku_path:
             return Path(media.danmaku_path)
@@ -139,10 +139,10 @@ class DanmakuService:
         """Recover organization and reload a media item under its library lock.
 
         Args:
-            media: The media identity with its library already loaded.
+            media: Media identity with its library already loaded.
 
         Yields:
-            The current media item, or `None` if it was deleted while waiting.
+            Current media item, or `None` if it was deleted while waiting.
 
         Raises:
             OrganizePendingError: If pending organization cannot finish safely.
@@ -158,11 +158,11 @@ class DanmakuService:
         """Write comments without releasing the caller's lock on cancellation.
 
         Args:
-            media: The current media item whose library lock the caller holds.
-            comments: The comments to store at the current cache path.
+            media: Current media item whose library lock the caller holds.
+            comments: Comments to store at the current cache path.
 
         Returns:
-            The path of the written cache.
+            Path of the written cache.
 
         Raises:
             asyncio.CancelledError: If cancelled, after the writer has stopped.
@@ -175,16 +175,16 @@ class DanmakuService:
 
     @classmethod
     async def match_danmakus(cls, path: str) -> DanmakuWrapper:
-        """Match and cache danmakus for a media path.
+        """Match and cache overlay comments for a media path.
 
         Fetch outside the lock and use current media paths for cache access.
         Discard fetched comments if the file or its confirmed match changes.
 
         Args:
-            path: The media resource path.
+            path: Media resource path.
 
         Returns:
-            The wrapped danmakus with metadata if available, or an empty wrapper
+            Wrapped overlay comments with metadata if available, or an empty wrapper
             if the media was removed or replaced during the request.
         """
         # get the media item by the path
@@ -206,11 +206,11 @@ class DanmakuService:
         if (not cached or expired) and (server := media.lib.danmaku_server):
             meta = media.danmaku_meta
             if not meta:
-                # try to match the metadata from the danmaku server
+                # try to match the metadata from the comment server
                 meta = await cls.match_metadata(server, media)
 
             if meta:
-                # load danmakus from the danmaku server
+                # load overlay comments from the comment server
                 meta = DanmakuMeta.model_validate(meta)
                 danmakus = await cls.load_from_server(
                     server, meta.episode_id, media.lib.language
@@ -234,7 +234,7 @@ class DanmakuService:
                                 raise
                             return DanmakuWrapper(metadata=meta, comments=danmakus)
 
-        # load danmakus from the local cache file
+        # load overlay comments from the local cache file
         async with cls._locked_media(media) as current:
             if current is None:
                 return DanmakuWrapper(comments=[])
@@ -246,14 +246,14 @@ class DanmakuService:
 
     @classmethod
     async def match_metadata(cls, server: str, media: MediaItem) -> DanmakuMeta | None:
-        """Match the metadata for the given media item from the danmaku server.
+        """Match the metadata for the given media item from the comment server.
 
         Args:
-            server: The danmaku server base URL.
-            media: The media item instance.
+            server: Comment server base URL.
+            media: Media item instance.
 
         Returns:
-            The matched metadata, or `None` if not found.
+            Matched metadata, or `None` if not found.
         """
         client: httpx.AsyncClient = Sanic.get_app().ctx.httpx
         url = f"{cls._base_url(server)}/match"
@@ -311,13 +311,13 @@ class DanmakuService:
 
     @classmethod
     async def load_from_cache(cls, path: Path) -> list[Danmaku]:
-        """Load danmakus from the local cache file.
+        """Load overlay comments from the local cache file.
 
         Args:
-            path: The local cache file path.
+            path: Local cache file path.
 
         Returns:
-            A list of danmakus loaded from the cache.
+            A list of overlay comments loaded from the cache.
         """
         if not path.exists():
             return []
@@ -330,15 +330,15 @@ class DanmakuService:
     async def load_from_server(
         cls, server: str, episode_id: str, language: Language | None = None
     ) -> list[Danmaku]:
-        """Load danmakus from the danmaku server.
+        """Load overlay comments from the comment server.
 
         Args:
-            server: The danmaku server base URL.
-            episode_id: The episode ID.
-            language: The optional language code.
+            server: Comment server base URL.
+            episode_id: Episode ID.
+            language: Optional language code. `None` leaves language unspecified.
 
         Returns:
-            A list of danmakus loaded from the server.
+            A list of overlay comments loaded from the server.
         """
         client: httpx.AsyncClient = Sanic.get_app().ctx.httpx
         url = f"{cls._base_url(server)}/comment/{episode_id}"
@@ -368,10 +368,10 @@ class DanmakuService:
 
     @classmethod
     def format_danmakus(cls, raw: list[dict]) -> list[Danmaku]:
-        """Format raw danmaku dicts into Danmaku objects.
+        """Format raw overlay comment dicts into Danmaku objects.
 
         Each dict is expected to have:
-          - `cid`: the unique danmaku ID.
+          - `cid`: the unique overlay comment ID.
           - `p`: a comma-separated string with four fields:
               - `parts[0]` — start time in seconds.
               - `parts[1]` — display mode (1=scroll, 4=bottom, 5=top).
@@ -380,7 +380,7 @@ class DanmakuService:
           - `m`: the comment text.
 
         Args:
-            raw: List of raw danmaku dicts.
+            raw: List of raw overlay comment dicts.
 
         Returns:
             A list of parsed Danmaku objects.
@@ -434,7 +434,7 @@ class DanmakuService:
         """Delete the cache at the media's current path under its library lock.
 
         Args:
-            path: The media resource path.
+            path: Media resource path.
         """
         # get the media item by the path
         media = await MediaItem.filter(path=path).first().select_related("lib")
@@ -449,7 +449,7 @@ class DanmakuService:
         """Delete cached comments while the caller holds the library lock.
 
         Args:
-            media: The current media item whose cached comments are deleted.
+            media: Current media item whose cached comments are deleted.
         """
         danmaku_path = cls._cache_path(media)
         if danmaku_path.is_file():
@@ -458,11 +458,11 @@ class DanmakuService:
 
     @classmethod
     async def search_anime(cls, path: str, title: str) -> list[DanmakuAnime]:
-        """Search anime by title using the media library's danmaku server.
+        """Search anime by title using the media library's comment server.
 
         Args:
-            path: The media resource path.
-            title: The search title.
+            path: Media resource path.
+            title: Search title.
 
         Returns:
             A list of `DanmakuAnime` items from the search results.
@@ -510,8 +510,8 @@ class DanmakuService:
         """Apply an anime match to all files under a top-level media item.
 
         Args:
-            path: The media resource path.
-            meta: The confirmed danmaku metadata.
+            path: Media resource path.
+            meta: Confirmed overlay comment metadata.
 
         Returns:
             Whether the match was applied or already up to date.
@@ -525,11 +525,11 @@ class DanmakuService:
 
     @classmethod
     async def search_episodes(cls, path: str, title: str) -> list[DanmakuMeta]:
-        """Search for episodes matching the given title from the danmaku server.
+        """Search for episodes matching the given title from the comment server.
 
         Args:
-            path: The media resource path.
-            title: The search title.
+            path: Media resource path.
+            title: Search title.
 
         Returns:
             A flat list of `DanmakuMeta` items from the search results.
@@ -591,17 +591,17 @@ class DanmakuService:
 
     @classmethod
     async def confirm_episode(cls, path: str, meta: DanmakuMeta) -> DanmakuWrapper:
-        """Confirm an episode match and cache its danmakus.
+        """Confirm an episode match and cache its overlay comments.
 
         Recover organization before resolving paths or updating caches. Fetch outside
         the lock and discard results if the file content changes.
 
         Args:
-            path: The media resource path.
-            meta: The confirmed metadata.
+            path: Media resource path.
+            meta: Confirmed metadata.
 
         Returns:
-            The wrapped danmakus with the confirmed metadata, or an empty wrapper
+            Wrapped overlay comments with the confirmed metadata, or an empty wrapper
             if the media content changed during the request.
 
         Raises:
@@ -628,7 +628,7 @@ class DanmakuService:
                     ).values_list("id", flat=True),
                 )
 
-        # load danmakus from the danmaku server
+        # load overlay comments from the comment server
         danmakus = await cls.load_from_server(
             server, meta.episode_id, media.lib.language
         )
@@ -655,7 +655,7 @@ class DanmakuService:
                 danmaku_path.unlink(missing_ok=True)
                 raise
 
-        # also refresh the danmaku metadata of sibling episodes if it's a TV show
+        # refresh sibling episode metadata for TV shows
         if media.lib.lib_type == LibType.TV_SHOW:
             await cls.refresh_episodes(media, meta, episode_ids=episode_ids)
 
@@ -669,14 +669,14 @@ class DanmakuService:
         *,
         episode_ids: list[int] | None = None,
     ) -> bool:
-        """Refresh episode danmaku matches under the library lock.
+        """Refresh episode overlay comment matches under the library lock.
 
         Fetch metadata before locking, then recover organization and reload episodes.
 
         Args:
-            item: The media item or a confirmed episode.
-            meta: The confirmed danmaku metadata.
-            episode_ids: The episode IDs, or `None` to use the current group.
+            item: Media item or a confirmed episode.
+            meta: Confirmed overlay comment metadata.
+            episode_ids: Episode IDs, or `None` to use the current group.
 
         Returns:
             Whether the match was applied or already up to date.
@@ -711,7 +711,7 @@ class DanmakuService:
         if not db_episodes:
             return True
 
-        # get bangumi info from the danmaku server to find the corresponding episode IDs
+        # get bangumi info from the comment server to find the corresponding episode IDs
         client: httpx.AsyncClient = Sanic.get_app().ctx.httpx
         url = f"{cls._base_url(server)}/bangumi/{anime_id}"
         try:

@@ -30,7 +30,7 @@ class HDRType(StrEnum):
 
 @dataclass(frozen=True)
 class MediaChapter:
-    """A seekable chapter embedded in a media container."""
+    """A chapter with a seek position embedded in a media container."""
 
     id: str
     title: str
@@ -72,7 +72,7 @@ class HardwareRuntime:
     """Prepared hardware device and source-specific runtime decisions.
 
     Attributes:
-        device: The selected hardware device identifier.
+        device: Selected hardware device identifier.
         can_decode: Whether the source passed hardware decode probing.
         can_filter: Whether the required hardware transforms passed probing.
     """
@@ -83,7 +83,14 @@ class HardwareRuntime:
 
 
 def _normalized_profile(value: str) -> str:
-    """Normalize a codec profile for case-insensitive capability matching."""
+    """Normalize codec profiles for capability matching.
+
+    Args:
+        value: Codec profile name.
+
+    Returns:
+        Lowercase profile without spaces, underscores or hyphens.
+    """
     return value.lower().replace(" ", "").replace("_", "").replace("-", "")
 
 
@@ -91,7 +98,7 @@ def _is_decode_candidate(metadata: MediaProbe) -> bool:
     """Return whether source metadata is safe to verify for hardware decode.
 
     Args:
-        metadata: The selected source stream metadata.
+        metadata: Selected source stream metadata.
 
     Returns:
         Whether codec, profile, depth, and pixel format form a supported candidate.
@@ -130,7 +137,7 @@ def classify_hdr(metadata: MediaProbe) -> HDRType:
     """Classify HDR metadata without guessing from incomplete HDR signals.
 
     Args:
-        metadata: The selected source stream metadata.
+        metadata: Selected source stream metadata.
 
     Returns:
         The HDR subtype inferred from transfer, color, depth, and Dolby Vision data.
@@ -179,7 +186,7 @@ def segment_keyframe_args(context: "TranscodeContext") -> list[str]:
     """Build timestamp-based closed-GOP options for HLS segment boundaries.
 
     Args:
-        context: The runtime transcode context.
+        context: Runtime transcode context.
 
     Returns:
         FFmpeg options for forced keyframes and closed GOP signaling.
@@ -299,7 +306,7 @@ class TranscodeContext:
 
     @property
     def field_parity(self) -> str | None:
-        # ffmpeg deinterlace parity for the source field order
+        # FFmpeg field parity for the source field order
         if self.metadata.field_order in {"tt", "tb"}:
             return "tff"
         if self.metadata.field_order in {"bb", "bt"}:
@@ -320,7 +327,7 @@ class TranscodeContext:
         target = display_height
         if max_height is not None:
             target = min(target, Fraction(max_height))
-        # chroma-subsampled output requires an even height
+        # output with reduced chroma resolution requires an even height
         aligned = max(int(target) // 2 * 2, 2)
         return str(aligned)
 
@@ -374,21 +381,49 @@ class TranscodeContext:
         return self.hardware.device if self.hardware is not None else None
 
     def supports_filter(self, name: str) -> bool:
-        """Return whether a filter is available or capabilities are unprobed."""
+        """Check filter support when capabilities are known.
+
+        Args:
+            name: FFmpeg filter name.
+
+        Returns:
+            Whether supported; `True` until capabilities are checked.
+        """
         return self.capabilities is None or self.capabilities.supports_filter(name)
 
     def supports_hwaccel(self, name: str) -> bool:
-        """Return whether hardware decoding is available or unprobed."""
+        """Check hardware decode method support when capabilities are known.
+
+        Args:
+            name: FFmpeg hardware decode method name.
+
+        Returns:
+            Whether supported; `True` until capabilities are checked.
+        """
         return self.capabilities is None or self.capabilities.supports_hwaccel(name)
 
     def supports_encoder_option(self, name: str) -> bool:
-        """Return whether an encoder option is available or unprobed."""
+        """Check encoder option support when capabilities are known.
+
+        Args:
+            name: FFmpeg encoder option name.
+
+        Returns:
+            Whether supported; `True` until capabilities are checked.
+        """
         return self.capabilities is None or self.capabilities.supports_encoder_option(
             name
         )
 
     def require_encoder_option(self, name: str):
-        """Reject a selected encoder that lacks a correctness-critical option."""
+        """Require an encoder option when capabilities are known.
+
+        Args:
+            name: FFmpeg encoder option name.
+
+        Raises:
+            RuntimeError: If the selected encoder lacks the required option.
+        """
         if self.capabilities is not None and not self.supports_encoder_option(name):
             raise RuntimeError(
                 f"FFmpeg '{self.capabilities.executable}' is missing required "
@@ -420,11 +455,11 @@ def cpu_tonemap_filters(context: TranscodeContext, output_format: str) -> list[s
     """Build a standard-FFmpeg CPU HDR-to-SDR filter chain.
 
     Args:
-        context: The runtime transcode context.
-        output_format: The final software pixel format.
+        context: Runtime transcode context.
+        output_format: Final software pixel format.
 
     Returns:
-        Ordered filters for linearization, tone mapping, and BT.709 conversion.
+        Ordered filters for linear light, tone mapping and BT.709 conversion.
     """
     linear = "zscale=transfer=linear:npl=100"
     width = context.scale_width
@@ -443,11 +478,12 @@ def cpu_tonemap_filters(context: TranscodeContext, output_format: str) -> list[s
 def cpu_geometry_filters(
     context: TranscodeContext, *, include_scale: bool = True
 ) -> list[str]:
-    """Build ordered system-memory deinterlace, rotation, and scale filters.
+    """Build ordered CPU filters for field conversion, rotation and scaling.
 
     Args:
-        context: The runtime transcode context.
-        include_scale: Whether to append scale and square-pixel normalization.
+        context: Runtime transcode context.
+        include_scale: Whether to append scale and square-pixel normalization. Defaults
+            to `True`.
 
     Returns:
         Ordered software geometry filter expressions.
@@ -481,22 +517,22 @@ def rotation_direction(rotation: int) -> str | None:
     """Map clockwise rotation to an FFmpeg hardware filter direction.
 
     Args:
-        rotation: The clockwise rotation in degrees.
+        rotation: Clockwise rotation in degrees.
 
     Returns:
-        The hardware-filter direction, or `None` when no rotation is needed.
+        Hardware-filter direction, or `None` when no rotation is needed.
     """
     return {90: "clock", 180: "reversal", 270: "cclock"}.get(rotation)
 
 
 async def resolve_vaapi_device() -> str | None:
-    """Get the VAAPI render device path.
+    """Get VAAPI render device path.
 
     Uses the `vaapi.device` global setting when it contains a path; otherwise,
     checks the standard render node `/dev/dri/renderD128`.
 
     Returns:
-        The render device path if it exists, or `None` if not.
+        Render device path if it exists, or `None` if not.
     """
     from app.models.general import GlobalConfig
 
@@ -513,11 +549,25 @@ class HWAccelStrategy(ABC):
     """Base interface for FFmpeg hardware acceleration strategies."""
 
     async def resolve_device(self, context: TranscodeContext) -> str | None:
-        """Resolve the device used by this hardware strategy."""
+        """Resolve the device used by this hardware strategy.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Device identifier, or `None` for the default device.
+        """
         return None
 
     def encoder_probe_args(self, context: TranscodeContext) -> list[str]:
-        """Build a one-frame hardware encoder health probe."""
+        """Build a one-frame hardware encoder health probe.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            FFmpeg arguments for a one-frame encoder check.
+        """
         return [
             "-f",
             "lavfi",
@@ -534,23 +584,58 @@ class HWAccelStrategy(ABC):
         ]
 
     def allows_decode(self, context: TranscodeContext) -> bool:
-        """Return whether this strategy may probe hardware source decoding."""
+        """Return whether this strategy may probe hardware source decoding.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Whether source decoding can be checked with this strategy.
+        """
         return _is_decode_candidate(context.metadata)
 
     def transform_filters(self, context: TranscodeContext) -> list[str]:
-        """Build optional source-specific hardware transform filters."""
+        """Build optional source-specific hardware transform filters.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Ordered hardware filter expressions.
+        """
         return []
 
     def transform_filter_names(self, context: TranscodeContext) -> set[str]:
-        """Return advertised filter names required by hardware transforms."""
+        """Return advertised filter names required by hardware transforms.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Filter names required by the hardware transforms.
+        """
         return set()
 
     def transform_download_format(self, context: TranscodeContext) -> str:
-        """Return the software pixel format produced by the transform probe."""
+        """Return software pixel format produced by the transform probe.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Software pixel format used to receive hardware frames.
+        """
         return "p010le" if context.metadata.bit_depth == 10 else "nv12"
 
     def keep_decode_on_fallback(self, context: TranscodeContext) -> bool:
-        """Return whether CPU filters can consume downloaded hardware decode."""
+        """Return whether CPU filters can consume downloaded hardware decode.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Whether decoded frames can be copied to CPU filters.
+        """
         return True
 
     async def prepare_hardware(
@@ -559,7 +644,7 @@ class HWAccelStrategy(ABC):
         """Validate hardware encoding and choose decoding for one source.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             Source-specific hardware decisions, or `None` for software encoding.
@@ -717,7 +802,7 @@ class HWAccelStrategy(ABC):
         """Return whether decoding should keep frames in device memory.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             Whether to keep hardware frames.
@@ -731,14 +816,14 @@ class HWAccelStrategy(ABC):
     async def input_args(self, context: TranscodeContext) -> list[str]:
         """Build FFmpeg input options for hardware-accelerated decoding.
 
-        The returned arguments are inserted before the input file. Hardware
+        Returned arguments are inserted before the input file. Hardware
         frames remain on-device when the prepared strategy can perform all
         required transforms; otherwise decoded frames remain accessible to
         software filters. This method is asynchronous to allow implementations
         to discover or initialize a hardware device before building the command.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg command-line arguments to place before the input file.
@@ -754,11 +839,11 @@ class HWAccelStrategy(ABC):
     def video_filters(self, context: TranscodeContext) -> list[str]:
         """Build strategy-specific FFmpeg video filter expressions.
 
-        The returned expressions form the complete ordered value passed to
+        Returned expressions form the complete ordered value passed to
         FFmpeg's `-vf` option. The default strategy requires no filters.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             Video filter expressions in the order FFmpeg should apply them.
@@ -769,13 +854,13 @@ class HWAccelStrategy(ABC):
     def encoder_args(self, context: TranscodeContext) -> list[str]:
         """Build FFmpeg options for the strategy's video encoder.
 
-        The returned arguments are inserted immediately after the video codec
+        Returned arguments are inserted immediately after the video codec
         selection. Implementations use the requested quality and other
         transcode settings to configure encoder-specific rate control and
         output parameters.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg command-line arguments for configuring the video encoder.
@@ -788,12 +873,12 @@ class HWAccelStrategy(ABC):
     def keyframe_args(self, context: TranscodeContext) -> list[str]:
         """Build FFmpeg options that place keyframes near HLS segment boundaries.
 
-        The default strategy combines timestamp-based forced keyframes with a
+        Default strategy combines timestamp-based forced keyframes with a
         fixed GOP size. For constant-frame-rate input, the GOP length
         approximates one segment duration after rounding up to a whole frame.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg command-line arguments for keyframe and GOP configuration.

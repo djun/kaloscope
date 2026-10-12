@@ -3,6 +3,10 @@ import { icons } from '$lib/icons';
 import type { Navigation } from '$lib/types';
 import type { LayoutLoad } from './$types';
 
+/**
+ * Build application navigation for the current user.
+ * @returns Data used by the layout or page.
+ */
 export const load: LayoutLoad = async () => {
   const navs: Navigation[] = [
     {

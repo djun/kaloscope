@@ -79,24 +79,24 @@ class OpenListDriver:
             ) from None
 
     async def version(self) -> str:
-        """Get the OpenList endpoint version.
+        """Get OpenList endpoint version.
 
         Returns:
-            The normalized OpenList version.
+            Normalized OpenList version.
         """
         return await self._control_client().version()
 
     def prepare(self, request: DownloadRequest) -> DownloadDraft:
-        """Build the task and offline-job draft required before submission.
+        """Build task and offline-job draft required before submission.
 
         Args:
-            request: The normalized download request.
+            request: Normalized download request.
 
         Raises:
             ValueError: If the request has no identity or source.
 
         Returns:
-            The draft containing local task data and an isolated remote directory.
+            Draft containing local task data and an isolated remote directory.
         """
         identity = request.identity
         source = request.link
@@ -126,16 +126,16 @@ class OpenListDriver:
         )
 
     async def add(self, request: DownloadRequest) -> DownloadSnapshot:
-        """Create the remote directory and submit one source to OpenList.
+        """Create remote directory and submit one source to OpenList.
 
         Args:
-            request: The prepared download request.
+            request: Prepared download request.
 
         Raises:
             ValueError: If required prepared task metadata is missing.
 
         Returns:
-            The initial snapshot, including an uncertain state when submission
+            Initial snapshot, including an uncertain state when submission
             completion cannot be confirmed safely.
         """
         identity = request.identity
@@ -188,10 +188,10 @@ class OpenListDriver:
         """Coordinate rate-limited remote polling and local result pulling.
 
         Args:
-            identities: The tasks owned by this OpenList driver.
+            identities: Tasks owned by this OpenList driver.
 
         Returns:
-            The task snapshots produced during this synchronization cycle.
+            Task snapshots produced during this synchronization cycle.
         """
         if self.coordinator is None:
             client = self._control_client()
@@ -211,15 +211,16 @@ class OpenListDriver:
         *,
         retry_target: DownloadState | None = None,
     ) -> frozenset[DownloadAction]:
-        """Get the actions safe for the current OpenList lifecycle phase.
+        """Get actions safe for the current OpenList task phase.
 
         Args:
-            identity: The local and remote task identity.
-            state: The current persisted task state.
-            retry_target: The safe recovery state selected from a persisted error.
+            identity: Local and remote task identity.
+            state: Current persisted task state.
+            retry_target: Safe recovery state selected from a persisted error.
+                `None` means the retry destination is unknown.
 
         Returns:
-            The actions supported for this task.
+            Actions supported for this task.
         """
         actions = {DownloadAction.DELETE}
         if state is DownloadState.PULLING:
@@ -240,7 +241,7 @@ class OpenListDriver:
         """Cancel local pulling and return the paused state.
 
         Args:
-            identity: The local and remote task identity.
+            identity: Local and remote task identity.
 
         Returns:
             The `PAUSED` state.
@@ -250,10 +251,10 @@ class OpenListDriver:
         return DownloadState.PAUSED
 
     async def resume(self, identity: DownloadIdentity) -> DownloadState:
-        """Return the local pulling state for a paused task.
+        """Return local pulling state for a paused task.
 
         Args:
-            identity: The local and remote task identity.
+            identity: Local and remote task identity.
 
         Returns:
             The `PULLING` state.
@@ -264,7 +265,7 @@ class OpenListDriver:
         """Cancel the remote offline download task when its ID is known.
 
         Args:
-            identity: The local and remote task identity.
+            identity: Local and remote task identity.
         """
         if identity.remote_id:
             await self._control_client().cancel(identity.remote_id)
@@ -273,10 +274,10 @@ class OpenListDriver:
         """Retry required remote work and restore the selected recovery phase.
 
         Args:
-            identity: The local and remote task identity.
+            identity: Local and remote task identity.
 
         Returns:
-            The restored state, or `None` when the task cannot be retried.
+            Restored state, or `None` when the task cannot be retried.
         """
         target = DownloadState.REMOTE
         if identity.task_id is not None:
@@ -312,8 +313,9 @@ class OpenListDriver:
         """Stop active job work and delete job-scoped local paths.
 
         Args:
-            identity: The local and remote task identity.
-            local: Whether to also delete locally pulled final files.
+            identity: Local and remote task identity.
+            local: Whether to also delete locally pulled final files. Defaults to
+                `False`.
         """
         if self.coordinator is not None and identity.task_id is not None:
             await self.coordinator.pull_runtime.cancel(identity.task_id)
@@ -388,10 +390,10 @@ class OpenListDriver:
         """Delete an exclusively owned and safely scoped remote result directory.
 
         Args:
-            state: The final task state.
+            state: Final task state.
             job_uuid: The UUID assigned to the offline job.
-            remote_directory: The remote result directory owned by the job.
-            owner_count: The number of jobs referencing the remote directory.
+            remote_directory: Remote result directory owned by the job.
+            owner_count: Number of jobs referencing the remote directory.
         """
         if self.config.remote_cleanup is RemoteCleanupPolicy.KEEP:
             return
@@ -404,7 +406,7 @@ class OpenListDriver:
 
         Args:
             job_uuid: The UUID assigned to the offline job.
-            remote_directory: The remote result directory owned by the job.
+            remote_directory: Remote result directory owned by the job.
         """
         try:
             parsed_uuid = UUID(job_uuid)
@@ -430,7 +432,7 @@ class OpenListDriver:
         """Get or lazily create the OpenList control client.
 
         Returns:
-            The shared OpenList control client.
+            Shared OpenList control client.
         """
         if self.client is None:
             self.client = OpenListClient(self.config, Sanic.get_app().ctx.httpx)
@@ -440,7 +442,7 @@ class OpenListDriver:
         """Apply configured remote cleanup after local completion.
 
         Args:
-            snapshot: The completed task snapshot.
+            snapshot: Completed task snapshot.
         """
         state = snapshot.state
         task_id = snapshot.identity.task_id
@@ -459,7 +461,7 @@ class OpenListDriver:
         """Retry due remote cleanups for completed OpenList tasks.
 
         Args:
-            identities: The tasks selected for this synchronization cycle.
+            identities: Tasks selected for this synchronization cycle.
         """
         task_ids = tuple(
             identity.task_id for identity in identities if identity.task_id is not None
@@ -488,7 +490,7 @@ class OpenListDriver:
         """Apply or retire persisted cleanup work for one completed job.
 
         Args:
-            job: The completed offline job whose remote directory may be removed.
+            job: Completed offline job whose remote directory may be removed.
         """
         pending = (
             job.last_error_kind is OfflineDownloadErrorKind.CLEANUP_FAILED
@@ -570,7 +572,7 @@ def _unknown_snapshot(identity: DownloadIdentity) -> DownloadSnapshot:
     """Build a snapshot for an unconfirmed OpenList submission.
 
     Args:
-        identity: The persisted local task identity.
+        identity: Persisted local task identity.
 
     Returns:
         The `SUBMIT_UNKNOWN` task snapshot.
@@ -587,10 +589,10 @@ def _public_magnet(identity: DownloadIdentity) -> str:
     """Build a public magnet URI from persisted BitTorrent hashes.
 
     Args:
-        identity: The task identity containing BitTorrent hashes.
+        identity: Task identity containing BitTorrent hashes.
 
     Returns:
-        The magnet URI without private tracker parameters.
+        Magnet URI without private tracker parameters.
     """
     topics = []
     if identity.info_hash:
@@ -604,10 +606,10 @@ def _source_name(source: str) -> str:
     """Derive a bounded display name from a non-magnet source URI.
 
     Args:
-        source: The raw source URI.
+        source: Raw source URI.
 
     Returns:
-        The decoded final path segment, host name, or fallback name.
+        Decoded final path segment, host name, or fallback name.
     """
     try:
         parsed = urlsplit(source)

@@ -14,12 +14,12 @@ async def write_in_thread[**P, R](
     Preserve cancellation even if the worker fails while the caller is waiting.
 
     Args:
-        function: The synchronous operation to run in a worker thread.
-        *args: The positional arguments passed to the operation.
-        **kwargs: The keyword arguments passed to the operation.
+        function: Synchronous operation to run in a worker thread.
+        *args: Positional arguments passed to the operation.
+        **kwargs: Keyword arguments passed to the operation.
 
     Returns:
-        The result of the operation.
+        Result of the operation.
 
     Raises:
         asyncio.CancelledError: After the worker stops, even if it fails.

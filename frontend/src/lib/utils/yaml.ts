@@ -1,12 +1,12 @@
 import { isMap, isPair, isScalar, type Document, type ParsedNode } from 'yaml';
 
 /**
- * Move a section comment misparsed onto the last nested scalar to the following top-level key.
+ * Move a section comment from the final nested value to the next top-level key.
  *
  * The `yaml` parser may attach a comment after an empty scalar to that scalar, and `setIn` preserves it.
  *
- * @param document - The parsed YAML document to update in place.
- * @param key - The top-level mapping key whose final scalar may own the comment.
+ * @param document - Parsed YAML document to update in place.
+ * @param key - Top-level mapping key whose final scalar may own the comment.
  */
 export function restoreFollowingSectionComment(document: Document.Parsed<ParsedNode>, key: string) {
   if (!isMap(document.contents)) {

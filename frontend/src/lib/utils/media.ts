@@ -21,7 +21,7 @@ export function extractStreamPath(url: string): string {
 /**
  * Build a media stream URL with optional transcode parameters.
  *
- * @param path - The file path to stream.
+ * @param path - File path to stream.
  * @param transcode - Optional transcode options.
  * @returns The full stream URL with query parameters.
  */
@@ -41,7 +41,7 @@ export function buildStreamUrl(path: string, transcode: TranscodeOptions | null 
 /**
  * Check if a media URL is a transcoded stream.
  *
- * @param url - The media URL to check.
+ * @param url - Media URL to check.
  * @returns Whether the URL is a transcoded stream.
  */
 export function isTranscodedStream(url: IUrl | null | undefined): boolean {
@@ -63,9 +63,9 @@ export function isDashSupported(): boolean {
 }
 
 /**
- * Format the media title with season and episode if available.
+ * Format media title with season and episode if available.
  *
- * @param item - The media item, or null/undefined when unavailable.
+ * @param item - Media item, or null/undefined when unavailable.
  * @returns The title with season and episode when present, or an empty string for a missing item.
  */
 export function mediaTitle(item: MediaItem | null | undefined): string {

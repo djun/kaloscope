@@ -53,7 +53,7 @@ async def _client(
     """Exercise user routes without production startup listeners.
 
     Args:
-        monkeypatch: The fixture binding services to this test application.
+        monkeypatch: Fixture binding services to this test application.
 
     Yields:
         The HTTP client and isolated application with in-memory sessions.

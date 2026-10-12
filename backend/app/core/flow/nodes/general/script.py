@@ -89,10 +89,10 @@ _STRICT_BUILTINS: dict[str, Any] | None = None
 def _get_strict_builtins() -> dict[str, Any]:
     """Return a filtered copy of builtins with dangerous entries removed.
 
-    The result is computed once and cached for the process lifetime.
+    Result is computed once and cached for the process lifetime.
 
     Returns:
-        The filtered builtins dictionary.
+        Filtered builtins dictionary.
     """
     global _STRICT_BUILTINS
     if _STRICT_BUILTINS is None:
@@ -116,6 +116,14 @@ class ScriptNode(Node):
     async def execute(
         cls, *, node_id: str, node_data: dict[str, Any], context: Context, **kwargs
     ):
+        """Run a script and apply its changes to node data and context.
+
+        Args:
+            node_id: Current node ID.
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+        """
         script = cls.script.extract(node_data)
         if not (script_code := script["code"]):
             return
@@ -144,6 +152,14 @@ class ScriptNode(Node):
 
             def _eval_data_handle(data: dict[str, Any]):
                 # quickjs-rs 0.2.0 fails when setting Python empty strings directly
+                """Pass Python data through JSON to avoid empty string failures.
+
+                Args:
+                    data: Node or context mapping to pass to the script.
+
+                Returns:
+                    JavaScript handle holding the converted mapping.
+                """
                 return js_ctx.eval_handle(f"({json.dumps(data)})")
 
             with Runtime() as runtime, runtime.new_context() as js_ctx:

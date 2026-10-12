@@ -38,9 +38,14 @@ _CLIENT_ERROR_KINDS = {
 
 
 class _DeferredPullError(PullError):
-    """Carry a retryable link or file-request failure into durable pull scheduling."""
+    """Carry a request failure into delayed transfer scheduling."""
 
     def __init__(self, error: OpenListClientError):
+        """Defer a pull while preserving the server retry information.
+
+        Args:
+            error: Rate limit or temporary request failure.
+        """
         super().__init__(_CLIENT_ERROR_KINDS[error.kind], str(error))
         self.retry_after = error.retry_after
 
@@ -49,10 +54,10 @@ def _first_pull_error(group: BaseExceptionGroup[PullError]) -> PullError:
     """Extract the first `PullError` from a nested exception group.
 
     Args:
-        group: The failure group raised by the pull `TaskGroup`.
+        group: Failure group raised by the pull `TaskGroup`.
 
     Returns:
-        The first classified pull failure in the group.
+        First classified pull failure in the group.
     """
     error = group.exceptions[0]
     if isinstance(error, PullError):
@@ -63,7 +68,7 @@ def _first_pull_error(group: BaseExceptionGroup[PullError]) -> PullError:
 class OpenListPullRuntime:
     """Run and own process-local pulls for OpenList jobs.
 
-    The runtime deduplicates pulls by `DownloadTask.id`, lazily owns the data-plane
+    Runtime deduplicates pulls by `DownloadTask.id`, lazily owns the data-plane
     client, and advances successful pulls only to `VERIFYING`. The coordinator and
     `finalize_job` remain responsible for durable scheduling and final verification.
     """
@@ -73,16 +78,22 @@ class OpenListPullRuntime:
         config: OpenListConfig,
         link_client: OpenListClient,
     ):
+        """Coordinate local pulls with the configured concurrency limit.
+
+        Args:
+            config: Download and retry settings.
+            link_client: Shared client used to refresh direct links.
+        """
         self._config, self._link_client = config, link_client
         self._data_client: DataClient | None = None
         self._semaphore = asyncio.Semaphore(config.pull_concurrency)
         self._tasks: dict[int, asyncio.Task[None]] = {}
 
     def _file_client(self) -> DataClient:
-        """Get the lazily initialized data-plane client.
+        """Get lazily initialized data-plane client.
 
         Returns:
-            The shared client used for direct file transfers.
+            Shared client used for direct file transfers.
         """
         if self._data_client is None:
             self._data_client = DataClient(self._config.base_url)
@@ -92,7 +103,7 @@ class OpenListPullRuntime:
         """Start or reuse the local pull for a persisted job.
 
         Args:
-            job: The job containing the stable manifest and local target.
+            job: Job containing the stable manifest and local target.
         """
         existing = self._tasks.get(job.download_id)
         if existing is not None and not existing.done():
@@ -107,8 +118,8 @@ class OpenListPullRuntime:
         """Discard a completed handle when it is still the registered task.
 
         Args:
-            job_id: The local `DownloadTask` ID used as the runtime key.
-            handle: The completed pull task being removed.
+            job_id: Local `DownloadTask` ID used as the runtime key.
+            handle: Completed pull task being removed.
         """
         if self._tasks.get(job_id) is handle:
             self._tasks.pop(job_id)
@@ -126,7 +137,7 @@ class OpenListPullRuntime:
         """Cancel the active pull for a task.
 
         Args:
-            task_id: The local `DownloadTask` ID.
+            task_id: Local `DownloadTask` ID.
         """
         handle = self._tasks.get(task_id)
         if handle is None:
@@ -150,7 +161,7 @@ class OpenListPullRuntime:
         """Run a local pull and persist every terminal failure.
 
         Args:
-            job: The persisted job being pulled.
+            job: Persisted job being pulled.
         """
         try:
             await self._pull_job(job)
@@ -177,8 +188,8 @@ class OpenListPullRuntime:
         """Keep a transient pull failure resumable across driver restarts.
 
         Args:
-            job: The persisted job whose link or file request must be retried.
-            error: The retryable failure and optional `Retry-After` value.
+            job: Persisted job whose link or file request must be retried.
+            error: Retryable failure and optional `Retry-After` value.
         """
         current = timezone.now()
         previous = job.retry_count if job.last_error_kind is error.kind else 0
@@ -213,8 +224,8 @@ class OpenListPullRuntime:
         Cancellation rolls back the failure and leaves the pull recoverable.
 
         Args:
-            job: The persisted job whose pull failed.
-            error: The classified failure exposed to the task.
+            job: Persisted job whose pull failed.
+            error: Classified failure exposed to the task.
         """
         task = job.download
         async with in_transaction() as connection:
@@ -255,7 +266,7 @@ class OpenListPullRuntime:
         `VERIFYING`, leaving final checks to `finalize_job`.
 
         Args:
-            job: The job containing the stable manifest and local target directory.
+            job: Job containing the stable manifest and local target directory.
         """
         task = job.download
         # rebuild typed manifest entries from a persisted job
@@ -275,6 +286,13 @@ class OpenListPullRuntime:
         lock = asyncio.Lock()
 
         async def update(path: str, size: int, speed: int):
+            """Persist aggregate progress only while the task is pulling.
+
+            Args:
+                path: Relative file path.
+                size: Completed bytes for this file.
+                speed: Current file speed in bytes per second.
+            """
             async with lock:
                 completed[path] = size
                 speeds[path] = speed
@@ -296,6 +314,16 @@ class OpenListPullRuntime:
 
         async def pull_entry(entry: RemoteManifestEntry):
             # reuse verified files and resume safe `.part` files after a restart
+            """Reuse a complete file or resume a verified partial download.
+
+            Args:
+                entry: Manifest file with its size and hashes.
+
+            Raises:
+                PullError: If local preparation, transfer or verification fails.
+                _DeferredPullError: If a temporary server failure postpones the
+                    transfer.
+            """
             if await find_completed_file(task.dir, entry, job.job_uuid) is not None:
                 await update(entry.path, entry.size, 0)
                 return
@@ -303,6 +331,13 @@ class OpenListPullRuntime:
             await update(entry.path, min(target.offset, entry.size), 0)
 
             async def report(size: int, _total: int, speed: int):
+                """Merge file progress into the task totals.
+
+                Args:
+                    size: Completed bytes for the current file.
+                    _total: Unused per-file total; the manifest supplies task totals.
+                    speed: Current speed in bytes per second.
+                """
                 await update(entry.path, size, speed)
 
             remote_path = f"{job.remote_dir.rstrip('/')}/{entry.path}"
@@ -345,6 +380,7 @@ class OpenListPullRuntime:
 
         if failure is not None:
             raise failure
+
         # advance only an unchanged `PULLING` task
         # leave final manifest verification to the `VERIFYING` phase
         async with in_transaction() as connection:

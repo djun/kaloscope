@@ -27,10 +27,16 @@ class RpcDriver:
     client: RpcClient = field(init=False)
 
     def __post_init__(self):
+        """Create RPC client from the driver settings."""
         self.client = RpcClient(self.config)
 
     @property
     def source_types(self) -> frozenset[DownloadSource]:
+        """List source types with configured submission methods.
+
+        Returns:
+            Supported magnet and torrent source types.
+        """
         source_types = set()
         if "add_link" in self.config.methods:
             source_types.add(DownloadSource.MAGNET)
@@ -40,19 +46,34 @@ class RpcDriver:
 
     @property
     def supports_version(self) -> bool:
+        """Check whether a version method is configured.
+
+        Returns:
+            Whether version lookup is supported.
+        """
         return "version" in self.config.methods
 
     async def validate(self) -> str | None:
+        """Check the connection through version lookup.
+
+        Returns:
+            Remote version, or `None` when unavailable.
+        """
         return await self.version()
 
     async def version(self) -> str | None:
+        """Read the remote version through the RPC client.
+
+        Returns:
+            Remote version, or `None` when unavailable.
+        """
         return await self.client.version()
 
     def prepare(self, request: DownloadRequest):
         """Skip pre-submission persistence for an RPC download.
 
         Args:
-            request: The normalized download request.
+            request: Normalized download request.
 
         Returns:
             Always `None` because RPC tasks are created after submission.
@@ -60,6 +81,14 @@ class RpcDriver:
         return None
 
     async def add(self, request: DownloadRequest) -> DownloadSnapshot:
+        """Submit a torrent or link and capture its remote ID.
+
+        Args:
+            request: Normalized source, destination and transfer options.
+
+        Returns:
+            Snapshot containing the remote task identity.
+        """
         result = await self.client.call(
             "add_torrent" if request.torrent else "add_link",
             {
@@ -86,7 +115,7 @@ class RpcDriver:
         """Defer RPC synchronization to the shared persisted-task synchronizer.
 
         Args:
-            identities: The task identities supplied by the common interface.
+            identities: Task identities supplied by the common interface.
 
         Returns:
             Always an empty tuple because the shared synchronizer owns RPC updates.
@@ -100,6 +129,16 @@ class RpcDriver:
         *,
         retry_target: DownloadState | None = None,
     ) -> frozenset[DownloadAction]:
+        """Select configured actions allowed by the task state.
+
+        Args:
+            identity: Task identity, unused by this driver.
+            state: Current download state.
+            retry_target: Unused retry hint; defaults to `None`.
+
+        Returns:
+            Configured actions allowed in the current state.
+        """
         allowed = {DownloadAction.DELETE}
         if state is DownloadState.DOWNLOADING:
             allowed.add(DownloadAction.PAUSE)
@@ -112,10 +151,26 @@ class RpcDriver:
         )
 
     async def pause(self, identity: DownloadIdentity) -> DownloadState:
+        """Pause the remote task.
+
+        Args:
+            identity: Local and remote task references.
+
+        Returns:
+            Paused download state.
+        """
         await self._call("pause", identity)
         return DownloadState.PAUSED
 
     async def resume(self, identity: DownloadIdentity) -> DownloadState:
+        """Resume the remote task.
+
+        Args:
+            identity: Local and remote task references.
+
+        Returns:
+            Active download state.
+        """
         await self._call("start", identity)
         return DownloadState.DOWNLOADING
 
@@ -123,7 +178,7 @@ class RpcDriver:
         """Ignore cancellation because RPC drivers have no shared cancel method.
 
         Args:
-            identity: The task identity.
+            identity: Task identity.
         """
         return None
 
@@ -131,7 +186,7 @@ class RpcDriver:
         """Return no retry transition for an RPC task.
 
         Args:
-            identity: The task identity.
+            identity: Task identity.
 
         Returns:
             Always `None` because RPC drivers have no shared retry method.
@@ -139,12 +194,26 @@ class RpcDriver:
         return None
 
     async def delete(self, identity: DownloadIdentity, *, local: bool = False):
+        """Delete the remote task and optionally its files.
+
+        Args:
+            identity: Local and remote task references.
+            local: Delete local files when `True`; defaults to keeping them.
+        """
         await self._call("delete", identity, local=local)
 
     async def close(self):
+        """Finish without cleanup because the shared client owns resources."""
         return None
 
     async def _call(
         self, method: Method, identity: DownloadIdentity, **variables: object
     ):
+        """Combine task identity fields with RPC method variables.
+
+        Args:
+            method: Configured RPC method name.
+            identity: Local and remote task references.
+            **variables: Additional template variables, overriding identity fields.
+        """
         await self.client.call(method, identity.rpc_variables | variables)

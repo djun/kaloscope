@@ -44,6 +44,9 @@
   }
 
   onMount(() => {
+    /**
+     * Set navigation headings from the first matching menu route.
+     */
     const updateSignposts = () => {
       // set the signposts based on the current page
       const pathname = page.url.pathname;

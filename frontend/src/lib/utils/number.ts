@@ -22,10 +22,10 @@ export function aspectRatio(ratio: number | string | null | undefined): number {
 /**
  * Convert a number to a fixed decimal string with bounds checking.
  *
- * @param value - The numeric value or string to format, or `null` or `undefined`.
- * @param decimals - The number of decimal places to include (default is `1`).
- * @param min - The lower bound, or `null` to omit it; a bound of `0` produces an empty string.
- * @param max - The upper bound, or `null` to omit it.
+ * @param value - Numeric value or string to format, or `null` or `undefined`.
+ * @param decimals - Number of decimal places to include (default is `1`).
+ * @param min - Lower bound, or `null` to omit it; a bound of `0` produces an empty string.
+ * @param max - Upper bound, or `null` to omit it.
  * @returns A string representing the fixed number, or an empty string if the input is invalid.
  */
 export function fixedNumber(

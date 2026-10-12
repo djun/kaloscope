@@ -56,7 +56,7 @@
    * Toggle a boolean field of a URL rule.
    *
    * @param rule - The URL rule.
-   * @param field - The field to toggle.
+   * @param field - Field to toggle.
    */
   function toggle(rule: URLRule, field: 'secure_dns' | 'http_proxy') {
     const value = !rule[field];
@@ -77,7 +77,7 @@
   /**
    * Move a rule up in the list.
    *
-   * @param index - The index of the rule to move up.
+   * @param index - Index of the rule to move up.
    */
   function moveUp(index: number) {
     if (index <= 0) {
@@ -92,7 +92,7 @@
   /**
    * Move a rule down in the list.
    *
-   * @param index - The index of the rule to move down.
+   * @param index - Index of the rule to move down.
    */
   function moveDown(index: number) {
     if (index >= rules.length - 1) {
@@ -112,7 +112,7 @@
   let selectedResolver: DNSResolver | null = $state(null);
 
   /**
-   * Get the DNS resolvers.
+   * Get DNS resolvers.
    */
   function getDNSResolvers() {
     api
@@ -142,7 +142,7 @@
   let selectedProxy: HTTPProxy | null = $state(null);
 
   /**
-   * Get the HTTP proxy servers.
+   * Get HTTP proxy servers.
    */
   function getProxyServers() {
     api

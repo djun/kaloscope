@@ -57,10 +57,10 @@ class ReadingSource:
 
     @property
     def directory(self) -> Path:
-        """Return the container owning this source's external metadata.
+        """Return container owning this source's external metadata.
 
         Returns:
-            The source directory or the parent of a body file.
+            Source directory or the parent of a body file.
         """
         return self.path if self.format in (None, MediaFormat.DIR) else self.path.parent
 
@@ -93,7 +93,7 @@ def list_source_entries(directory: Path) -> tuple[list[Path], list[Path]]:
     """List regular files and directories without following symbolic links.
 
     Args:
-        directory: The directory to inspect.
+        directory: Directory to inspect.
 
     Returns:
         Naturally ordered files and child directories.
@@ -124,12 +124,12 @@ def identify_comic_source(
     """Identify one comic reading unit from its direct files.
 
     Args:
-        directory: The work or chapter container.
+        directory: Work or chapter container.
         files: Its sorted regular files.
-        parent_path: The collection path, or None for a standalone comic.
+        parent_path: Collection path, or None for a standalone comic.
 
     Returns:
-        The reading source, or None when no supported body is present.
+        Reading source, or None when no supported body is present.
 
     Raises:
         ValueError: With a stable code for ambiguous or oversized content.
@@ -160,7 +160,7 @@ class ReadingMediaHandler(MediaHandler):
         """Select the supported reading library type.
 
         Args:
-            lib_type: The novel or comic library type.
+            lib_type: Novel or comic library type.
 
         Raises:
             ValueError: If the library type is not a reading type.
@@ -173,7 +173,7 @@ class ReadingMediaHandler(MediaHandler):
         """Return MIME hints; discovery validates layout and explicit suffixes.
 
         Returns:
-            The content MIME hints for this library type.
+            Content MIME hints for this library type.
         """
         if self.lib_type == LibType.NOVEL:
             return ["text/plain", "application/epub+zip"]
@@ -188,7 +188,7 @@ class ReadingMediaHandler(MediaHandler):
         containers create no candidates; issues must not imply source deletion.
 
         Args:
-            base_path: The absolute library root.
+            base_path: Absolute library root.
             work_path: One direct work directory, or None to scan the whole root.
 
         Returns:
@@ -238,8 +238,8 @@ class ReadingMediaHandler(MediaHandler):
         """Classify one work and preserve independent chapter failures.
 
         Args:
-            work: The direct child directory of the library root.
-            issues: The scan's layout and access issues, updated in place.
+            work: Direct child directory of the library root.
+            issues: Scan's layout and access issues, updated in place.
 
         Returns:
             A novel, standalone comic or collection followed by its chapters.
@@ -306,8 +306,8 @@ class ReadingMediaHandler(MediaHandler):
         an observation, never authorization to delete an indexed item.
 
         Args:
-            base_path: The absolute library root without symbolic-link ancestors.
-            work_path: The visible work directory directly below the root.
+            base_path: Absolute library root without symbolic-link ancestors.
+            work_path: Visible work directory directly below the root.
             targets: Work or direct comic chapter containers; None selects the work.
 
         Returns:
@@ -338,7 +338,7 @@ class ReadingMediaHandler(MediaHandler):
             """Record one container and return its visible child directories.
 
             Args:
-                directory: The work or a selected chapter container.
+                directory: Work or a selected chapter container.
 
             Returns:
                 Child directories, or an empty list for a missing container.
@@ -395,8 +395,8 @@ class ReadingMediaHandler(MediaHandler):
         their original work. Discovery rechecks directories without following links.
 
         Args:
-            event: The original filesystem event, including both sides of a move.
-            base_path: The absolute library root.
+            event: Original filesystem event, including both sides of a move.
+            base_path: Absolute library root.
 
         Returns:
             Affected work paths mapped to their unit containers. A work-level
@@ -461,8 +461,8 @@ class ReadingMediaHandler(MediaHandler):
         size and mtime; deeper auxiliary directories do not contain supported bodies.
 
         Args:
-            event: The original filesystem event, including both sides of a move.
-            base_path: The absolute library root.
+            event: Original filesystem event, including both sides of a move.
+            base_path: Absolute library root.
 
         Returns:
             Work paths mapped to containers requiring an unconditional rebuild.
@@ -511,11 +511,11 @@ class ReadingMediaHandler(MediaHandler):
         """Accept relevant events while retaining only original move facts.
 
         Args:
-            event: The filesystem event to classify without mutation.
-            base_path: The absolute library root.
+            event: Filesystem event to classify without mutation.
+            base_path: Absolute library root.
 
         Returns:
-            The original event when it affects a work, otherwise None.
+            Original event when it affects a work, otherwise None.
         """
         # inferred descendants are already covered by the original directory move
         if event.event_type == EVENT_TYPE_MOVED and event.is_synthetic:

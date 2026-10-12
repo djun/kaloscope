@@ -31,7 +31,7 @@ class GlobalVariable(TortoiseModel):
     encrypted = BooleanField()
 
     def value_length(self) -> int:
-        """Get the length of the decrypted value."""
+        """Get length of the decrypted value."""
         if not self.encrypted:
             return len(self.value)
         return len(xor_decrypt(self.value))

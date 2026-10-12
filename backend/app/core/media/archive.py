@@ -26,7 +26,7 @@ class _ArchiveReader(io.BufferedReader):
         """Reject unbounded or oversized reads requested by the ZIP parser.
 
         Args:
-            size: The byte bound; the unbounded default is rejected.
+            size: Byte bound; the unbounded default is rejected.
 
         Returns:
             At most the requested number of source bytes.
@@ -47,7 +47,7 @@ def normalize_member_path(name: str) -> str:
     """Normalize a relative ZIP member name without allowing parent traversal.
 
     Args:
-        name: The original or decoded member name, including directory entries.
+        name: Original or decoded member name, including directory entries.
 
     Returns:
         A normalized POSIX path used for uniqueness and sorting.
@@ -75,7 +75,7 @@ def _validate_members(archive: zipfile.ZipFile):
     """Validate member identities, supported methods and declared resource budgets.
 
     Args:
-        archive: The already opened ZIP archive with bounded directory storage.
+        archive: Already opened ZIP archive with bounded directory storage.
 
     Raises:
         ContentError: If the archive contains unsafe, unsupported or excessive entries.
@@ -116,15 +116,15 @@ def open_archive(
 ) -> Generator[tuple[zipfile.ZipFile, FileSnapshot]]:
     """Open a stable ZIP source with bounded metadata and no extraction or writes.
 
-    The caller validates the full library boundary and runs this synchronous work
+    Caller validates the full library boundary and runs this synchronous work
     in a worker. Source stability is checked even when member parsing fails.
 
     Args:
-        path: The source archive inside a caller-validated library container.
-        snapshot: The expected size and mtime, or None during initial indexing.
+        path: Source archive inside a caller-validated library container.
+        snapshot: Expected size and mtime, or None during initial indexing.
 
     Yields:
-        The validated archive and its path-independent source snapshot.
+        Validated archive and its path-independent source snapshot.
 
     Raises:
         ContentError: If the source changes, becomes unreadable, is unsafe,
@@ -172,14 +172,14 @@ def read_member(
     """Read one member within a byte budget, consuming it fully for CRC validation.
 
     Args:
-        archive: The archive yielded by open_archive.
-        member: The validated member to read.
-        limit: The maximum allowed uncompressed byte count.
-        prefix_bytes: The number of leading bytes to retain; None retains all bytes.
-            The whole member is consumed and checked in either case.
+        archive: Archive yielded by open_archive.
+        member: Validated member to read.
+        limit: Maximum allowed uncompressed byte count.
+        prefix_bytes: Number of leading bytes to retain; None retains all bytes.
+            Whole member is consumed and checked in either case.
 
     Returns:
-        The full bytes or the requested prefix, after size and CRC checks.
+        Full bytes or the requested prefix, after size and CRC checks.
 
     Raises:
         ContentError: If the member exceeds the limit or has a mismatched size.

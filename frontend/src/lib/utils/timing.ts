@@ -1,8 +1,8 @@
 /**
  * Debounce calls to a function.
  *
- * @param func - The function to debounce.
- * @param timeout - The debounce timeout in milliseconds.
+ * @param func - Function to debounce.
+ * @param timeout - Debounce timeout in milliseconds.
  * @param immediate - Whether to trigger the function immediately.
  * @returns The debounced function.
  */
@@ -44,8 +44,8 @@ export function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
 /**
  * Throttle calls to a function.
  *
- * @param func - The function to throttle.
- * @param timeout - The throttle timeout in milliseconds.
+ * @param func - Function to throttle.
+ * @param timeout - Throttle timeout in milliseconds.
  * @param immediate - Whether to trigger the function immediately.
  * @returns The throttled function.
  */

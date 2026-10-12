@@ -14,7 +14,15 @@ config = Blueprint("config", url_prefix="/config")
 @config.get("/list")
 @validate(query=ConfigQuery)
 async def list_configs(_, query: ConfigQuery) -> HTTPResponse:
-    """List the global configs."""
+    """List the global configs.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     queries = []
     if query.key:
         queries.append(Q(key__icontains=query.key))
@@ -29,7 +37,15 @@ async def list_configs(_, query: ConfigQuery) -> HTTPResponse:
 
 @config.get("/<key>")
 async def get_config(_, key: str) -> HTTPResponse:
-    """Get a single global config by key."""
+    """Get a single global config by key.
+
+    Args:
+        _: Unused request.
+        key: Configuration key.
+
+    Returns:
+        Response containing the requested data.
+    """
     config = await GlobalConfig.get_or_none(key=key)
     return json(config.value if config else None)
 
@@ -38,7 +54,15 @@ async def get_config(_, key: str) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=ConfigUpsert)
 async def upsert_config(_, body: ConfigUpsert) -> HTTPResponse:
-    """Create or update a global config."""
+    """Create or update a global config.
+
+    Args:
+        _: Unused request.
+        body: Configuration key and value.
+
+    Returns:
+        Response containing the requested data.
+    """
     config = await ConfigService.upsert(body)
     return json(ConfigService.serialize(config))
 
@@ -47,6 +71,14 @@ async def upsert_config(_, body: ConfigUpsert) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_configs(_, body: IDs) -> HTTPResponse:
-    """Delete the global configs."""
+    """Delete the global configs.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     await GlobalConfig.filter(id__in=body.ids).delete()
     return empty()

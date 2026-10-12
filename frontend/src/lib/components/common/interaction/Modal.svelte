@@ -25,12 +25,12 @@
   }>;
 
   /**
-   * The reactive map of modal dialogs.
+   * Reactive map of modal dialogs.
    */
   const modals = new SvelteMap<string, ModalProps>();
 
   /**
-   * The duration of the modal dialog transition in milliseconds.
+   * Duration of the modal dialog transition in milliseconds.
    */
   const TRANSITION_DURATION = 200;
 </script>
@@ -76,7 +76,7 @@
   /**
    * Close the modal dialog.
    *
-   * @param event - The mouse event that triggered the close action.
+   * @param event - Mouse event that triggered the close action.
    */
   export function close(event: MouseEvent | null = null) {
     if (event) {

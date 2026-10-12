@@ -8,6 +8,10 @@ import type { LayoutLoad } from './$types';
 // https://svelte.dev/docs/kit/single-page-apps
 export const ssr = false;
 
+/**
+ * Initialize shared UI defaults, language support and the user session.
+ * @returns Data used by the layout or page.
+ */
 export const load: LayoutLoad = async () => {
   // append custom styles to the SVG icons
   // https://github.com/iconify/iconify/issues/196
@@ -40,9 +44,9 @@ export const load: LayoutLoad = async () => {
 /**
  * Register a locale with its loader and name.
  *
- * @param locale - The locale to register.
- * @param loader - The loader function to load the locale messages.
- * @param name - The name of the locale.
+ * @param locale - Locale to register.
+ * @param loader - Loader function to load the locale messages.
+ * @param name - Name of the locale.
  */
 function registerLocale(locale: string, loader: { (): Promise<unknown> }, name: string) {
   register(locale, loader);

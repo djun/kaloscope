@@ -33,8 +33,8 @@
   /**
    * Search for users.
    *
-   * @param page - The page number.
-   * @param size - The page size.
+   * @param page - Page number.
+   * @param size - Page size.
    */
   function search(page: number = 1, size: number = pagination.size) {
     loading.start();
@@ -62,7 +62,7 @@
   /**
    * Delete a user by ID.
    *
-   * @param id - The user ID.
+   * @param id - User ID.
    */
   function del(id: number) {
     loading.start();

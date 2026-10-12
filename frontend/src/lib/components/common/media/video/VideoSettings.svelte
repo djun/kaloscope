@@ -62,7 +62,7 @@
     isDefault?: boolean;
   };
 
-  // danmaku settings and types
+  // overlay comment settings and types
   type DanmakuMode = 'scroll' | 'top' | 'bottom' | 'color';
   type DanmakuSettings = {
     enabled: boolean;
@@ -103,8 +103,8 @@
   /**
    * Find the first subtitle track matching the language preference.
    *
-   * @param tracks - The formatted subtitle tracks.
-   * @param languagePreference - The regular expression used to match tracks.
+   * @param tracks - Formatted subtitle tracks.
+   * @param languagePreference - Regular expression used to match tracks.
    * @returns The preferred subtitle track, or the first track when no match is found.
    */
   export function findPreferredTrack<T extends TrackWrapper>(tracks: T[], languagePreference: string) {
@@ -129,10 +129,10 @@
   }
 
   /**
-   * Formats subtitle track metadata for the TextTrack plugin.
+   * Format subtitle track metadata for the TextTrack plugin.
    *
-   * @param subtitles - The list of subtitle tracks.
-   * @param settings - The persisted subtitle settings.
+   * @param subtitles - List of subtitle tracks.
+   * @param settings - Persisted subtitle settings.
    * @returns The formatted subtitles.
    */
   export function formatSubtitles(subtitles: Subtitle[] | null | undefined, settings?: SubtitleSettings | null) {
@@ -146,9 +146,9 @@
       .map((subtitle) => {
         return {
           id: subtitle.id,
-          // Keep backend language in `_language` for app-side preference matching, but do not pass it to xgplayer:
+          // keep backend language in `_language` for app-side preference matching, but do not pass it to xgplayer:
           // xgplayer treats tracks with the same language as the same subtitle and may switch to the wrong track
-          // when multiple subtitles share a language marker.
+          // when multiple subtitles share a language marker
           _language: subtitle.language,
           // language: subtitle.language,
           label: subtitle.label,
@@ -166,13 +166,13 @@
   }
 
   /**
-   * Formats the danmakus to the format required by the player.
+   * Format overlay comments to the format required by the player.
    *
-   * @param danmakus - The list of video comments.
-   * @param container - The danmaku container element.
-   * @param direction - The danmaku direction.
-   * @param settings - The persisted filtering settings.
-   * @returns The formatted danmakus.
+   * @param danmakus - Video comments to format.
+   * @param container - Overlay comment container element.
+   * @param direction - Overlay comment direction.
+   * @param settings - Persisted filtering settings.
+   * @returns The formatted overlay comments.
    */
   export function formatDanmakus(
     danmakus: Danmaku[] | null | undefined,
@@ -236,7 +236,7 @@
         start: start || 0, // start time in milliseconds
         duration: duration || defaultDuration, // duration in milliseconds
         mode: mode || 'scroll', // display mode: 'scroll', 'top', 'bottom'
-        color: !!color && !isWhite(color), // mark the danmaku as colored
+        color: !!color && !isWhite(color), // mark the overlay comment as colored
         style: {
           color: color || '#fff' // comment color
         }
@@ -292,14 +292,14 @@
   // identifies the latest playback switch so stale media events cannot clear its loading UI
   let playbackSwitchId = 0;
 
-  // the danmaku metadata matched with the current video
+  // the overlay comment metadata matched with the current video
   let danmakuMeta: DanmakuMeta | null = $state(null);
-  // whether local danmaku cache exists for the current video
+  // whether local overlay comment cache exists for the current video
   let danmakuCache: boolean = $state(false);
-  // the raw danmakus for applying settings
+  // the raw overlay comments for applying settings
   let rawDanmakus: Danmaku[] = [];
 
-  // the manual danmaku search states
+  // the manual overlay comment search states
   let mediaPath: string = $state('');
   let animeTitle: string = $derived.by(() => danmakuMeta?.anime_title ?? '');
   let results: DanmakuMeta[] = $state([]);
@@ -314,14 +314,14 @@
   export const showModal = () => modal.show();
 
   /**
-   * Get the current landscape mode setting.
+   * Get current landscape mode setting.
    */
   export const landscapeMode = () => $video?.landscapeMode;
 
   /**
    * Probe playback metadata for a local media stream.
    *
-   * @param url - The media stream URL.
+   * @param url - Media stream URL.
    * @returns The duration and progress markers used by the player.
    */
   export async function probeMedia(url: IUrl) {
@@ -350,7 +350,7 @@
   /**
    * Probe the full duration required by server-transcoded HLS playback.
    *
-   * @param url - The media stream URL.
+   * @param url - Media stream URL.
    * @returns The duration of the media stream in seconds.
    */
   async function probeDuration(url: IUrl): Promise<number | undefined> {
@@ -368,7 +368,7 @@
     if (player) {
       rotateFullscreen = portrait && player.isRotateFullscreen;
     }
-    // toggle the scroll direction of the danmakus
+    // toggle the scroll direction of the overlay comments
     tick().then(() => {
       const danmujs = danmakuPlugin?.danmujs;
       if (danmujs) {
@@ -408,7 +408,7 @@
     // subtitle
     applySubtitleSettings();
     loadLocalSubtitles();
-    // danmaku
+    // overlay comment
     if ($danmaku !== null && danmakuPlugin !== null) {
       danmakuPlugin.setArea({ start: 0, end: $danmaku.area / 100 || 0.1 });
       danmakuPlugin.setOpacity($danmaku.opacity / 100);
@@ -437,7 +437,7 @@
   /**
    * Change the playback mode of the video.
    *
-   * @param mode - The new playback mode.
+   * @param mode - New playback mode.
    */
   export function changePlaybackMode(mode: PlaybackMode) {
     if (!player || !localMedia) {
@@ -460,7 +460,7 @@
   /**
    * Apply the active playback mode to a chapter stream URL.
    *
-   * @param url - The original chapter stream URL.
+   * @param url - Original chapter stream URL.
    * @returns The resolved chapter stream URL.
    */
   export function resolveChapterUrl(url: string): string {
@@ -493,7 +493,7 @@
   /**
    * Restore the media pipeline that was replaced by server-side HLS transcoding.
    *
-   * @param url - The new video URL.
+   * @param url - New video URL.
    */
   function prepareDirectPlayback(url: IUrl): boolean {
     if (!player || !player.getPlugin('hls')) {
@@ -501,7 +501,7 @@
     }
     player.unRegisterPlugin('hls', true);
     // xgplayer-hls installs instance-level URL accessors and disables native
-    // source handling; its destroy hook does not restore them.
+    // source handling; its destroy hook does not restore them
     Reflect.deleteProperty(player, 'switchURL');
     Reflect.deleteProperty(player, 'url');
     player.handleSource = true;
@@ -521,7 +521,7 @@
     const switchId = ++playbackSwitchId;
     player.addClass('xgplayer-switch-loading');
 
-    // remove the loading indicator when the stream is ready
+    // clear the loading indicator only for the current playback switch
     const remove = () => {
       if (switchId !== playbackSwitchId) {
         return;
@@ -536,7 +536,7 @@
   /**
    * Change the video playback source.
    *
-   * @param url - The new video URL.
+   * @param url - New video URL.
    * @param options - Controls how the player switches sources.
    */
   export async function changePlaybackSource(url: IUrl, { restoreDirect = false }: { restoreDirect?: boolean } = {}) {
@@ -610,7 +610,7 @@
   /**
    * Change the playback rate of the video.
    *
-   * @param rate - The new playback rate.
+   * @param rate - New playback rate.
    */
   function changePlaybackRate(rate: number) {
     if (!player) {
@@ -645,7 +645,7 @@
   /**
    * Change the rotation degree of the video.
    *
-   * @param degree - The new rotation degree.
+   * @param degree - New rotation degree.
    */
   function changeRotateDegree(degree: number) {
     if (!rotatePlugin) {
@@ -679,7 +679,7 @@
   }
 
   /**
-   * Load the subtitle data for the current local video.
+   * Load subtitle data for the current local video.
    */
   export function loadLocalSubtitles() {
     if (!localMedia || textTrackPlugin === null) {
@@ -698,9 +698,9 @@
   }
 
   /**
-   * Update the subtitles for the current video.
+   * Update subtitles for the current video.
    *
-   * @param data - The subtitle tracks.
+   * @param data - Subtitle tracks.
    */
   function updateSubtitles(data: Subtitle[]) {
     if (textTrackPlugin === null) {
@@ -712,18 +712,18 @@
   }
 
   /**
-   * Load the danmaku data for the current video.
+   * Load overlay comment data for the current video.
    */
   export function loadLocalDanmakus() {
     if (!localMedia || danmakuPlugin === null) {
       return;
     }
-    // clear the existing danmakus before loading new ones
+    // clear the existing overlay comments before loading new ones
     danmakuPlugin.clear();
     rawDanmakus = [];
     danmakuMeta = null;
     danmakuCache = false;
-    // fetch the danmakus matched with the current video
+    // fetch the overlay comments matched with the current video
     const url = player?.config.url as string;
     const path = extractStreamPath(url);
     mediaPath = path;
@@ -736,7 +736,7 @@
   }
 
   /**
-   * Delete the locally cached danmakus for the current video.
+   * Delete the locally cached overlay comments for the current video.
    */
   function deleteLocalDanmakus() {
     if (!localMedia || !danmakuCache) {
@@ -813,18 +813,18 @@
   }
 
   /**
-   * Store the raw danmakus for applying settings.
+   * Store the raw overlay comments for applying settings.
    *
-   * @param comments - The raw video comments.
+   * @param comments - Raw video comments.
    */
   export function setDanmakus(comments?: Danmaku[] | null) {
     rawDanmakus = comments ?? [];
   }
 
   /**
-   * Update the danmakus for the current video.
+   * Update overlay comments for the current video.
    *
-   * @param data - The danmaku data wrapper.
+   * @param data - Overlay comment data wrapper.
    */
   function updateDanmakus(data: DanmakuWrapper) {
     if (danmakuPlugin === null) {
@@ -841,9 +841,9 @@
   }
 
   /**
-   * Reapply the danmaku settings to the current comments.
+   * Reapply the overlay comment settings to the current comments.
    *
-   * @param settings - The settings to apply.
+   * @param settings - Settings to apply.
    */
   function applyDanmakuSettings(settings: DanmakuSettings | null = $danmaku) {
     if (danmakuPlugin === null || rawDanmakus.length === 0) {
@@ -855,8 +855,8 @@
     danmakuPlugin.clear();
     danmakuPlugin.updateComments(comments, true);
 
-    // The font size needs to be reset after updating the comments;
-    // this may be a bug in danmu.js where the style is reset after updating.
+    // the font size needs to be reset after updating the comments;
+    // the comment overlay may reset styles after an update
     if (settings !== null) {
       danmakuPlugin.setFontSize(settings.fontSize, null);
     }
@@ -887,7 +887,7 @@
       </button>
     </div>
 
-    <!-- The video settings tab. -->
+    <!-- the video settings tab -->
     <div class="video-settings-content" hidden={tabId !== 'video'}>
       <div>
         {@render optionLabel($_('media.video.speed'))}
@@ -980,7 +980,7 @@
       {/if}
     </div>
 
-    <!-- The subtitle settings tab. -->
+    <!-- the subtitle settings tab -->
     {#if localMedia}
       <div class="video-settings-content" hidden={tabId !== 'subtitle'}>
         {#if $subtitle !== null}
@@ -1070,7 +1070,7 @@
       </div>
     {/if}
 
-    <!-- The danmaku settings tab. -->
+    <!-- the overlay comment settings tab -->
     <div class="video-settings-content" hidden={tabId !== 'danmaku'}>
       {#if $danmaku !== null && danmakuPlugin !== null}
         <div>
@@ -1174,7 +1174,7 @@
       {/if}
     </div>
 
-    <!-- The danmaku match tab. -->
+    <!-- the comment match tab -->
     {#if localMedia}
       {@const btnClass = 'border-0 bg-primary/30 text-white shadow-none hover:bg-base-300 hover:text-base-content'}
       {@const btnDisabledClass = 'disabled:bg-primary/15 disabled:text-white/15'}
@@ -1283,7 +1283,7 @@
   </div>
 </Modal>
 
-<!-- The tab label rendering snippet. -->
+<!-- the tab label rendering snippet -->
 {#snippet tabLabel(id: string, icon: IconifyIcon, name: string)}
   {@const checked = tabId === id}
   {@const tabClass = checked ? '!text-white/80' : '!text-white/20 hover:!text-white/80'}
@@ -1294,7 +1294,7 @@
   </label>
 {/snippet}
 
-<!-- The option label rendering snippet. -->
+<!-- the option label rendering snippet -->
 {#snippet optionLabel(name: string, tip?: string)}
   <div class="max-w-40 min-w-20 shrink-0 text-white/60">
     <span class="text-base leading-tight font-semibold">{name}</span>
@@ -1306,7 +1306,7 @@
   </div>
 {/snippet}
 
-<!-- The danmaku block rendering snippet. -->
+<!-- the overlay comment block rendering snippet -->
 {#snippet danmakuBlock(mode: DanmakuMode, icon: IconifyIcon)}
   {@const blocked = $danmaku?.blocks.includes(mode)}
   <button

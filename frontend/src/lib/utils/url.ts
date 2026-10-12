@@ -1,7 +1,7 @@
 /**
  * Normalize a URL pathname by stripping the trailing slash.
  *
- * @param pathname - The pathname to normalize.
+ * @param pathname - Pathname to normalize.
  * @returns The normalized pathname (root `/` is preserved).
  */
 export function normalizePathname(pathname: string): string {

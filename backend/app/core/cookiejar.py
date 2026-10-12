@@ -12,12 +12,22 @@ class SQLiteCookieJar(CookieJar):
     """SQLite-backed cookie jar."""
 
     def __init__(self, app: Sanic, policy=None):
+        """Use the shared cookie store and lock.
+
+        Args:
+            app: Application holding the shared cookie state.
+            policy: Cookie acceptance policy; `None` uses the standard policy.
+        """
         super().__init__(policy)
         self._cookies: DictProxy = app.shared_ctx.cookies
         self._cookies_lock: RLock = app.shared_ctx.cookies_lock
 
     def set_cookie(self, cookie):
-        """Set a cookie, without checking whether or not it should be set."""
+        """Store a cookie without checking the acceptance policy.
+
+        Args:
+            cookie: Cookie to store.
+        """
         c = self._cookies
         self._cookies_lock.acquire()
         try:
@@ -34,15 +44,31 @@ class SQLiteCookieJar(CookieJar):
             self._cookies_lock.release()
 
     def get_cookie(self, domain, path=None, name=None):
-        """Get a cookie by domain, path and name."""
+        """Find a cookie that has not expired.
+
+        Args:
+            domain: Cookie domain.
+            path: Cookie path; `None` searches all paths in the domain.
+            name: Cookie name; `None` returns the first match.
+
+        Returns:
+            Matching cookie, or `None` if no valid cookie exists.
+        """
         c2 = self._cookies.get(domain)
         if not c2:
             return None
 
         now = time.time()
 
-        # check if the cookie is expired
         def not_expired(cookie):
+            """Check expiry against the captured lookup time.
+
+            Args:
+                cookie: Cookie to check.
+
+            Returns:
+                Whether the cookie has no expiry or is still valid.
+            """
             return cookie.expires is None or cookie.expires >= now
 
         if path is not None and path in c2:
@@ -62,16 +88,16 @@ class SQLiteCookieJar(CookieJar):
                         return cookie
 
     def clear(self, domain=None, path=None, name=None):
-        """Clear some cookies.
+        """Remove cookies within the selected scope.
 
-        Invoking this method without arguments will clear all cookies.  If
-        given a single argument, only cookies belonging to that domain will be
-        removed.  If given two arguments, cookies belonging to the specified
-        path within that domain are removed.  If given three arguments, then
-        the cookie with the specified name, path and domain is removed.
+        Args:
+            domain: Domain to clear; `None` clears all cookies.
+            path: Path to clear; `None` clears the whole domain.
+            name: Cookie name; `None` clears all cookies in the selected path.
 
-        Raises KeyError if no matching cookie exists.
-
+        Raises:
+            KeyError: If the selected domain, path or cookie does not exist.
+            ValueError: If a path or name lacks its required domain or path scope.
         """
         if name is not None:
             if (domain is None) or (path is None):

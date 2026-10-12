@@ -17,7 +17,7 @@
   /**
    * Scan a media library and track its completion.
    *
-   * @param id - The media library ID.
+   * @param id - Media library ID.
    * @returns A promise that resolves when the scan request finishes.
    */
   async function scan(id: number) {

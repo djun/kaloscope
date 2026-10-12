@@ -13,7 +13,14 @@ class VAAPI(HWAccelStrategy):
     """Linux VAAPI H.264 encoding strategy."""
 
     async def resolve_device(self, context: TranscodeContext) -> str | None:
-        """Resolve the required VAAPI DRM render node."""
+        """Resolve the required VAAPI DRM render node.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Device identifier, or `None` for the default device.
+        """
         device = await resolve_vaapi_device()
         if not device:
             raise RuntimeError(
@@ -22,7 +29,14 @@ class VAAPI(HWAccelStrategy):
         return device
 
     def encoder_probe_args(self, context: TranscodeContext) -> list[str]:
-        """Build a synthetic VAAPI upload and encode probe."""
+        """Build a synthetic VAAPI upload and encode probe.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            FFmpeg arguments for a one-frame encoder check.
+        """
         device = context.device
         assert device is not None
         return [
@@ -45,7 +59,14 @@ class VAAPI(HWAccelStrategy):
         ]
 
     def keep_hardware_frames(self, context: TranscodeContext) -> bool:
-        """Keep HDR10 on VAAPI and expose HLG to the CPU tone mapper."""
+        """Keep HDR10 on VAAPI and expose HLG to the CPU tone mapper.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Whether subsequent filters can use frames in device memory.
+        """
         if context.is_hdr10:
             return not (
                 (context.needs_scale or context.needs_rotation or context.is_interlaced)
@@ -56,7 +77,14 @@ class VAAPI(HWAccelStrategy):
         return super().keep_hardware_frames(context)
 
     def transform_filters(self, context: TranscodeContext) -> list[str]:
-        """Build eligible VAAPI deinterlace, rotation, and scale filters."""
+        """Build eligible VAAPI filters for field conversion, rotation and scaling.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Ordered hardware filter expressions.
+        """
         if context.is_hlg:
             return []
         filters: list[str] = []
@@ -76,7 +104,14 @@ class VAAPI(HWAccelStrategy):
         return filters
 
     def transform_filter_names(self, context: TranscodeContext) -> set[str]:
-        """Return filter names required by the selected VAAPI transforms."""
+        """Return filter names required by the selected VAAPI transforms.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Filter names required by the hardware transforms.
+        """
         filters = self.transform_filters(context)
         names: set[str] = set()
         if any(value.startswith("deinterlace_vaapi") for value in filters):
@@ -88,7 +123,14 @@ class VAAPI(HWAccelStrategy):
         return names
 
     def transform_download_format(self, context: TranscodeContext) -> str:
-        """Return the CPU format produced after downloading VAAPI transforms."""
+        """Return CPU format produced after downloading VAAPI transforms.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Software pixel format used to receive hardware frames.
+        """
         if context.needs_scale and not context.needs_tonemap:
             return "nv12"
         return super().transform_download_format(context)
@@ -101,7 +143,7 @@ class VAAPI(HWAccelStrategy):
         shared software path.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg hardware-decoding and device-selection options.
@@ -123,7 +165,7 @@ class VAAPI(HWAccelStrategy):
         before encoding.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             Hardware or software NV12 conversion filters for VAAPI encoding.
@@ -173,7 +215,7 @@ class VAAPI(HWAccelStrategy):
         """Build VAAPI bitrate options with automatic rate-control selection.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg target, maximum, and buffer bitrate options.
@@ -193,7 +235,7 @@ class VAAPI(HWAccelStrategy):
         """Build timestamp-based keyframe placement for VAAPI.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg options that force keyframes at segment boundaries.

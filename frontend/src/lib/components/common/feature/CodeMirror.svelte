@@ -58,9 +58,9 @@
   }>;
 
   /**
-   * Get the language name from the language object.
+   * Get language name from the language object.
    *
-   * @param language - The language object.
+   * @param language - Language object.
    * @returns The language name to display.
    */
   function getLanguageName(language: LanguageSupport | Language | null | undefined): string {
@@ -83,8 +83,8 @@
   /**
    * Replace the document in the editor view.
    *
-   * @param view - The editor view.
-   * @param newDoc - The new document.
+   * @param view - Editor view.
+   * @param newDoc - New document.
    */
   function replace(view: EditorView, newDoc: string | undefined) {
     // https://codemirror.net/examples/change/
@@ -94,12 +94,12 @@
   }
 
   /**
-   * Format the document based on the language.
+   * Format document based on the language.
    *
-   * @param view - The editor view.
-   * @param language - The language of the document.
-   * @param tabSize - The number of spaces per tab.
-   * @param lineLength - The maximum length of a line.
+   * @param view - Editor view.
+   * @param language - Language of the document.
+   * @param tabSize - Number of spaces per tab.
+   * @param lineLength - Maximum length of a line.
    */
   async function format(view: EditorView, language: string, tabSize: number, lineLength: number) {
     try {
@@ -154,6 +154,7 @@
           ).data;
           break;
       }
+
       // replace the document with the formatted one
       if (formatted) {
         replace(view, formatted);
@@ -167,8 +168,8 @@
    * Evaluate the given Jinja2 template with the provided document.
    *
    * @param tmpl - The Jinja2 template to evaluate.
-   * @param doc - The document to use for evaluation.
-   * @param docName - The name of the document.
+   * @param doc - Document to use for evaluation.
+   * @param docName - Name of the document.
    */
   async function evaluate(tmpl: string, doc: string, docName: string | null) {
     try {
@@ -311,7 +312,7 @@
   /**
    * Replace the current document with a new one.
    *
-   * @param newDoc - The new document.
+   * @param newDoc - New document.
    * @param setOriginal - Whether to replace the original document.
    */
   export function setDocument(newDoc: string | undefined, setOriginal: boolean = false) {
@@ -322,7 +323,7 @@
   }
 
   /**
-   * The basic set of extensions for the editor.
+   * Basic set of extensions for the editor.
    *
    * https://github.com/codemirror/basic-setup
    */

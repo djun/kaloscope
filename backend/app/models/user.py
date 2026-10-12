@@ -176,10 +176,10 @@ class UserPreference(KVPair):
         """Validate history retention before value coercion.
 
         Args:
-            data: The submitted preference data.
+            data: Submitted preference data.
 
         Returns:
-            The unchanged data for normal preference validation.
+            Unchanged data for normal preference validation.
 
         Raises:
             ValueError: If history retention is not an integer of at least -1.
@@ -216,7 +216,7 @@ class TextLocator(BaseModel, extra="forbid", strict=True):
         """Require exactly one paragraph or block anchor.
 
         Returns:
-            The validated locator.
+            Validated locator.
 
         Raises:
             ValueError: If both anchors are present or absent.
@@ -245,7 +245,7 @@ class HistoryQuery(Pageable):
         """Limit child-history queries to video works.
 
         Returns:
-            The validated history query.
+            Validated history query.
 
         Raises:
             ValueError: If another history type uses a parent filter.
@@ -268,7 +268,7 @@ class HistoryEntry(BaseModel):
         """Keep reading anchors separate from search terms and video seconds.
 
         Returns:
-            The entry with a locator matching its history type.
+            Entry with a locator matching its history type.
 
         Raises:
             ValueError: If reading fields are missing or used with another type.

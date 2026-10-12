@@ -5,7 +5,7 @@ import Danmu from 'xgplayer/es/plugins/danmu';
 const MIN_RESTART_INTERVAL = 300;
 
 /**
- * The built-in danmaku plugin stops and clears active comments for every seek.
+ * Built-in comment overlay plugin stops and clears active comments for every seek.
  * xgplayer-mp4 also seeks forward by 0.5 seconds to recover from an in-buffer
  * stall, so that internal recovery must not be handled as a user seek.
  */
@@ -15,7 +15,7 @@ export default class DanmuWithMp4Recovery extends Danmu {
   private restartTimer: number | null = null;
 
   /**
-   * Initializes the standard danmaku lifecycle with seek-source awareness.
+   * Initialize the standard comment overlay state with seek-source awareness.
    */
   afterCreate() {
     if (this.playerConfig.isLive) {
@@ -51,7 +51,7 @@ export default class DanmuWithMp4Recovery extends Danmu {
   }
 
   /**
-   * Clears any pending danmaku restart before the base plugin is destroyed.
+   * Clears any pending overlay comment restart before the base plugin is destroyed.
    */
   destroy() {
     this.clearRestartTimer();

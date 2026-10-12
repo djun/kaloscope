@@ -3,6 +3,10 @@ import { icons } from '$lib/icons';
 import type { Menu } from '$lib/types';
 import type { LayoutLoad } from './$types';
 
+/**
+ * Build settings navigation for the current user role.
+ * @returns Data used by the layout or page.
+ */
 export const load: LayoutLoad = async () => {
   const menus: Menu[] = [
     {

@@ -52,11 +52,17 @@ class PullError(Exception):
     """Represent a classified local result-transfer failure.
 
     Args:
-        kind: The persisted offline-download failure category.
-        message: The safe user-facing failure message.
+        kind: Persisted offline-download failure category.
+        message: Safe user-facing failure message.
     """
 
     def __init__(self, kind: OfflineDownloadErrorKind, message: str):
+        """Store a transfer failure category and safe message.
+
+        Args:
+            kind: Failure category to persist.
+            message: Message safe to display to the user.
+        """
         self.kind = kind
         super().__init__(message)
 
@@ -105,6 +111,14 @@ class _HttpxURLFilter(logging.Filter):
     """Remove credentials and signed query values from HTTPX request logs."""
 
     def filter(self, record: logging.LogRecord) -> bool:
+        """Remove credentials and signed query values from request logs.
+
+        Args:
+            record: HTTPX request log record to sanitize.
+
+        Returns:
+            Always `True`, preserving the sanitized record.
+        """
         args = record.args
         if (
             record.msg == _HTTPX_REQUEST_LOG
@@ -129,6 +143,13 @@ class _ProgressReporter:
         total: int,
         completed: int,
     ):
+        """Track completed bytes and the progress reporting interval.
+
+        Args:
+            callback: Progress handler, or `None` to disable reports.
+            total: Expected file size in bytes.
+            completed: Bytes already downloaded.
+        """
         self._callback = callback
         self._total = total
         self._completed = completed
@@ -139,8 +160,8 @@ class _ProgressReporter:
         """Report current progress when the throttle interval has elapsed.
 
         Args:
-            completed: The current completed size in bytes.
-            final: Whether to emit the final value immediately.
+            completed: Current completed size in bytes.
+            final: Whether to emit the final value immediately. Defaults to `False`.
         """
         if self._callback is None:
             return
@@ -168,11 +189,27 @@ class LocalFileTarget:
 
 
 def _origin(url: httpx.URL) -> tuple[str, str, int | None]:
+    """Normalize the URL origin for credential and proxy checks.
+
+    Args:
+        url: URL to inspect.
+
+    Returns:
+        Lowercase scheme, host and effective port.
+    """
     host = (url.host or "").lower().rstrip(".")
     return url.scheme.lower(), host, url.port or _DEFAULT_PORTS.get(url.scheme)
 
 
 def _first_segment(path: str) -> str:
+    """Read the first path segment regardless of slash direction.
+
+    Args:
+        path: URL path to inspect.
+
+    Returns:
+        Lowercase first segment, or an empty string.
+    """
     return next(
         (part.lower() for part in path.replace("\\", "/").split("/") if part),
         "",
@@ -180,6 +217,15 @@ def _first_segment(path: str) -> str:
 
 
 def _is_proxy_path(path: str, base_path: str) -> bool:
+    """Detect proxy routes with an optional deployment prefix.
+
+    Args:
+        path: Requested URL path.
+        base_path: Deployment prefix before the API path.
+
+    Returns:
+        Whether a supported proxy route matches.
+    """
     path = path.replace("\\", "/")
     candidates = [path]
     base_path = base_path.replace("\\", "/").rstrip("/")
@@ -197,14 +243,14 @@ def validate_data_url(
     """Validate that a result URL is direct HTTP data rather than an OpenList proxy.
 
     Args:
-        url: The result URL returned by OpenList.
-        openlist_base_url: The configured OpenList endpoint URL.
+        url: Result URL returned by OpenList.
+        openlist_base_url: Configured OpenList endpoint URL.
 
     Raises:
         PullError: If the URL is invalid, unsupported, or an OpenList proxy route.
 
     Returns:
-        The validated HTTPX URL.
+        Validated HTTPX URL.
     """
     try:
         target = httpx.URL(url)
@@ -221,6 +267,14 @@ def validate_data_url(
 
 
 def _header_items(headers: DataHeaders | None) -> list[tuple[str, str]]:
+    """Expand provider headers without merging repeated values.
+
+    Args:
+        headers: Provider headers, or `None` for no extra headers.
+
+    Returns:
+        Individual name and value pairs.
+    """
     if headers is None:
         return []
     result: list[tuple[str, str]] = []
@@ -235,6 +289,15 @@ def _header_items(headers: DataHeaders | None) -> list[tuple[str, str]]:
 def _pull_headers(
     headers: DataHeaders | None, offset: int
 ) -> dict[str, str | Sequence[str]]:
+    """Set range and encoding headers for a resumable download.
+
+    Args:
+        headers: Provider headers, or `None` for no extra headers.
+        offset: Bytes already stored; zero requests the whole file.
+
+    Returns:
+        Headers requiring raw bytes and the selected range.
+    """
     result = {
         name: values
         for name, values in (headers or {}).items()
@@ -247,6 +310,14 @@ def _pull_headers(
 
 
 def _content_range_start(response: httpx.Response) -> int | None:
+    """Read the first byte offset from a partial response.
+
+    Args:
+        response: Download response with an optional range header.
+
+    Returns:
+        Range start, or `None` if the header is invalid.
+    """
     unit, separator, value = response.headers.get("Content-Range", "").partition(" ")
     start, dash, _ = value.partition("-")
     if (
@@ -261,6 +332,18 @@ def _content_range_start(response: httpx.Response) -> int | None:
 
 
 def _write_mode(response: httpx.Response, offset: int) -> Literal["wb", "ab"]:
+    """Append only when the server confirms the requested offset.
+
+    Args:
+        response: Download response to validate.
+        offset: Requested starting byte offset.
+
+    Returns:
+        Binary append or overwrite mode.
+
+    Raises:
+        PullFailedError: If the response status or range does not permit writing.
+    """
     if response.status_code == 200:
         return "wb"
     if response.status_code == 206 and _content_range_start(response) == offset:
@@ -269,6 +352,18 @@ def _write_mode(response: httpx.Response, offset: int) -> Literal["wb", "ab"]:
 
 
 def _safe_local_path(task_dir: str | Path, relative_path: str) -> Path:
+    """Keep the resolved result path within the task directory.
+
+    Args:
+        task_dir: Local task directory.
+        relative_path: Manifest path relative to the task directory.
+
+    Returns:
+        Validated local result path.
+
+    Raises:
+        InvalidLocalPathError: If the path is invalid or escapes the task directory.
+    """
     try:
         relative_path = normalize_relative_path(relative_path)
         root = Path(task_dir).absolute()
@@ -285,15 +380,15 @@ def _job_path(final_path: Path, job_id: str, suffix: str) -> Path:
     """Build a validated job-scoped sidecar path.
 
     Args:
-        final_path: The final local file path.
-        job_id: The offline job UUID owning the sidecar.
-        suffix: The sidecar type appended to the generated name.
+        final_path: Final local file path.
+        job_id: Offline job UUID owning the sidecar.
+        suffix: Sidecar type appended to the generated name.
 
     Raises:
         PullError: If `job_id` cannot be embedded safely.
 
     Returns:
-        The hidden sidecar path adjacent to `final_path`.
+        Hidden sidecar path adjacent to `final_path`.
     """
     if len(job_id) != 32 or any(character not in _HEX_DIGITS for character in job_id):
         raise InvalidLocalPathError
@@ -314,13 +409,13 @@ def _job_path(final_path: Path, job_id: str, suffix: str) -> Path:
 
 
 def _ownership_value(path: Path) -> bytes:
-    """Build the filesystem identity stored in an ownership marker.
+    """Build filesystem identity stored in an ownership marker.
 
     Args:
-        path: The file or symbolic link to identify.
+        path: File or symbolic link to identify.
 
     Returns:
-        The encoded device, inode, size, and modification-time identity.
+        Encoded device, inode, size, and modification-time identity.
     """
     stat = path.lstat()
     return f"{stat.st_dev}:{stat.st_ino}:{stat.st_size}:{stat.st_mtime_ns}".encode()
@@ -330,8 +425,8 @@ def _owns_local_file(final_path: Path, marker_path: Path) -> bool:
     """Check whether a marker still identifies the installed file.
 
     Args:
-        final_path: The installed file being checked.
-        marker_path: The job-scoped ownership marker.
+        final_path: Installed file being checked.
+        marker_path: Job-scoped ownership marker.
 
     Returns:
         `True` when both paths are regular and their identities match.
@@ -353,8 +448,8 @@ def _remove_installed_part(final_path: Path, job_id: str):
     """Remove a partial path left linked to the installed file.
 
     Args:
-        final_path: The verified file owned by the job.
-        job_id: The offline job UUID owning the partial path.
+        final_path: Verified file owned by the job.
+        job_id: Offline job UUID owning the partial path.
     """
     part_path = _job_path(final_path, job_id, "part")
     with suppress(FileNotFoundError):
@@ -372,10 +467,10 @@ def delete_local_file(
     """Delete one manifest file's job-scoped local paths.
 
     Args:
-        task_dir: The local task root directory.
-        relative_path: The canonical path relative to `task_dir`.
-        job_id: The offline job UUID owning the local paths.
-        keep_final: Whether to preserve the installed final file.
+        task_dir: Local task root directory.
+        relative_path: Canonical path relative to `task_dir`.
+        job_id: Offline job UUID owning the local paths.
+        keep_final: Whether to preserve the installed final file. Defaults to `False`.
 
     Raises:
         PullError: If the path is unsafe or a local file cannot be deleted.
@@ -403,8 +498,8 @@ def delete_local_directory(task_dir: str | Path, relative_path: str):
     """Delete one empty manifest directory.
 
     Args:
-        task_dir: The local task root directory.
-        relative_path: The canonical path relative to `task_dir`.
+        task_dir: Local task root directory.
+        relative_path: Canonical path relative to `task_dir`.
 
     Raises:
         PullError: If the path is unsafe or an empty directory cannot be removed.
@@ -434,8 +529,8 @@ async def verify_local_file(path: Path, entry: RemoteManifestEntry) -> bool:
     Size is always checked. Supported remote hashes are checked when available.
 
     Args:
-        path: The local file path.
-        entry: The expected remote manifest entry.
+        path: Local file path.
+        entry: Expected remote manifest entry.
 
     Returns:
         `True` when the local file matches, otherwise `False`.
@@ -474,14 +569,14 @@ async def verify_local_manifest(
     """Verify every local path represented by a remote manifest.
 
     Args:
-        task_dir: The local task root directory.
-        entries: The canonical remote manifest entries.
+        task_dir: Local task root directory.
+        entries: Canonical remote manifest entries.
 
     Raises:
         LocalFileConflictError: If distinct entries identify the same local path.
 
     Returns:
-        The verified relative file paths, or `None` when any entry fails.
+        Verified relative file paths, or `None` when any entry fails.
     """
     files = []
     identities: set[tuple[int, int]] = set()
@@ -512,15 +607,15 @@ async def find_completed_file(
     """Find and verify an existing completed local file.
 
     Args:
-        task_dir: The local task root directory.
-        entry: The expected remote manifest entry.
-        job_id: The offline job UUID owning the completed file.
+        task_dir: Local task root directory.
+        entry: Expected remote manifest entry.
+        job_id: Offline job UUID owning the completed file.
 
     Raises:
         PullError: If an existing path conflicts with the manifest.
 
     Returns:
-        The verified completed path, or `None` when it does not exist.
+        Verified completed path, or `None` when it does not exist.
     """
     final_path = _safe_local_path(task_dir, entry.path)
     marker_path = _job_path(final_path, job_id, "done")
@@ -567,15 +662,15 @@ def prepare_local_file(
     """Prepare a safe final path and resumable partial file.
 
     Args:
-        task_dir: The local task root directory.
-        relative_path: The canonical path relative to `task_dir`.
-        job_id: The offline job UUID owning the partial file.
+        task_dir: Local task root directory.
+        relative_path: Canonical path relative to `task_dir`.
+        job_id: Offline job UUID owning the partial file.
 
     Raises:
         PullError: If the path is unsafe, conflicting, or cannot be prepared.
 
     Returns:
-        The prepared local target and current resume offset.
+        Prepared local target and current resume offset.
     """
     final_path = _safe_local_path(task_dir, relative_path)
     part_path = _job_path(final_path, job_id, "part")
@@ -627,14 +722,14 @@ def prepare_local_directory(task_dir: str | Path, relative_path: str) -> Path:
     """Create and validate one local manifest directory.
 
     Args:
-        task_dir: The local task root directory.
-        relative_path: The canonical path relative to `task_dir`.
+        task_dir: Local task root directory.
+        relative_path: Canonical path relative to `task_dir`.
 
     Raises:
         PullError: If the path is unsafe, conflicting, or cannot be created.
 
     Returns:
-        The validated local directory path.
+        Validated local directory path.
     """
     path = _safe_local_path(task_dir, relative_path)
     try:
@@ -657,8 +752,9 @@ def _install_local_file_sync(
     """Install one completed file without overwriting another job.
 
     Args:
-        target: The verified partial file and its job-scoped paths.
-        source_identity: The original source identity for a copied library move.
+        target: Verified partial file and its job-scoped paths.
+        source_identity: Original source identity for a copied library move. `None`
+            records only the installed file identity.
 
     Raises:
         PullError: If the final path conflicts or installation fails.
@@ -675,6 +771,7 @@ def _install_local_file_sync(
             marker.write(ownership)
             marker.flush()
             os.fsync(marker.fileno())
+
         # create the final name atomically without replacing another job's file
         try:
             if sys.platform == "win32":
@@ -707,6 +804,11 @@ def _install_local_file_sync(
 
 
 async def _install_local_file(target: LocalFileTarget):
+    """Publish a completed file without blocking the event loop.
+
+    Args:
+        target: Partial, final and ownership marker paths.
+    """
     await asyncio.to_thread(_install_local_file_sync, target)
 
 
@@ -714,8 +816,8 @@ def owns_local_transfer(destination: Path, job_id: str) -> bool:
     """Check a published file's transfer ownership.
 
     Args:
-        destination: The published library file.
-        job_id: The transfer identifier owning the marker.
+        destination: Published library file.
+        job_id: Transfer identifier owning the marker.
 
     Raises:
         PullError: If the transfer sidecar path is invalid.
@@ -751,10 +853,10 @@ def recover_local_transfer(
     Atomic moves and legacy markers preserve the source.
 
     Args:
-        source: The original download file.
-        destination: The published library file.
-        job_id: The transfer identifier owning the marker.
-        move: Whether to finish source cleanup for a move.
+        source: Original download file.
+        destination: Published library file.
+        job_id: Transfer identifier owning the marker.
+        move: Whether to finish source cleanup for a move. Defaults to `False`.
 
     Raises:
         OSError: If removing the source or transfer sidecars fails.
@@ -793,11 +895,13 @@ def transfer_local_file(
     """Transfer a completed file without exposing an unfinished library copy.
 
     Args:
-        source: The verified local download file.
-        destination: The final media-library file path.
-        job_id: The offline job UUID or stable RPC transfer identifier.
-        move: Whether to remove the source after publishing the destination.
-        defer_cleanup: Whether to keep markers and copied move sources until
+        source: Verified local download file.
+        destination: Final media-library file path.
+        job_id: Offline job UUID or stable RPC transfer identifier.
+        move: Whether to remove the source after publishing the destination. Defaults to
+            `False`.
+        defer_cleanup: Whether to keep markers and copied move sources until Defaults to
+            `False`.
             `recover_local_transfer` runs after the destination is recorded.
             Atomic moves still rename the source.
 
@@ -847,6 +951,15 @@ def transfer_local_file(
 
 
 async def _complete_local_file(target: LocalFileTarget, entry: RemoteManifestEntry):
+    """Verify the partial file before publishing it.
+
+    Args:
+        target: Prepared local file paths.
+        entry: Expected file size and hashes.
+
+    Raises:
+        PullError: If verification or installation fails.
+    """
     if not await verify_local_file(target.part_path, entry):
         raise PullError(
             OfflineDownloadErrorKind.VERIFY_FAILED,
@@ -856,6 +969,19 @@ async def _complete_local_file(target: LocalFileTarget, entry: RemoteManifestEnt
 
 
 async def _handle_416(target: LocalFileTarget, entry: RemoteManifestEntry) -> int:
+    """Accept a complete partial file or reset it before retry.
+
+    Args:
+        target: Partial file and current resume offset.
+        entry: Expected file size and hashes.
+
+    Returns:
+        Verified file size.
+
+    Raises:
+        _RetryPull: If the partial file was reset and must be downloaded again.
+        PullError: If the partial file cannot be reset.
+    """
     if target.offset and await verify_local_file(target.part_path, entry):
         return entry.size
     try:
@@ -870,6 +996,17 @@ async def _handle_416(target: LocalFileTarget, entry: RemoteManifestEntry) -> in
 
 
 def _current_target(target: LocalFileTarget) -> LocalFileTarget:
+    """Recheck the partial file before choosing a resume offset.
+
+    Args:
+        target: Prepared local file paths.
+
+    Returns:
+        Target with the current partial file size.
+
+    Raises:
+        PullError: If the partial file is missing or is not a regular file.
+    """
     try:
         part_stat = target.part_path.lstat()
     except OSError as exc:
@@ -888,6 +1025,17 @@ def _current_target(target: LocalFileTarget) -> LocalFileTarget:
 
 
 def _redirect_url(response: httpx.Response) -> httpx.URL:
+    """Resolve the response redirect against its request URL.
+
+    Args:
+        response: Redirect response.
+
+    Returns:
+        Next request URL.
+
+    Raises:
+        PullError: If the redirect URL is missing or invalid.
+    """
     location = response.headers.get("Location")
     if not location:
         raise PullFailedError
@@ -900,6 +1048,16 @@ def _redirect_url(response: httpx.Response) -> httpx.URL:
 def _redirect_headers(
     headers: DataHeaders, source: httpx.URL, target: httpx.URL
 ) -> DataHeaders:
+    """Drop credentials when a redirect changes the origin.
+
+    Args:
+        headers: Current request headers.
+        source: URL that issued the redirect.
+        target: Next request URL.
+
+    Returns:
+        Headers safe to send to the next origin.
+    """
     if _origin(source) == _origin(target):
         return headers
     # never forward provider credentials across origins
@@ -916,6 +1074,21 @@ async def _download_response(
     entry: RemoteManifestEntry,
     reporter: _ProgressReporter,
 ) -> int:
+    """Write response bytes without exceeding the expected size.
+
+    Args:
+        response: Open download response.
+        target: Prepared local file paths and resume offset.
+        entry: Expected file size and hashes.
+        reporter: Progress handler for this file.
+
+    Returns:
+        Total bytes stored, including any resumed data.
+
+    Raises:
+        PullError: If the range, size or local write is invalid.
+        _RetryPull: If a rejected range requires a fresh download.
+    """
     if response.status_code == 416:
         return await _handle_416(target, entry)
     mode = _write_mode(response, target.offset)
@@ -946,6 +1119,24 @@ async def _pull_once(
     entry: RemoteManifestEntry,
     reporter: _ProgressReporter,
 ) -> int:
+    """Follow bounded redirects and download one direct link.
+
+    Args:
+        client: Client enforcing direct URL checks.
+        target: Prepared local file paths and resume offset.
+        link: Provider URL and headers.
+        entry: Expected file size and hashes.
+        reporter: Progress handler for this file.
+
+    Returns:
+        Verified size of the published file.
+
+    Raises:
+        _RefreshLink: If the direct link has expired.
+        _RetryPull: If the server requests another attempt.
+        OpenListClientError: If the server limits the request rate.
+        PullError: If the redirect, response or file verification fails.
+    """
     url: str | httpx.URL = link.url
     headers: DataHeaders = _pull_headers(link.headers, target.offset)
     seen: set[str] = set()
@@ -996,19 +1187,20 @@ async def pull_file(
     """Pull one remote file with resume, link refresh, retry, and verification.
 
     Args:
-        data_client: The isolated client used for file content requests.
+        data_client: Isolated client used for file content requests.
         link_client: The OpenList client used to obtain direct links.
-        target: The prepared local destination and resume offset.
-        remote_path: The absolute OpenList file path.
-        entry: The expected remote manifest entry.
-        progress: The optional asynchronous progress callback.
+        target: Prepared local destination and resume offset.
+        remote_path: Absolute OpenList file path.
+        entry: Expected remote manifest entry.
+        progress: Optional asynchronous progress callback. `None` disables progress
+            reports.
 
     Raises:
         PullError: If the link, response, local path, transfer, or verification fails.
         OpenListClientError: If link acquisition fails or file data is rate limited.
 
     Returns:
-        The verified transferred file size in bytes.
+        Verified transferred file size in bytes.
     """
     link = await link_client.link(remote_path)
     current = _current_target(target)
@@ -1041,6 +1233,11 @@ class DataClient:
     """Fetch direct file data without application proxy or environment settings."""
 
     def __init__(self, openlist_base_url: str):
+        """Create a direct client without proxy or environment settings.
+
+        Args:
+            openlist_base_url: Endpoint used to reject proxy data URLs.
+        """
         logging.getLogger("httpx").addFilter(_HTTPX_URL_FILTER)
         self._openlist_base_url = httpx.URL(openlist_base_url)
         self._client = httpx.AsyncClient(
@@ -1064,11 +1261,12 @@ class DataClient:
         """Open one validated direct response stream.
 
         Args:
-            url: The direct result URL.
-            headers: The provider headers required by the direct link.
+            url: Direct result URL.
+            headers: Provider headers required by the direct link. `None` adds no
+                provider headers.
 
         Yields:
-            The open streaming HTTP response.
+            Open streaming HTTP response.
         """
         target = validate_data_url(url, openlist_base_url=self._openlist_base_url)
         request = httpx.Request("GET", target, headers=_header_items(headers))

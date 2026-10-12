@@ -31,11 +31,11 @@ def _source(tmp_path: Path, files: dict[str, bytes]) -> ReadingSource:
     """Discover a standalone comic in an isolated directory.
 
     Args:
-        tmp_path: The test's temporary directory.
+        tmp_path: Test's temporary directory.
         files: Direct filenames and bytes to create in the comic container.
 
     Returns:
-        The reading source discovered by the existing comic handler.
+        Reading source discovered by the existing comic handler.
     """
     directory = tmp_path / "library/Comic"
     directory.mkdir(parents=True)
@@ -190,10 +190,10 @@ def test_bounded_reads(tmp_path, monkeypatch):
             """Record each bounded source read.
 
             Args:
-                size: The byte bound; an unbounded default is rejected.
+                size: Byte bound; an unbounded default is rejected.
 
             Returns:
-                The requested source bytes.
+                Requested source bytes.
             """
             assert 0 < size <= image._IMAGE_BYTES + 1
             sizes.append(size)
@@ -208,8 +208,8 @@ def test_bounded_reads(tmp_path, monkeypatch):
         """Reject directory enumeration during a page read.
 
         Args:
-            args: Any unexpected enumeration arguments.
-            kwargs: Any unexpected keyword arguments.
+            *args: Any unexpected enumeration arguments.
+            **kwargs: Any unexpected keyword arguments.
 
         Raises:
             AssertionError: If resource lookup tries to enumerate the directory.
@@ -230,11 +230,11 @@ def test_build_changed(tmp_path, monkeypatch, change):
         """Change the directory after reading the first image header.
 
         Args:
-            path: The image being inspected.
-            kwargs: Arguments forwarded to the bounded reader.
+            path: Image being inspected.
+            **kwargs: Arguments forwarded to the bounded reader.
 
         Returns:
-            The reader's original bytes and source attributes.
+            Reader's original bytes and source attributes.
         """
         result = read_image(path, **kwargs)
         if change == "append":
@@ -433,10 +433,10 @@ def test_read_changed(tmp_path, monkeypatch, change):
             """Change the file after opening it but before reading its bytes.
 
             Args:
-                size: The requested read bound; the default reads remaining bytes.
+                size: Requested read bound; the default reads remaining bytes.
 
             Returns:
-                The bytes from the already opened file descriptor.
+                Bytes from the already opened file descriptor.
             """
             if change == "replace":
                 before = path.stat()
@@ -467,11 +467,11 @@ def test_cache_write_failure(tmp_path, monkeypatch):
         """Simulate a failed index write.
 
         Args:
-            path: The target path.
+            path: Target path.
             data: Bytes passed to the write.
 
         Returns:
-            The ordinary write result for other paths.
+            Ordinary write result for other paths.
 
         Raises:
             OSError: For the new index file.
@@ -498,11 +498,11 @@ def test_source_unavailable(tmp_path, monkeypatch):
         """Simulate an unreadable image without making the source disappear.
 
         Args:
-            path: The file being inspected.
-            kwargs: Options forwarded to stat.
+            path: File being inspected.
+            **kwargs: Options forwarded to stat.
 
         Returns:
-            The real attributes for other paths.
+            Real attributes for other paths.
 
         Raises:
             PermissionError: For the image source.

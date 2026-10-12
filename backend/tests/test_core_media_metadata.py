@@ -500,9 +500,9 @@ def test_xml_external_access(monkeypatch):
             """Reject any external XML resource access.
 
             Args:
-                url: The requested location.
-                public_id: The optional public identifier.
-                context: The active parser context.
+                url: Requested location.
+                public_id: Optional public identifier.
+                context: Active parser context.
             """
             accesses.append(url)
             raise AssertionError("external XML access")
@@ -511,8 +511,8 @@ def test_xml_external_access(monkeypatch):
         """Install an external-access trap on real lxml parsers.
 
         Args:
-            args: Positional parser arguments.
-            kwargs: Keyword parser arguments.
+            *args: Positional parser arguments.
+            **kwargs: Keyword parser arguments.
 
         Returns:
             A real parser with the rejecting resolver.

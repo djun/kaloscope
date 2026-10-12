@@ -63,7 +63,11 @@ register_blueprints(app, routes, url_prefix=URL_PREFIX)
 
 @app.main_process_start
 async def main_process_start(app: Sanic):
-    """Handle the main process startup event."""
+    """Handle the main process startup event.
+
+    Args:
+        app: Application instance for the current process.
+    """
     await init_shared_ctx(app)
     await init_workspace(app)
     await init_secret_key(app)
@@ -73,7 +77,11 @@ async def main_process_start(app: Sanic):
 
 @app.before_server_start
 async def before_server_start(app: Sanic):
-    """Handle the worker process startup event."""
+    """Handle the worker process startup event.
+
+    Args:
+        app: Application instance for the current process.
+    """
     app.loop.set_debug(False)
     await init_secret_key(app, create=False)
     await attach_log_monitor(app)
@@ -87,7 +95,11 @@ async def before_server_start(app: Sanic):
 
 @app.before_server_stop
 async def before_server_stop(app: Sanic):
-    """Handle the worker process shutdown event."""
+    """Handle the worker process shutdown event.
+
+    Args:
+        app: Application instance for the current process.
+    """
     await shutdown_monitors()
     await save_sessions(app)
     await close_dl_syncer(app)
@@ -100,7 +112,11 @@ async def before_server_stop(app: Sanic):
 
 @app.main_process_stop
 async def main_process_stop(app: Sanic):
-    """Handle the main process shutdown event."""
+    """Handle the main process shutdown event.
+
+    Args:
+        app: Application instance for the current process.
+    """
     await stop_log_collector(app)
     await close_shared_ctx(app)
 
@@ -111,7 +127,7 @@ async def init_shared_ctx(app: Sanic):
     See https://sanic.dev/en/guide/running/manager.html for more details.
 
     Args:
-        app: The application receiving process-shared state.
+        app: Application receiving process-shared state.
     """
     shared = app.shared_ctx
     app.ctx.sync_manager = (sync_manager := multiprocessing.Manager())
@@ -153,21 +169,34 @@ async def init_shared_ctx(app: Sanic):
 
 
 async def close_shared_ctx(app: Sanic):
-    """Shutdown the shared context manager."""
+    """Shutdown the shared context manager.
+
+    Args:
+        app: Application instance for the current process.
+    """
     sync_manager: SyncManager = app.ctx.sync_manager
     sync_manager.shutdown()
     logger.debug(_msg(Colors.YELLOW, "Shared context manager shutdown."), _worker(app))
 
 
 async def init_workspace(app: Sanic):
-    """Initialize the workspace directories."""
+    """Initialize the workspace directories.
+
+    Args:
+        app: Application instance for the current process.
+    """
     for path in app_config.workspace.values():
         Path(path).mkdir(parents=True, exist_ok=True)
     logger.debug(_msg(Colors.BLUE, "Workspace initialized:\n"), app_config.workspace)
 
 
 async def init_secret_key(app: Sanic, *, create: bool = True):
-    """Configure the secret key for the current process."""
+    """Configure the secret key for the current process.
+
+    Args:
+        app: Application instance for the current process.
+        create: Create a missing key by default; `False` only loads it.
+    """
     app.ctx.secret_key = load_key(app_config, create=create)
     logger.debug(_msg(Colors.BLUE, "Secret key loaded."), _worker(app))
 
@@ -176,6 +205,9 @@ async def upgrade_db(app: Sanic):
     """Upgrade the database schema.
 
     See https://tortoise.github.io/migration.html for more details.
+
+    Args:
+        app: Application instance for the current process.
     """
     await migrate(config=tortoise_config)
     await Tortoise.close_connections()
@@ -183,7 +215,11 @@ async def upgrade_db(app: Sanic):
 
 
 async def start_log_collector(app: Sanic):
-    """Start the silent main-process log collector."""
+    """Start the silent main-process log collector.
+
+    Args:
+        app: Application instance for the current process.
+    """
     try:
         log_collector = LogCollector(
             app.shared_ctx.log_queue,
@@ -198,7 +234,11 @@ async def start_log_collector(app: Sanic):
 
 
 async def stop_log_collector(app: Sanic):
-    """Stop the log collector and release its queue without diagnostics."""
+    """Stop the log collector and release its queue without diagnostics.
+
+    Args:
+        app: Application instance for the current process.
+    """
     log_collector = getattr(app.ctx, "log_collector", None)
     if log_collector is not None:
         with suppress(Exception):
@@ -214,13 +254,21 @@ async def stop_log_collector(app: Sanic):
 
 
 async def attach_log_monitor(app: Sanic):
-    """Attach the silent log monitor to one worker."""
+    """Attach the silent log monitor to one worker.
+
+    Args:
+        app: Application instance for the current process.
+    """
     with suppress(Exception):
         app.ctx.log_monitor = register_log_monitor(app.shared_ctx.log_queue)
 
 
 async def detach_log_monitor(app: Sanic):
-    """Remove the log monitor installed by one worker."""
+    """Remove log monitor installed by one worker.
+
+    Args:
+        app: Application instance for the current process.
+    """
     log_monitor = getattr(app.ctx, "log_monitor", None)
     with suppress(Exception):
         unregister_log_monitor(log_monitor)
@@ -230,6 +278,9 @@ async def start_orm(app: Sanic):
     """Initialize the Tortoise ORM.
 
     See https://tortoise.github.io/examples/sanic.html for more details.
+
+    Args:
+        app: Application instance for the current process.
     """
     if app.debug:
         # enable debug logging for Tortoise ORM
@@ -248,7 +299,11 @@ async def start_orm(app: Sanic):
 
 
 async def close_orm(app: Sanic):
-    """Close the Tortoise ORM connections."""
+    """Close the Tortoise ORM connections.
+
+    Args:
+        app: Application instance for the current process.
+    """
     await Tortoise.close_connections()
     logger.debug(_msg(Colors.YELLOW, "Tortoise ORM closed."), _worker(app))
 
@@ -257,6 +312,9 @@ async def start_http_client(app: Sanic):
     """Initialize the HTTP client.
 
     See https://www.python-httpx.org/async/ for more details.
+
+    Args:
+        app: Application instance for the current process.
     """
     if app.debug:
         # enable debug logging for HTTPX
@@ -284,7 +342,11 @@ async def start_http_client(app: Sanic):
 
 
 async def close_http_client(app: Sanic):
-    """Close the HTTP client."""
+    """Close the HTTP client.
+
+    Args:
+        app: Application instance for the current process.
+    """
     httpx_client: httpx.AsyncClient = app.ctx.httpx
     await httpx_client.aclose()
     curl_client: AsyncSession = app.ctx.curl_cffi
@@ -295,56 +357,88 @@ async def close_http_client(app: Sanic):
 
 
 async def start_flow_engine(app: Sanic):
-    """Start the flow engine."""
+    """Start the flow engine.
+
+    Args:
+        app: Application instance for the current process.
+    """
     app.ctx.flow_engine = FlowEngine(app)
     await app.ctx.flow_engine.start()
     logger.debug(_msg(Colors.BLUE, "Flow engine started."), _worker(app))
 
 
 async def close_flow_engine(app: Sanic):
-    """Shutdown the flow engine."""
+    """Shutdown the flow engine.
+
+    Args:
+        app: Application instance for the current process.
+    """
     engine: FlowEngine = app.ctx.flow_engine
     await engine.shutdown()
     logger.debug(_msg(Colors.YELLOW, "Flow engine shutdown."), _worker(app))
 
 
 async def start_lib_watcher(app: Sanic):
-    """Start the media library watcher."""
+    """Start the media library watcher.
+
+    Args:
+        app: Application instance for the current process.
+    """
     app.ctx.lib_watcher = LibWatcher(app)
     await app.ctx.lib_watcher.start()
     logger.debug(_msg(Colors.BLUE, "Media library watcher started."), _worker(app))
 
 
 async def close_lib_watcher(app: Sanic):
-    """Shutdown the media library watcher."""
+    """Shutdown the media library watcher.
+
+    Args:
+        app: Application instance for the current process.
+    """
     watcher: LibWatcher = app.ctx.lib_watcher
     await watcher.shutdown()
     logger.debug(_msg(Colors.YELLOW, "Media library watcher shutdown."), _worker(app))
 
 
 async def start_dl_syncer(app: Sanic):
-    """Start the download synchronizer."""
+    """Start the download synchronizer.
+
+    Args:
+        app: Application instance for the current process.
+    """
     app.ctx.dl_syncer = DLSyncer(app)
     await app.ctx.dl_syncer.start()
     logger.debug(_msg(Colors.BLUE, "Download synchronizer started."), _worker(app))
 
 
 async def close_dl_syncer(app: Sanic):
-    """Shutdown the download synchronizer."""
+    """Shutdown the download synchronizer.
+
+    Args:
+        app: Application instance for the current process.
+    """
     syncer: DLSyncer = app.ctx.dl_syncer
     await syncer.shutdown()
     logger.debug(_msg(Colors.YELLOW, "Download synchronizer shutdown."), _worker(app))
 
 
 async def load_sessions(app: Sanic):
-    """Load user sessions from the database."""
+    """Load user sessions from the database.
+
+    Args:
+        app: Application instance for the current process.
+    """
     app.ctx.sessions = SessionHolder(app)
     await app.ctx.sessions.load()
     logger.debug(_msg(Colors.BLUE, "User sessions loaded."), _worker(app))
 
 
 async def save_sessions(app: Sanic):
-    """Save user sessions to the database."""
+    """Save user sessions to the database.
+
+    Args:
+        app: Application instance for the current process.
+    """
     sessions: SessionHolder = app.ctx.sessions
     await sessions.save()
     logger.debug(_msg(Colors.YELLOW, "User sessions saved."), _worker(app))
@@ -354,35 +448,35 @@ def _msg(color: str, text: str) -> str:
     """Generate a formatted log message.
 
     Args:
-        color: The color of the message.
-        text: The text of the message.
+        color: Color of the message.
+        text: Text of the message.
 
     Returns:
-        The formatted log message.
+        Formatted log message.
     """
     return f"{color}{text} {Colors.BOLD}{Colors.SANIC}[%s]{Colors.END}"
 
 
 def _worker(app: Sanic) -> str:
-    """Get the worker name.
+    """Get worker name.
 
     Args:
         app: The Sanic application instance.
 
     Returns:
-        The worker name.
+        Worker name.
     """
     return app.m.name if hasattr(app, "m") else "main"
 
 
 def _cache_path(app: Sanic) -> Path:
-    """Get the worker-specific cache database path.
+    """Get worker-specific cache database path.
 
     Args:
         app: The Sanic application instance.
 
     Returns:
-        The cache database path.
+        Cache database path.
     """
     worker = _worker(app)
     return Path(app_config.get_workspace("cache")) / f"{worker}.db"

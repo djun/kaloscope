@@ -17,7 +17,14 @@ from tortoise.queryset import QuerySet, UpdateQuery
 
 
 def patched_update(self, **kwargs: Any) -> UpdateQuery:
-    """Update all objects in QuerySet with given kwargs."""
+    """Update matching records and set their modification time.
+
+    Args:
+        **kwargs: Fields to update; an explicit `updated_at` value is preserved.
+
+    Returns:
+        Deferred database update query.
+    """
     if "updated_at" not in kwargs:
         kwargs["updated_at"] = timezone.now()
     return original_update(self, **kwargs)
@@ -53,7 +60,7 @@ class Page[M: Model]:
 
 
 class Pageable(BaseModel):
-    """The base class for pageable request parameters."""
+    """The base class for paged request parameters."""
 
     page_num: int = Field(ge=0, default=1)
     page_size: int = Field(ge=1, default=10)
@@ -61,7 +68,7 @@ class Pageable(BaseModel):
 
     @property
     def page_params(self) -> dict[str, Any]:
-        """Returns the page parameters."""
+        """Return page parameters."""
         return {
             "page_num": self.page_num,
             "page_size": self.page_size,
@@ -81,6 +88,14 @@ class Range:
         size: int | None,
         total: int | None,
     ):
+        """Store the byte range used by file responses.
+
+        Args:
+            start: First byte offset, or `None` when unspecified.
+            end: Last byte offset, inclusive, or `None` when unspecified.
+            size: Range length in bytes, or `None` when unknown.
+            total: Full file size in bytes, or `None` when unknown.
+        """
         self.start = start
         self.end = end
         self.size = size
@@ -97,6 +112,11 @@ class TortoiseModel(Model):
     Meta: type[Any] = type("Meta", (), {"abstract": True})
 
     def __init_subclass__(cls, **kwargs):
+        """Create separate response model caches for each subclass.
+
+        Args:
+            **kwargs: Class options forwarded to the ORM base class.
+        """
         super().__init_subclass__(**kwargs)
         # cache for Pydantic models
         cls._pydantic_models = {}
@@ -106,11 +126,13 @@ class TortoiseModel(Model):
     def pydantic(
         cls, *, include: tuple[str, ...] = (), exclude: tuple[str, ...] = ()
     ) -> type[PydanticModel]:
-        """Creates PydanticModel for the class.
+        """Create PydanticModel for the class.
 
         Args:
-            include: The fields to include from the model.
-            exclude: The fields to exclude from the model.
+            include: Fields to include from the model. An empty tuple includes all
+                fields.
+            exclude: Fields to exclude from the model. An empty tuple excludes no
+                fields.
 
         Returns:
             The PydanticModel for the class.
@@ -126,11 +148,13 @@ class TortoiseModel(Model):
     def pydantic_list(
         cls, *, include: tuple[str, ...] = (), exclude: tuple[str, ...] = ()
     ) -> type[PydanticListModel]:
-        """Creates PydanticListModel for the class.
+        """Create PydanticListModel for the class.
 
         Args:
-            include: The fields to include from the model.
-            exclude: The fields to exclude from the model.
+            include: Fields to include from the model. An empty tuple includes all
+                fields.
+            exclude: Fields to exclude from the model. An empty tuple excludes no
+                fields.
 
         Returns:
             The PydanticListModel for the class.
@@ -152,16 +176,19 @@ class TortoiseModel(Model):
         annotations: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> Page[Self]:
-        """Generates a paginated list with the filter applied.
+        """Generate a paginated list with the filter applied.
 
         Args:
-            page_num: The page number. Defaults to 1.
-            page_size: The page size. Defaults to 10.
-            ordering: The ordering. Defaults to None.
-            annotations: The annotations to apply to the queryset.
+            page_num: Page number. Defaults to 1.
+            page_size: Page size. Defaults to 10.
+            ordering: Ordering. Defaults to None.
+            annotations: Annotations to apply to the database query. `None` adds no
+                computed query fields.
+            *args: Positional database filters.
+            **kwargs: Field lookup filters.
 
         Returns:
-            The paginated list.
+            Paginated list.
         """
         queryset = cls.filter(*args, **kwargs)
         if ordering:
@@ -188,13 +215,13 @@ class RequestFilesMixin:
     @model_validator(mode="before")
     @classmethod
     def set_request_files(cls, data: Any) -> Any:
-        """Set the request files to the model data.
+        """Set request files to the model data.
 
         Args:
-            data: The model data.
+            data: Model data.
 
         Returns:
-            The updated model data.
+            Updated model data.
         """
         if not isinstance(data, dict):
             return data

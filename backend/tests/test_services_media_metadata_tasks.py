@@ -37,8 +37,8 @@ def workspace(tmp_path, monkeypatch):
     """Isolate media locks and caches from the application workspace.
 
     Args:
-        tmp_path: The temporary directory for this test.
-        monkeypatch: The fixture restoring configuration after the test.
+        tmp_path: Temporary directory for this test.
+        monkeypatch: Fixture restoring configuration after the test.
     """
     directory = tmp_path / "cache"
     directory.mkdir()
@@ -259,10 +259,10 @@ def test_concurrent_dispatch(tmp_path, monkeypatch):
                 """Pause the first workflow reservation before it reaches SQLite.
 
                 Args:
-                    **kwargs: The original workflow instance fields.
+                    **kwargs: Original workflow instance fields.
 
                 Returns:
-                    The persisted workflow instance.
+                    Persisted workflow instance.
                 """
                 if not entered.is_set():
                     entered.set()
@@ -308,8 +308,8 @@ def test_completed_dispatch(tmp_path, monkeypatch):
                 """Pause completion after the last workflow record is removed.
 
                 Args:
-                    *args: The original event and error arguments.
-                    **kwargs: The original keyword arguments.
+                    *args: Original event and error arguments.
+                    **kwargs: Original keyword arguments.
                 """
                 if not entered.is_set():
                     entered.set()

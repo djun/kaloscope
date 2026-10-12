@@ -103,7 +103,7 @@ def _metadata_item_id(event: MediaEvent) -> int | None:
     """Identify reading scrape and metadata-save tasks without including organization.
 
     Args:
-        event: The persisted media event to inspect.
+        event: Persisted media event to inspect.
 
     Returns:
         Its single item ID, or `None` for another task or malformed payload.
@@ -158,10 +158,10 @@ def _reading_role(item: MediaItem) -> Literal["book", "collection", "chapter"]:
     """Classify a reading item independently of its current chapter count.
 
     Args:
-        item: The reading item whose source ownership has been validated.
+        item: Reading item whose source ownership has been validated.
 
     Returns:
-        The workflow role shared by automatic and manual scraping.
+        Workflow role shared by automatic and manual scraping.
     """
     if item.parent_id is not None:
         return "chapter"
@@ -172,10 +172,10 @@ def _source_identity(item: MediaItem) -> tuple:
     """Identify the database attributes that bind an item to its media source.
 
     Args:
-        item: The media item with its library and optional parent loaded.
+        item: Media item with its library and optional parent loaded.
 
     Returns:
-        The source and parent attributes that must remain current during file I/O.
+        Source and parent attributes that must remain current during file I/O.
     """
     parent = item.parent if item.parent_id is not None else None
     return (
@@ -197,10 +197,10 @@ def _resolve_source(item: MediaItem) -> ReadingSource:
     """Resolve and validate a reading source without requiring files to exist.
 
     Args:
-        item: The reading item with its library and optional parent loaded.
+        item: Reading item with its library and optional parent loaded.
 
     Returns:
-        The source path, format and collection described by this item.
+        Source path, format and collection described by this item.
 
     Raises:
         ContentError: If the library, path, format or parent ownership is invalid.
@@ -259,12 +259,12 @@ def _reading_source(
     """Validate reading ownership and guard filesystem stability for one operation.
 
     Args:
-        item: The owned reading item with its library and optional parent loaded.
+        item: Owned reading item with its library and optional parent loaded.
         require_candidate: Whether discovery must find the source; defaults to False
             so already indexed empty sources can retain their identity and metadata.
 
     Yields:
-        The current source, mutable stability checks and whether its body is missing.
+        Current source, mutable stability checks and whether its body is missing.
 
     Raises:
         ContentError: If paths, layout, file access or source stability are invalid.
@@ -363,9 +363,9 @@ def _validate_previous_path(
     """Check that an observed move no longer resolves through its previous path.
 
     Args:
-        root: The validated absolute library directory.
-        src_path: The previous file or directory path within this library.
-        dest_path: The validated destination with its state and ancestors captured.
+        root: Validated absolute library directory.
+        src_path: Previous file or directory path within this library.
+        dest_path: Validated destination with its state and ancestors captured.
         states: Source guards retained until the enclosing validation finishes.
 
     Raises:
@@ -406,7 +406,7 @@ def _missing_reading_sources(
     """Confirm absent sources while retaining the identities of surviving ancestors.
 
     Args:
-        items: The selected items with libraries and parents loaded.
+        items: Selected items with libraries and parents loaded.
         work_paths: Registered top-level work directories in the same library.
         directories_only: Require absent containers as well as bodies. The default
             False also allows missing files in surviving containers.
@@ -468,10 +468,10 @@ def _missing_reading_sources(
 
 
 def _remove_reading_caches(ids: list[int]):
-    """Remove rebuildable caches before deleting their database owners.
+    """Remove generated caches before deleting their database owners.
 
     Args:
-        ids: The validated reading item IDs whose sources are absent.
+        ids: Validated reading item IDs whose sources are absent.
 
     Raises:
         ContentError: If a cache cannot be removed or its directory is a link.
@@ -496,8 +496,8 @@ def _prune_index(item: MediaItem | None, directory: Path):
     """Remove obsolete caches while the caller holds the item's index lock.
 
     Args:
-        item: The current database owner, or None for an orphaned directory.
-        directory: The item's internal cache directory below media_index.
+        item: Current database owner, or None for an orphaned directory.
+        directory: Item's internal cache directory below media_index.
     """
     try:
         for parent in (directory.parent.parent, directory.parent, directory):
@@ -526,7 +526,7 @@ async def _remove_media_records(items: list[MediaItem]):
     """Remove selected media items and their scoped history inside a transaction.
 
     Args:
-        items: The nonempty, validated same-library deletion scope with parents loaded.
+        items: Nonempty, validated same-library deletion scope with parents loaded.
     """
     ids = {item.id for item in items}
     parents = {item.id: item.parent_id for item in items if item.parent_id is not None}
@@ -554,7 +554,7 @@ def _media_files(items: list[MediaItem], others: list[MediaItem]):
     """Collect owned files using the library's reading or video rules.
 
     Args:
-        items: The nonempty deletion scope with library and parent relations loaded.
+        items: Nonempty deletion scope with library and parent relations loaded.
         others: Other library items used to protect shared video companions.
 
     Returns:
@@ -578,7 +578,7 @@ def _check_media_deleted(
     """Confirm selected files remain absent and surviving directories are unchanged.
 
     Args:
-        items: The same-library scope whose files were removed.
+        items: Same-library scope whose files were removed.
         states: Directory snapshots after deletion, including cover folders.
         others: Other library items used to protect shared video companions.
 
@@ -606,7 +606,7 @@ def _delete_media_files(
     """Delete selected bodies before companions without deleting whole directories.
 
     Args:
-        items: The nonempty scope with validated library and parent ownership.
+        items: Nonempty scope with validated library and parent ownership.
         others: Other library items used to protect shared video companions.
         missing: Require absent bodies for external deletion events. Defaults to
             False so explicit deletion can remove the selected bodies.
@@ -654,7 +654,7 @@ def _remove_reading_companions(
     """Remove exclusive companions while the registered body remains absent.
 
     Args:
-        item: The missing body with validated database ownership.
+        item: Missing body with validated database ownership.
         work_paths: Registered work directories used to verify library availability.
         states: Ancestor snapshots captured before cleanup.
 
@@ -705,7 +705,7 @@ def _prune_media_directories(
     """Best-effort removal of empty companion folders and their owned container.
 
     Args:
-        directory: The former body container strictly below the library root.
+        directory: Former body container strictly below the library root.
         removed: File paths whose parent directories may now be empty.
         states: Surviving ancestor identities captured before database cleanup.
     """
@@ -738,7 +738,7 @@ def _validate_reading_source(
     """Check source ownership and discovery in a worker without reading its body.
 
     Args:
-        item: The proposed reading item with its library and optional parent loaded.
+        item: Proposed reading item with its library and optional parent loaded.
         require_candidate: Whether discovery must still find this new source.
         previous_paths: Validated former body paths from observed moves. The default
             empty tuple skips checking that previous paths have disappeared.
@@ -763,9 +763,9 @@ def _validate_reading_directory_move(
     """Validate a moved container and retain source guards until checks finish.
 
     Args:
-        items: The nonempty list of proposed items with library and parents loaded.
+        items: Nonempty list of proposed items with library and parents loaded.
         previous_paths: Previous work or chapter directories from persisted moves.
-        dest_path: The new directory containing the same registered sources.
+        dest_path: New directory containing the same registered sources.
 
     Raises:
         ContentError: If sources are invalid, unstable or a former directory is reused.
@@ -785,7 +785,7 @@ def _validate_reading_moves(items: list[MediaItem], paths: dict[int, list[Path]]
 
     Args:
         items: Affected items with final paths and parent relations loaded.
-        paths: The body paths visited by each affected item, in event order.
+        paths: Body paths visited by each affected item, in event order.
 
     Raises:
         ContentError: If a source is invalid, unstable or a former path is reused.
@@ -807,15 +807,15 @@ def _validate_reading_moves(items: list[MediaItem], paths: dict[int, list[Path]]
 async def _get_target_parent(
     item: MediaItem, src_directory: Path, dest_directory: Path
 ) -> MediaItem:
-    """Get the registered target collection for a moved comic chapter.
+    """Get registered target collection for a moved comic chapter.
 
     Args:
-        item: The original chapter with library and parent loaded under the lock.
-        src_directory: The chapter's previous container in this library.
-        dest_directory: The new chapter container in another work of this library.
+        item: Original chapter with library and parent loaded under the lock.
+        src_directory: Chapter's previous container in this library.
+        dest_directory: New chapter container in another work of this library.
 
     Returns:
-        The destination collection; its filesystem layout is validated with the chapter.
+        Destination collection; its filesystem layout is validated with the chapter.
 
     Raises:
         ContentError: If either collection is missing or has incompatible ownership.
@@ -852,7 +852,7 @@ def _read_metadata(
     """Read OPF or ComicInfo metadata and optional cover bytes in a worker thread.
 
     Args:
-        item: The reading item with its library and optional parent loaded.
+        item: Reading item with its library and optional parent loaded.
         with_cover: Whether to read the selected cover bytes after metadata.
 
     Returns:
@@ -876,7 +876,7 @@ def _publish_metadata(item: MediaItem, data: bytes, *, overwrite: bool) -> bool:
     """Write an external reading sidecar while preserving source ownership checks.
 
     Args:
-        item: The current reading item with library and parent relations loaded.
+        item: Current reading item with library and parent relations loaded.
         data: Fully rendered and validated candidate XML.
         overwrite: Whether this is an explicitly confirmed replacement.
 
@@ -902,12 +902,12 @@ async def _save_summary(
     """Save current reading summaries and metadata state under the library lock.
 
     Args:
-        item: The current item whose ownership has already been verified.
-        metadata: The freshly read external and embedded metadata.
+        item: Current item whose ownership has already been verified.
+        metadata: Freshly read external and embedded metadata.
         source_error: An independent source error, or None for an available source.
 
     Returns:
-        The error preserving old summaries, or None after a successful summary update.
+        Error preserving old summaries, or None after a successful summary update.
     """
     external = metadata.external
     error = source_error or next(
@@ -949,9 +949,9 @@ def _check_image_pages(source: ReadingSource, index: ImageIndex, states: _Source
     """Match directory pages to the index and retain their identities during reading.
 
     Args:
-        source: The validated image directory whose direct body pages are inspected.
-        index: The published index with ordered filenames and file snapshots.
-        states: The source identities rechecked by the enclosing source guard.
+        source: Validated image directory whose direct body pages are inspected.
+        index: Published index with ordered filenames and file snapshots.
+        states: Source identities rechecked by the enclosing source guard.
 
     Raises:
         ContentError: If page names, types or snapshots no longer match the index.
@@ -993,7 +993,7 @@ def _index_is_current(item: MediaItem) -> bool:
     the body. Explicit modification events must still force a rebuild.
 
     Args:
-        item: The reading unit with its library and optional parent loaded.
+        item: Reading unit with its library and optional parent loaded.
 
     Returns:
         Whether the current cache and source pass the incremental reuse checks.
@@ -1044,10 +1044,10 @@ def _content_index(
     """Guard a reading source and its published cache throughout a content read.
 
     Args:
-        item: The accessible reading unit whose index lock is held by the caller.
+        item: Accessible reading unit whose index lock is held by the caller.
 
     Yields:
-        The validated source, cache directory and current text, EPUB or image index.
+        Validated source, cache directory and current text, EPUB or image index.
 
     Raises:
         ContentError: If the source or cache is unavailable, changed or invalid.
@@ -1114,8 +1114,8 @@ def _read_text_content(
     """Read a published novel section without exposing source or cache locations.
 
     Args:
-        item: The accessible novel with a validated ready index version.
-        chapter_id: The exact section ID, or None to select the first section.
+        item: Accessible novel with a validated ready index version.
+        chapter_id: Exact section ID, or None to select the first section.
 
     Returns:
         Public chapter labels, a live local title, and paragraphs or EPUB blocks.
@@ -1163,9 +1163,9 @@ def _read_image_content(
     """Read one comic's indexed page range with a live local title.
 
     Args:
-        item: The accessible comic source with a validated ready index version.
-        offset: The zero-based first page; the page count selects the empty last page.
-        limit: The validated batch size from 1 to 100.
+        item: Accessible comic source with a validated ready index version.
+        offset: Zero-based first page; the page count selects the empty last page.
+        limit: Validated batch size from 1 to 100.
         page_id: An indexed page to start from; None uses the numeric offset.
 
     Returns:
@@ -1214,8 +1214,8 @@ def _read_asset(item: MediaItem, asset_id: str) -> tuple[bytes, str]:
     """Read one indexed EPUB or comic image within the source and cache guards.
 
     Args:
-        item: The accessible reading unit with a validated ready index version.
-        asset_id: The opaque image ID from a published block or comic page list.
+        item: Accessible reading unit with a validated ready index version.
+        asset_id: Opaque image ID from a published block or comic page list.
 
     Returns:
         Verified raster bytes and their detected MIME type.
@@ -1241,12 +1241,12 @@ def _check_locator(
     """Check an anchor or recover its chapter start from the current content index.
 
     Args:
-        item: The accessible reading unit with a validated content version.
-        locator: The paragraph, block or page position submitted by the reader.
+        item: Accessible reading unit with a validated content version.
+        locator: Paragraph, block or page position submitted by the reader.
         restore: Allow recovery of a stale position; defaults to strict validation.
 
     Returns:
-        The valid locator, a current chapter start, or None if its chapter is gone.
+        Valid locator, a current chapter start, or None if its chapter is gone.
 
     Raises:
         ContentError: If the anchor is unknown or the source or cache is invalid.
@@ -1303,11 +1303,11 @@ def _build_index(
     """Build a content index and cache while retaining source stability checks.
 
     Args:
-        item: The reading item whose source ownership is checked before parsing.
+        item: Reading item whose source ownership is checked before parsing.
         staging: A new internal cache directory owned by this build.
 
     Returns:
-        The validated index and source identities to recheck before publication.
+        Validated index and source identities to recheck before publication.
 
     Raises:
         ContentError: If the source cannot be indexed or staging cannot be written.
@@ -1343,9 +1343,9 @@ def _publish_index(item: MediaItem, staging: Path, version: str, states: _Source
     """Publish an index cache after revalidating the source under the library lock.
 
     Args:
-        item: The current database item with its library and parent loaded.
-        staging: The complete private cache directory.
-        version: The validated index version used as the final directory name.
+        item: Current database item with its library and parent loaded.
+        staging: Complete private cache directory.
+        version: Validated index version used as the final directory name.
         states: Source identities captured during the build.
 
     Raises:
@@ -1375,10 +1375,10 @@ class MediaLibService(BaseService[MediaLib], model=MediaLib):
     @classmethod
     @atomic()
     async def update_priorities(cls, ids: list):
-        """Update the media library priorities.
+        """Update media library priorities.
 
         Args:
-            ids: The sorted media library IDs.
+            ids: Sorted media library IDs.
         """
         libs = await MediaLib.all()
         if set(ids) != set(lib.id for lib in libs):
@@ -1398,13 +1398,13 @@ class MediaLibService(BaseService[MediaLib], model=MediaLib):
         Preserve startup scanning and rename settings omitted from updates.
 
         Args:
-            obj: The media library data.
+            obj: Media library data.
 
         Raises:
             KaloscopeException: If the name or directory already exists.
 
         Returns:
-            The media library instance.
+            Media library instance.
         """
 
         # check if the name already exists
@@ -1476,7 +1476,7 @@ class MediaLibService(BaseService[MediaLib], model=MediaLib):
         """Delete a media library after active writers finish.
 
         Args:
-            id: The media library ID.
+            id: Media library ID.
         """
         lib = await MediaLib.get(id=id)
         # wait for active filesystem writers before discarding their journals
@@ -1484,6 +1484,7 @@ class MediaLibService(BaseService[MediaLib], model=MediaLib):
             await MediaLib.filter(id=id).delete()
             await FlowTrigger.filter(category=GraphCategory.INGEST, rel_id=id).delete()
             await UserPermission.filter(rel_type=PermType.MEDIA_LIB, rel_id=id).delete()
+
         # release the DB and library locks before waiting for consumer cancellation
         watcher = cls.app_ctx().lib_watcher
         await watcher.remove_observer(lib.dir)
@@ -1504,30 +1505,27 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         force: bool = False,
         force_targets: set[Path] | None = None,
     ) -> dict[Path, str]:
-        """Ingest reading candidates and revisit indexed comic directories serially.
+        """Ingest reading sources and revisit indexed comic directories in order.
 
-        The library consumer must call this outside the library lock. Each service
+        Library consumer must call this outside the library lock. Each service
         step revalidates ownership and manages its own lock. Indexed image directories
         and collections retain their identity when empty. Missing or ambiguous sources
         still require separate reconciliation; discovery never implies deletion.
 
         Args:
-            lib_id: The novel or comic library containing the work.
-            work_path: The absolute work directory directly below the library root.
+            lib_id: Novel or comic library containing the work.
+            work_path: Absolute work directory directly below the library root.
             targets: Work or direct comic chapter directories to process; None
                 processes the whole work. A chapter selection includes its collection.
-            force: Whether to rebuild selected bodies unconditionally; defaults to
-                False for incremental scans; True rebuilds every selected body.
+            force: Rebuild every selected body when True; defaults to incremental scans.
             force_targets: Containers whose selected bodies must be rebuilt even
                 when size and mtime match; None adds no forced containers. Use this
                 for mixed body and metadata events, or force=True for the whole scope.
 
         Returns:
-            Selected source or scope paths mapped to discovery, metadata or body
-            errors, including registered bodies missing from discovery. Ownership
-            conflicts require reconciliation before registering a replacement.
-            Body errors take precedence for a source with multiple failures.
-            Indexed empty bodies are normal states and do not add an error.
+            Source or scope paths mapped to discovery, metadata or body errors.
+            Body errors take precedence; indexed empty bodies are not errors.
+            Resolve ownership conflicts before registering a replacement.
 
         Raises:
             DoesNotExist: If the library no longer exists.
@@ -1681,11 +1679,11 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         overwriting another source. Capture `original` only for new items.
 
         Args:
-            lib_id: The reading library containing the discovered source.
-            source: The candidate from the reading handler, revalidated before saving.
+            lib_id: Reading library containing the discovered source.
+            source: Candidate from the reading handler, revalidated before saving.
 
         Returns:
-            The existing item or a new pending item with its library and parent loaded.
+            Existing item or a new pending item with its library and parent loaded.
 
         Raises:
             DoesNotExist: If the library no longer exists.
@@ -1747,8 +1745,8 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Retain asynchronous scrape failures and retire completed workflow chains.
 
         Args:
-            event_id: The originating media event carried by workflow boot parameters.
-            error: The execution failure, or `None` for successful completion.
+            event_id: Originating media event carried by workflow boot parameters.
+            error: Execution failure, or `None` for successful completion.
         """
         event = await MediaEvent.get_or_none(
             id=event_id, event_type="ingest"
@@ -1786,7 +1784,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         Mark existing legacy workflows as dispatched even if they return no metadata.
 
         Args:
-            id: The persisted ingest event ID selected by the library consumer.
+            id: Persisted ingest event ID selected by the library consumer.
 
         Returns:
             True after dispatch or removal of obsolete work; False while waiting for
@@ -1938,6 +1936,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
                     event.payload = {"bootparams": [params], "dispatched": True}
                     await event.save(update_fields=["payload"])
                 expected_payload = event.payload
+
             # workflow nodes acquire the same library lock when saving their result
             if first is not None:
                 await engine.execute(
@@ -1980,21 +1979,21 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
     ) -> MediaItem | None:
         """Apply an observed body-file move while retaining its registered identity.
 
-        Call from the serial library consumer before destination ingestion, using a
-        persisted filesystem move. Accept renames or moves between work or chapter
-        containers. Register a destination collection before moving a chapter across
-        works. Files and histories stay untouched. Retain the old cache for cleanup
-        and mark the item pending for indexing at its new path.
+        Call from the serial consumer before destination ingestion, using a saved
+        filesystem move. Register the destination collection before moving a chapter
+        between works. Keep files, histories and the old cache; mark the item pending
+        for indexing at its new path.
 
         Args:
-            lib_id: The novel or comic library containing the moved file.
-            src_path: The absolute previous body path from the move event.
-            dest_path: The absolute new body path at the same depth in this library.
+            lib_id: Novel or comic library containing the moved file.
+            src_path: Absolute previous body path from the move event.
+            dest_path: Absolute new body path at the same depth in this library.
             previous_paths: Other former paths in a continuous move chain, excluding
+                Defaults to an empty tuple.
                 src_path. The default empty tuple handles a single move.
 
         Returns:
-            The updated item with its original ID, or None if the previous path is
+            Updated item with its original ID, or None if the previous path is
             not registered, including when this move was already applied.
 
         Raises:
@@ -2109,10 +2108,11 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         both works. This operation does not rename files on disk.
 
         Args:
-            lib_id: The novel or comic library containing the moved directory.
-            src_path: The absolute previous work or comic chapter directory.
-            dest_path: The absolute new directory at the same depth in this library.
+            lib_id: Novel or comic library containing the moved directory.
+            src_path: Absolute previous work or comic chapter directory.
+            dest_path: Absolute new directory at the same depth in this library.
             previous_paths: Other former directories in a continuous move chain,
+                Defaults to an empty tuple.
                 excluding src_path. The default empty tuple handles a single move.
 
         Returns:
@@ -2262,7 +2262,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         Capture original directory information when creating a new parent collection.
 
         Args:
-            event: The prepared reconcile task, refreshed in place after commit.
+            event: Prepared reconcile task, refreshed in place after commit.
             moves: Linked filesystem moves ordered by their persisted event IDs.
 
         Returns:
@@ -2450,20 +2450,16 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
     ) -> list[int]:
         """Remove an absent reading source, its owned children, caches and histories.
 
-        Call from the serial consumer after stable observations and reliable moves
-        have been applied. Remove exclusive companions of missing files first. When the
-        whole container disappeared, require that captured directory to remain absent
-        so a restored container cannot lose its record. Recheck absence instead of
-        treating discovery as deletion. Unrelated and shared files stay untouched.
-        Empty image directories and collections are retained; surviving collections
-        are summarized by subsequent work ingestion. If every registered work directory
-        disappears, retain records until library access can be confirmed again.
+        Call from the serial consumer after stable observations and saved moves.
+        Recheck source absence and remove only owned companions. Retain empty image
+        containers and collections. If all work directories disappear, confirm library
+        access before deleting records; a validated move can bypass this protection.
 
         Args:
-            id: The registered reading item selected for missing-source reconciliation.
-            directory: The captured container that must still belong to this item and
+            id: Registered reading item to check.
+            directory: Captured container that must still belong to this item and
                 be absent. None also allows missing bodies in surviving containers.
-            source_path: The captured body path that must still belong to this item;
+            source_path: Captured body path that must still belong to this item;
                 None uses the item's current path for internal callers.
             moved: Whether a validated persisted move confirms this source departed.
                 False retains protection when all known work directories disappear.
@@ -2473,8 +2469,8 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
 
         Raises:
             ContentError: If ownership, absence or cache cleanup cannot be confirmed.
-                Failed cleanup keeps database owners for retry; companions or
-                rebuildable caches may already be partially or fully removed.
+                Failed cleanup keeps database records for retry; companion files and
+                generated caches may already be removed.
             asyncio.CancelledError: After any active cache writer stops.
         """
         original = await MediaItem.get_or_none(id=id).select_related("lib", "parent")
@@ -2560,10 +2556,10 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         Failed item-owned reads preserve summaries; parent metadata stays read-only.
 
         Args:
-            id: The internal reading item ID selected by the library consumer.
+            id: Internal reading item ID selected by the library consumer.
 
         Returns:
-            The item with current list summaries or a recorded metadata read error.
+            Item with current list summaries or a recorded metadata read error.
 
         Raises:
             DoesNotExist: If the item was removed before synchronization starts.
@@ -2590,8 +2586,8 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Persist and execute an OPF or ComicInfo save for the current reading item.
 
         Args:
-            id: The existing reading item ID, including a comic collection or chapter.
-            data: The complete candidate, without paths or fields from old metadata.
+            id: Existing reading item ID, including a comic collection or chapter.
+            data: Complete candidate, without paths or fields from old metadata.
             overwrite: False for automatic creation; True after manual confirmation.
 
         Returns:
@@ -2662,10 +2658,11 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         published metadata and synchronized its summary successfully.
 
         Args:
-            event: The current save task, loaded again by the caller holding the lock.
-            item: The current item in the task's library, with its parent loaded.
-            task: The validated candidate and publication state stored in the event.
+            event: Current save task, loaded again by the caller holding the lock.
+            item: Current item in the task's library, with its parent loaded.
+            task: Validated candidate and publication state stored in the event.
             resume: Recognize an already published candidate after interruption;
+                Defaults to `False`.
                 False for the initial save, which still yields to existing metadata.
 
         Returns:
@@ -2704,6 +2701,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
                     task.published = True
                     event.payload = task.model_dump(mode="json")
                     await event.save(update_fields=["payload"])
+
             # recovery after publication only reads current files, never replays XML
             metadata, _, source_error = await to_thread(
                 _read_metadata, item, with_cover=False
@@ -2756,7 +2754,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Resume an interrupted metadata save without replaying a completed file phase.
 
         Args:
-            id: The persisted metadata event ID selected by the library consumer.
+            id: Persisted metadata event ID selected by the library consumer.
 
         Returns:
             True when the task finishes or its item was removed; False for absent or
@@ -2809,16 +2807,16 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
     async def sync_collection(cls, id: int) -> MediaItem:
         """Summarize a comic collection from its current visible chapters.
 
-        The library consumer calls this after registering or reconciling chapters,
+        Library consumer calls this after registering or reconciling chapters,
         including failed builds, removals and visibility changes. Readiness follows
         published chapter states; source and cache validation stay with the reader.
         Collections have chapter counts but no body index or combined page count.
 
         Args:
-            id: The internal ID of a top-level comic collection.
+            id: Internal ID of a top-level comic collection.
 
         Returns:
-            The collection with its aggregate state and current chapter count.
+            Collection with its aggregate state and current chapter count.
 
         Raises:
             DoesNotExist: If the collection was removed before synchronization.
@@ -2911,7 +2909,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
     async def index_content(cls, id: int, *, force: bool = True) -> MediaItem:
         """Rebuild and publish content for one persisted reading unit.
 
-        The library's single event consumer must await builds serially and decide
+        Library's single event consumer must await builds serially and decide
         when rebuilding is required. Ordinary scans can reuse a matching ready
         index; body modification events must force rebuilding even when file sizes
         and modification times match. All paths must enqueue work for the consumer.
@@ -2921,12 +2919,12 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         lock used by readers. Cancellation leaves pending work safe to retry.
 
         Args:
-            id: The internal reading item ID selected by the library consumer.
+            id: Internal reading item ID selected by the library consumer.
             force: Whether to rebuild unconditionally; defaults to True to preserve
                 explicit rebuilds. False permits reuse after source and cache checks.
 
         Returns:
-            The item with a reused or rebuilt ready version and content counts.
+            Item with a reused or rebuilt ready version and content counts.
 
         Raises:
             DoesNotExist: If the item was removed before indexing starts.
@@ -3048,11 +3046,11 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Get a visible item after checking its library and parent access.
 
         Args:
-            id: The requested media item ID.
-            user: The authenticated user with permissions loaded by authorize.
+            id: Requested media item ID.
+            user: Authenticated user with permissions loaded by authorize.
 
         Returns:
-            The item with its library and optional parent loaded.
+            Item with its library and optional parent loaded.
 
         Raises:
             NotFoundException: If the item or its valid visible parent is missing.
@@ -3084,12 +3082,12 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         Retry once if the source or database ownership changes during the read.
 
         Args:
-            item: The initially accessible reading item.
-            user: The authenticated user used for access revalidation.
+            item: Initially accessible reading item.
+            user: Authenticated user used for access revalidation.
             with_cover: Whether to include the current cover bytes.
 
         Returns:
-            The current item, metadata, optional cover and missing-source error.
+            Current item, metadata, optional cover and missing-source error.
 
         Raises:
             ContentError: If source reading fails or changes repeatedly.
@@ -3119,8 +3117,8 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         even when an earlier workflow in the same chain has failed.
 
         Args:
-            id: The media item ID.
-            user: The authenticated user with loaded library permissions.
+            id: Media item ID.
+            user: Authenticated user with loaded library permissions.
 
         Returns:
             Details with current metadata and controlled source issues.
@@ -3274,8 +3272,8 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Read a current cover for an accessible reading item.
 
         Args:
-            id: The media item ID.
-            user: The authenticated user with loaded library permissions.
+            id: Media item ID.
+            user: Authenticated user with loaded library permissions.
 
         Returns:
             Verified cover bytes, or None when a placeholder is needed.
@@ -3302,9 +3300,9 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         quiet interval or retry budget on repeated content requests.
 
         Args:
-            id: The requested reading item ID.
-            user: The authenticated user with loaded library permissions.
-            version: The expected published version, or None for the current one.
+            id: Requested reading item ID.
+            user: Authenticated user with loaded library permissions.
+            version: Expected published version, or None for the current one.
 
         Yields:
             An accessible collection or ready reading source for one operation.
@@ -3387,12 +3385,12 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Get selected chapter content and the available comic chapter list.
 
         Args:
-            item: The accessible collection guarded by the caller during this read.
-            user: The authenticated user used to revalidate chapter access.
-            query: The optional child selection, expected child version and page range.
+            item: Accessible collection guarded by the caller during this read.
+            user: Authenticated user used to revalidate chapter access.
+            query: Optional child selection, expected child version and page range.
 
         Returns:
-            The selected chapter's content with the collection ID and ready chapters.
+            Selected chapter's content with the collection ID and ready chapters.
 
         Raises:
             NotFoundException: If the selected chapter or collection becomes hidden.
@@ -3478,9 +3476,9 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Read published content without indexing, metadata writes or history updates.
 
         Args:
-            id: The requested reading source or comic collection ID.
-            user: The authenticated user with loaded library permissions.
-            query: The optional chapter, expected version and comic pagination.
+            id: Requested reading source or comic collection ID.
+            user: Authenticated user with loaded library permissions.
+            query: Optional chapter, expected version and comic pagination.
 
         Returns:
             TXT paragraphs, EPUB blocks or comic page URLs with chapter labels.
@@ -3519,14 +3517,14 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Resolve a reading position within its accessible work and chapter.
 
         Args:
-            id: The top-level novel or comic work ID.
-            user: The authenticated user with loaded library permissions.
-            locator: The position in the expected published content version.
+            id: Top-level novel or comic work ID.
+            user: Authenticated user with loaded library permissions.
+            locator: Position in the expected published content version.
             restore: Recover stale positions at their chapter start; defaults to
                 strict validation when recording progress.
 
         Returns:
-            The validated or recovered locator, or None if its chapter is gone.
+            Validated or recovered locator, or None if its chapter is gone.
 
         Raises:
             NotFoundException: If the work or selected chapter is missing or hidden.
@@ -3570,10 +3568,10 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Read an EPUB or comic image from its index after checking library access.
 
         Args:
-            id: The requested source item ID.
-            user: The authenticated user with loaded library permissions.
-            asset_id: The opaque image ID selected from the current index.
-            version: The required published content version.
+            id: Requested source item ID.
+            user: Authenticated user with loaded library permissions.
+            asset_id: Opaque image ID selected from the current index.
+            version: Required published content version.
 
         Returns:
             Verified image bytes and their MIME type; no filesystem path is returned.
@@ -3600,7 +3598,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         parent changes and summarize surviving comic collections.
 
         Args:
-            id: The media item ID.
+            id: Media item ID.
             local: Whether to delete local files; False only hides the selected items.
 
         Raises:
@@ -3665,6 +3663,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
             items: Current rows from the originally requested scope, with library and
                 parent relations loaded; an empty scope is already complete.
             missing: Refuse to remove a restored body while processing an external
+                Defaults to `False`.
                 deletion. Defaults to False for explicit local deletion.
 
         Raises:
@@ -3739,13 +3738,14 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         their snapshots and unknown legacy values unchanged.
 
         Args:
-            lib_id: The media library ID.
-            path_info: The media path info whose item ID is populated.
-            parent_id: The parent media item ID, if any.
-            default_title: The default title to use if the media item is created.
+            lib_id: Media library ID.
+            path_info: Media path info whose item ID is populated.
+            parent_id: Parent media item ID, if any. `None` creates a top-level
+                item.
+            default_title: Default title to use if the media item is created.
 
         Returns:
-            The media item instance.
+            Media item instance.
         """
         item_path = path_info.item_path
         item = await MediaItem.get_or_none(lib_id=lib_id, path=item_path)
@@ -3774,6 +3774,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
 
             # fill missing file information under the library lock
             async def refresh():
+                """Fill missing file details after taking the library lock."""
                 target = await MediaItem.get_or_none(id=item_id).select_related("lib")
                 if target is None:
                     return
@@ -3793,7 +3794,7 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Refresh a media file's hash and size while holding its library lock.
 
         Args:
-            item: The current media item whose library lock the caller holds.
+            item: Current media item whose library lock the caller holds.
 
         Returns:
             `True` if a known hash or size changed. `False` if values only needed
@@ -3821,10 +3822,10 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Look up the media file's hash from the database.
 
         Args:
-            item_path: The file path of the media item.
+            item_path: File path of the media item.
 
         Returns:
-            The media hash if found, otherwise calculate and return the hash.
+            Media hash if found, otherwise calculate and return the hash.
         """
         try:
             media = await MediaItem.filter(path=item_path).first()
@@ -3855,9 +3856,9 @@ class MediaItemService(BaseService[MediaItem], model=MediaItem):
         """Refresh the metadata of the episodes under a season.
 
         Args:
-            item: The season media item.
-            meta: The season metadata object.
-            episode_ids: The original episode IDs, or `None` to use current children.
+            item: Season media item.
+            meta: Season metadata object.
+            episode_ids: Original episode IDs, or `None` to use current children.
         """
         from app.core.media.shelver import gen_nfo, get_nfo_path
 

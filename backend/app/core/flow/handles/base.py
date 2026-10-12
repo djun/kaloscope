@@ -8,7 +8,7 @@ type HandlePosition = Literal["left", "top", "right", "bottom"]
 
 @dataclass(kw_only=True)
 class Handle(ABC):
-    """The base dataclass for all node handles."""
+    """Base definition for node handles."""
 
     id: str = field(init=False, repr=False)
     handle_type: HandleType = field(init=False, repr=False)
@@ -21,7 +21,7 @@ class Handle(ABC):
 
     def __post_init__(self):
         self.handle_type = self._handle_type()
-        # ensure maxconn is within the range of 1 to 20
+        # limit handle connections to the range 1 to 20
         if self.maxconn is not None:
             self.maxconn = max(1, min(self.maxconn, 20))
         elif self.handle_type == "target":
@@ -34,7 +34,7 @@ class Handle(ABC):
         """The method to be implemented by the subclasses to return the handle type.
 
         Returns:
-            The handle type.
+            Handle type.
         """
         raise NotImplementedError
 
@@ -43,11 +43,11 @@ class Handle(ABC):
         """Create a new handle instance.
 
         Args:
-            id: The handle ID.
-            loop_id: The loop node ID.
+            id: Handle ID.
+            loop_id: Loop node ID. `None` means no active loop.
 
         Returns:
-            The new handle instance.
+            New handle instance.
         """
         handle = cls.__new__(cls)
         handle.__post_init__()

@@ -18,7 +18,15 @@ class SubtitleContentQuery(MediaResource):
 @subtitle.post("/tracks")
 @validate(json=MediaResource)
 async def list_tracks(_, body: MediaResource) -> HTTPResponse:
-    """List subtitle tracks for the given media resource."""
+    """List subtitle tracks for the given media resource.
+
+    Args:
+        _: Unused request.
+        body: Media source path.
+
+    Returns:
+        Response containing the requested data.
+    """
     subtitles = await SubtitleService.list_tracks(body.path)
     return json([s.model_dump() for s in subtitles])
 
@@ -26,7 +34,15 @@ async def list_tracks(_, body: MediaResource) -> HTTPResponse:
 @subtitle.get("/content")
 @validate(query=SubtitleContentQuery)
 async def load_content(_, query: SubtitleContentQuery) -> HTTPResponse:
-    """Load local subtitle content."""
+    """Load local subtitle content.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     result = await SubtitleService.load_content(query.path, query.stream)
     if not result:
         raise KaloscopeException(ErrorCode.FILE_NOT_EXISTS)

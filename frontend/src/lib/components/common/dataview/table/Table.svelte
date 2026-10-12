@@ -16,7 +16,7 @@
   /**
    * Toggle the row checkbox unless the click starts from an interactive element.
    *
-   * @param event - The click event.
+   * @param event - Click event.
    */
   function toggleRowSelection(event: MouseEvent) {
     const { target, currentTarget } = event;

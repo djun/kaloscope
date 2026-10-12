@@ -18,7 +18,7 @@ def _inc_exc(fields: tuple[str, ...] | IncExc) -> tuple[tuple[str, ...], IncExc 
     """Convert include/exclude fields to a tuple and an optional IncExc.
 
     Args:
-        fields: The fields to convert.
+        fields: Fields to convert.
 
     Returns:
         A tuple containing the fields as a tuple and an optional IncExc.
@@ -36,12 +36,17 @@ class BaseService[M: TortoiseModel]:
 
         Args:
             model: The Tortoise ORM model class.
+            **kwargs: Class options forwarded to the base class.
         """
         cls._modelcls = model
         super().__init_subclass__(**kwargs)
 
     def __new__(cls, *args, **kwargs):
         """Prevent instantiation of the class directly.
+
+        Args:
+            *args: Unused positional construction arguments.
+            **kwargs: Unused keyword construction arguments.
 
         Raises:
             ValueError: If the class is instantiated directly.
@@ -50,28 +55,28 @@ class BaseService[M: TortoiseModel]:
 
     @classmethod
     def app_config(cls) -> Config:
-        """Get the application config.
+        """Get application config.
 
         Returns:
-            The application config.
+            Application config.
         """
         return Sanic.get_app().config
 
     @classmethod
     def app_ctx(cls) -> SimpleNamespace:
-        """Get the application context.
+        """Get application context.
 
         Returns:
-            The application context.
+            Application context.
         """
         return Sanic.get_app().ctx
 
     @classmethod
     def shared_ctx(cls) -> SharedContext:
-        """Get the shared context.
+        """Get shared context.
 
         Returns:
-            The shared context.
+            Shared context.
         """
         return Sanic.get_app().shared_ctx
 
@@ -83,15 +88,17 @@ class BaseService[M: TortoiseModel]:
         include: tuple[str, ...] | IncExc = (),
         exclude: tuple[str, ...] | IncExc = (),
     ) -> dict[str, Any]:
-        """Dumps a Tortoise ORM model object to a Python dict.
+        """Dump a Tortoise ORM model object to a Python dict.
 
         Args:
             obj: The Tortoise ORM model object.
-            include: The fields to include in the output.
-            exclude: The fields to exclude from the output.
+            include: Fields to include in the output. An empty tuple includes all
+                fields.
+            exclude: Fields to exclude from the output. An empty tuple excludes no
+                fields.
 
         Returns:
-            The dumped dict.
+            Dumped dict.
         """
         # split include/exclude into different formats
         model_inc, dump_inc = _inc_exc(include)
@@ -111,15 +118,17 @@ class BaseService[M: TortoiseModel]:
         include: tuple[str, ...] | IncExc = (),
         exclude: tuple[str, ...] | IncExc = (),
     ) -> Any:
-        """Dumps a list of Tortoise ORM model objects to a Python list.
+        """Dump a list of Tortoise ORM model objects to a Python list.
 
         Args:
-            objects: The list of Tortoise ORM model objects.
-            include: The fields to include in the output.
-            exclude: The fields to exclude from the output.
+            objects: List of Tortoise ORM model objects.
+            include: Fields to include in the output. An empty tuple includes all
+                fields.
+            exclude: Fields to exclude from the output. An empty tuple excludes no
+                fields.
 
         Returns:
-            The dumped list.
+            Dumped list.
         """
         # split include/exclude into different formats
         model_inc, dump_inc = _inc_exc(include)
@@ -130,7 +139,7 @@ class BaseService[M: TortoiseModel]:
             list_model = cls._modelcls.pydantic_list(
                 include=model_inc, exclude=model_exc
             )
-            # dump the queryset using the pydantic list model
+            # serialize query results using the response list model
             return (await list_model.from_queryset(objects)).model_dump(
                 include=dump_inc, exclude=dump_exc
             )
@@ -148,15 +157,17 @@ class BaseService[M: TortoiseModel]:
         include: tuple[str, ...] | IncExc = (),
         exclude: tuple[str, ...] | IncExc = (),
     ) -> dict[str, Any]:
-        """Dumps a paginated list to a Python dict.
+        """Dump a paginated list to a Python dict.
 
         Args:
-            page: The paginated list.
-            include: The fields to include in the output.
-            exclude: The fields to exclude from the output.
+            page: Paginated list.
+            include: Fields to include in the output. An empty tuple includes all
+                fields.
+            exclude: Fields to exclude from the output. An empty tuple excludes no
+                fields.
 
         Returns:
-            The dumped paginated list.
+            Dumped paginated list.
         """
         return {
             "total": page.total,

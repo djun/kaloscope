@@ -32,6 +32,16 @@ class DetailsEndNode(Node):
     @classmethod
     async def execute(cls, *, node_data: dict[str, Any], context: Context, **kwargs):
         # extract the response
+        """Store the rendered resource details in the flow context.
+
+        Args:
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+
+        Raises:
+            CancellationSignal: If the flow should end without an error.
+        """
         context[RETVAL_KEY] = json.try_loads(
             cls.response.extract(node_data, context=context), with_comments=True
         )

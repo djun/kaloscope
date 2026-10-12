@@ -25,6 +25,15 @@ class IngestStartNode(Node):
     @classmethod
     async def execute(cls, *, context: Context, **kwargs):
         # skip check if it's a manual execution
+        """Skip NFO generation when the source already has an NFO file.
+
+        Args:
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+
+        Raises:
+            CancellationSignal: If the flow should end without an error.
+        """
         bootparams = context.bootparams
         if bootparams.get(MANUAL_KEY):
             return

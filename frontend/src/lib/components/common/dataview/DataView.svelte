@@ -51,7 +51,7 @@
     actionsClass?: string;
     /** The paginator snippet. */
     paginator?: Snippet<[boolean]>;
-    /** The class names for the dataview. */
+    /** The class names for the data view. */
     class?: string;
     viewClass?: string;
   };
@@ -102,7 +102,7 @@
   /**
    * Restores the scroll position of the view.
    *
-   * @param options - The scroll position options.
+   * @param options - Scroll position options.
    */
   export function scrollTo(options: ScrollPosition) {
     view.scrollTo(options);
@@ -120,7 +120,7 @@
   }
 
   /**
-   * The scroll event handler.
+   * Scroll event handler.
    *
    * @param end - Whether the scrolling has ended.
    */
@@ -150,7 +150,7 @@
   };
 
   /**
-   * The throttled scroll event handler.
+   * Throttled scroll event handler.
    */
   const _onscroll = throttle(onscroll, 200);
 </script>

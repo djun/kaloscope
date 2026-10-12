@@ -21,10 +21,10 @@ class URLRuleService(BaseService[URLRule], model=URLRule):
     @classmethod
     @atomic()
     async def update_priorities(cls, ids: list):
-        """Update the URL rule priorities.
+        """Update URL rule priorities.
 
         Args:
-            ids: The sorted URL rule IDs.
+            ids: Sorted URL rule IDs.
         """
         rules = await URLRule.all()
         if set(ids) != set(rule.id for rule in rules):

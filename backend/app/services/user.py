@@ -65,15 +65,16 @@ class UserService(BaseService[User], model=User):
         """Login with the username and password.
 
         Args:
-            username: The entered username.
-            password: The entered password.
-            ambiguity: Whether to return a more ambiguous error message.
+            username: Entered username.
+            password: Entered password.
+            ambiguity: Whether to return a more ambiguous error message. Defaults to
+                `True`.
 
         Raises:
             KaloscopeException: If the user is not found or the password is incorrect.
 
         Returns:
-            The login user object.
+            Login user object.
         """
         user = await User.get_or_none(username=username)
         if user is None:
@@ -111,9 +112,9 @@ class UserService(BaseService[User], model=User):
         """Change the user's password.
 
         Args:
-            username: The username to change the password.
-            cur_pwd: The current password.
-            new_pwd: The new password.
+            username: Username to change the password.
+            cur_pwd: Current password.
+            new_pwd: New password.
         """
         if KaloscopeConfig.get().public_instance_mode:
             raise ForbiddenException()
@@ -128,11 +129,11 @@ class UserService(BaseService[User], model=User):
         """Change the user's avatar.
 
         Args:
-            id: The user ID.
-            avatar: The avatar file.
+            id: User ID.
+            avatar: Avatar file.
 
         Returns:
-            The avatar file path.
+            Avatar file path.
         """
         if avatar is not None:
             # save the avatar file
@@ -156,17 +157,17 @@ class UserService(BaseService[User], model=User):
     @classmethod
     @atomic()
     async def update_pref(cls, id: int, pref: UserPreference):
-        """Update the user's preference.
+        """Update user's preference.
 
         Args:
-            id: The user ID.
-            pref: The preference to update.
+            id: User ID.
+            pref: Preference to update.
 
         Raises:
             KaloscopeException: If the user is not found.
         """
         # SQLite does not support the `SELECT ... FOR UPDATE` syntax,
-        # use the following `UPDATE` statement to acquire a `RESERVED` lock.
+        # use the following `UPDATE` statement to acquire a `RESERVED` lock
         await User.filter(id=id).update(updated_at=timezone.now())
         # get the user's preferences from the database
         user = await User.filter(id=id).select_for_update().first()
@@ -189,11 +190,11 @@ class UserService(BaseService[User], model=User):
         """Get a preference value with fallback to the default.
 
         Args:
-            preferences: The user's preferences dict.
-            key: The preference key to look up.
+            preferences: User's preferences dict.
+            key: Preference key to look up.
 
         Returns:
-            The preference value, or the default value if not set.
+            Preference value, or the default value if not set.
         """
         prefs = preferences if isinstance(preferences, dict) else {}
         return prefs.get(key, cls.DEFAULT_PREFERENCES.get(key))
@@ -203,9 +204,9 @@ class UserService(BaseService[User], model=User):
         """Create a new user.
 
         Args:
-            username: The username to create.
-            password: The password to create.
-            role: The role of the user. Defaults to UserRole.USER.
+            username: Username to create.
+            password: Password to create.
+            role: Role of the user. Defaults to UserRole.USER.
         """
         if await User.filter(username=username).count() > 0:
             raise KaloscopeException(ErrorCode.USERNAME_ALREADY_EXISTS)
@@ -220,9 +221,9 @@ class UserFavoriteService(BaseService[UserFavorite], model=UserFavorite):
         """Add a new favorite for the user.
 
         Args:
-            user_id: The user ID.
-            indexer_id: The indexer ID.
-            rsrc: The resource to favorite.
+            user_id: User ID.
+            indexer_id: Indexer ID.
+            rsrc: Resource to favorite.
         """
         data = rsrc.rsrc or {}
         data.pop("favorite", None)
@@ -238,9 +239,9 @@ class UserFavoriteService(BaseService[UserFavorite], model=UserFavorite):
         """Remove a favorite of the user.
 
         Args:
-            user_id: The user ID.
-            indexer_id: The indexer ID.
-            rsrc: The resource to unfavorite.
+            user_id: User ID.
+            indexer_id: Indexer ID.
+            rsrc: Resource to unfavorite.
         """
         await UserFavorite.filter(
             user_id=user_id, indexer_id=indexer_id, rsrc_id=rsrc.rsrc_id
@@ -252,11 +253,11 @@ class UserHistoryService(BaseService[UserHistory], model=UserHistory):
 
     @classmethod
     async def retention_days(cls, user_id: int, rel_type: HistoryType) -> int:
-        """Get the maximum retention days for a given history type.
+        """Get maximum retention days for a given history type.
 
         Args:
-            user_id: The user ID.
-            rel_type: The history type.
+            user_id: User ID.
+            rel_type: History type.
 
         Returns:
             Positive retention days, -1 for permanent storage, or 0 to disable it.
@@ -279,11 +280,11 @@ class UserHistoryService(BaseService[UserHistory], model=UserHistory):
         """Record a user history entry, incrementing repetitions on duplicate.
 
         Args:
-            user: The authenticated user with loaded library permissions.
-            obj: The history entry data.
+            user: Authenticated user with loaded library permissions.
+            obj: History entry data.
 
         Returns:
-            The history instance, or None if recording is disabled or the search
+            History instance, or None if recording is disabled or the search
             is empty.
 
         Raises:
@@ -340,8 +341,8 @@ class UserHistoryService(BaseService[UserHistory], model=UserHistory):
         """List retained history with accessible media and usable reading locators.
 
         Args:
-            user: The authenticated user with loaded library permissions.
-            query: The history type, optional related or parent ID and pagination.
+            user: Authenticated user with loaded library permissions.
+            query: History type, optional related or parent ID and pagination.
 
         Returns:
             A history page with related media or graphs. Stale reading positions
@@ -445,8 +446,8 @@ class UserHistoryService(BaseService[UserHistory], model=UserHistory):
         records of the given type. Positive values expire records by age.
 
         Args:
-            user_id: The user ID.
-            rel_type: The history type to clean.
+            user_id: User ID.
+            rel_type: History type to clean.
         """
         days = await cls.retention_days(user_id, rel_type)
         if days == -1:
@@ -470,11 +471,11 @@ class UserPermissionService(BaseService[UserPermission], model=UserPermission):
     @classmethod
     @atomic()
     async def update_permissions(cls, user_id: int, obj: Permissions):
-        """Update the user's permissions by replacing existing ones.
+        """Update user's permissions by replacing existing ones.
 
         Args:
-            user_id: The user ID.
-            obj: The permissions update data.
+            user_id: User ID.
+            obj: Permissions update data.
         """
         await UserPermission.filter(user_id=user_id).delete()
         perms = [

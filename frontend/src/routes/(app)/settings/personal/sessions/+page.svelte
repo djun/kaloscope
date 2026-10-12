@@ -14,7 +14,7 @@
   const loading = createLoading();
 
   /**
-   * Get the current user sessions.
+   * Get current user sessions.
    */
   function getSessions() {
     loading.start();
@@ -28,7 +28,7 @@
   /**
    * Kill the sessions.
    *
-   * @param ids - The session IDs.
+   * @param ids - Session IDs.
    */
   function killSessions(ids: string[]) {
     loading.start();

@@ -1,7 +1,7 @@
 <script lang="ts" module>
   export type StatusProps = {
     /**
-     * The status rate, a number between 0 and 1.
+     * Status rate, a number between 0 and 1.
      * If null or undefined, the status will be displayed as inactive.
      */
     rate?: number | null;

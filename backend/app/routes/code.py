@@ -28,7 +28,15 @@ class FormatRequest(BaseModel):
 @code.post("/format")
 @validate(json=FormatRequest)
 async def format(_, body: FormatRequest) -> HTTPResponse:
-    """Format the given Python code using autopep8."""
+    """Format given Python code using autopep8.
+
+    Args:
+        _: Unused request.
+        body: Python source and formatting options.
+
+    Returns:
+        Response containing the requested data.
+    """
     source = body.source
     options = body.options.model_dump() if body.options else {}
     return text(autopep8.fix_code(source, options))
@@ -45,7 +53,15 @@ class EvalRequest(BaseModel):
 @code.post("/evaluate")
 @validate(json=EvalRequest)
 async def evaluate(_, body: EvalRequest) -> HTTPResponse:
-    """Evaluate the given Jinja2 template with the provided document."""
+    """Evaluate the given Jinja2 template with the provided document.
+
+    Args:
+        _: Unused request.
+        body: Template, source document and context name.
+
+    Returns:
+        Response containing the requested data.
+    """
     try:
         document = body.document
         if doc_name := body.doc_name:

@@ -23,11 +23,18 @@ class ScheduleStartNode(Node):
 
     @classmethod
     async def execute(cls, *, node_data: dict[str, Any], context: Context, **kwargs):
+        """Merge the configured schedule parameters into the context.
+
+        Args:
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+        """
         bootparams = cls.bootparams.extract(node_data)
         if not bootparams:
             return
 
-        # merge the rendered bootparams into context
+        # merge the rendered startup parameters into context
         rendered = render(
             bootparams, {**context._context, "params": context.bootparams}
         )

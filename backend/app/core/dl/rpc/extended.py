@@ -36,10 +36,10 @@ class ExtendedRpcClient(RpcClient):
     """Execute declarative sessions and request sequences."""
 
     def _session_state(self) -> _SessionState:
-        """Get the cached session for this worker and downloader configuration.
+        """Get cached session for this worker and downloader configuration.
 
         Returns:
-            The shared session data, expiry and refresh lock.
+            Shared session data, expiry and refresh lock.
         """
         ctx = Sanic.get_app().ctx
         if not hasattr(ctx, "rpc_sessions"):
@@ -58,11 +58,12 @@ class ExtendedRpcClient(RpcClient):
         """Call an RPC method with session and step support.
 
         Args:
-            method: The configured RPC method.
-            variables: The variables to render the API with.
+            method: Configured RPC method.
+            variables: Variables to render the API with. `None` adds no call
+                variables.
 
         Returns:
-            The processed result, or `None` if the method is missing or skipped.
+            Processed result, or `None` if the method is missing or skipped.
         """
         api = self.config.methods.get(method)
         if api is None:
@@ -123,7 +124,8 @@ class _Execution:
         Concurrent calls reuse a session refreshed after their rejected request.
 
         Args:
-            rejected_generation: The session version used by a rejected request,
+            rejected_generation: Session version used by a rejected request, `None`
+                initializes or reuses the current session.
                 or `None` to check only the expiry.
         """
         config = self.config.session
@@ -152,13 +154,14 @@ class _Execution:
         """Execute a request or a sequence of steps.
 
         Args:
-            api: The request or step configuration.
-            context: The shared template variables and saved step results.
-            bootstrap: Whether this execution is initializing a session.
-            depth: The current nesting depth of the steps.
+            api: Request or step configuration.
+            context: Shared template variables and saved step results.
+            bootstrap: Whether this execution is initializing a session. Defaults to
+                `False`.
+            depth: Current nesting depth of the steps. Defaults to `0`.
 
         Returns:
-            The last executed result, or `_SKIPPED` if no request ran.
+            Last executed result, or `_SKIPPED` if no request ran.
         """
         if depth > 16:
             raise ValueError("RPC steps exceed maximum depth")
@@ -207,15 +210,15 @@ class _Execution:
         """Request and process responses until pagination is complete.
 
         Args:
-            api: The request and optional pagination configuration.
-            context: The variables to render requests and responses with.
+            api: Request and optional pagination configuration.
+            context: Variables to render requests and responses with.
             bootstrap: Whether the requests are initializing a session.
 
         Raises:
             ValueError: If paginated responses are invalid or incomplete.
 
         Returns:
-            The response result, or the combined items when pagination is enabled.
+            Response result, or the combined items when pagination is enabled.
         """
         pagination = api.pagination
         collected, seen, params = [], set(), {}
@@ -266,8 +269,8 @@ class _Execution:
 
         Args:
             api: The HTTP request configuration.
-            context: The shared request variables and current session data.
-            params: The additional query parameters for the current page.
+            context: Shared request variables and current session data.
+            params: Additional query parameters for the current page.
             bootstrap: Whether the request is initializing a session.
 
         Returns:
@@ -281,6 +284,14 @@ class _Execution:
         generation = self.session.generation
 
         async def refresh(response: httpx.Response) -> bool:
+            """Refresh the session after a configured authentication rejection.
+
+            Args:
+                response: Response from the current request attempt.
+
+            Returns:
+                Whether the rejected request should be retried.
+            """
             if (
                 not bootstrap
                 and self.config.session
@@ -311,12 +322,12 @@ class _Execution:
         """Validate and transform a response or the result of preceding steps.
 
         Args:
-            spec: The optional response mapping and validation rules.
-            body: The response body or result of preceding steps.
-            context: The template variables and HTTP response metadata.
+            spec: Optional response mapping and validation rules.
+            body: Response body or result of preceding steps.
+            context: Template variables and HTTP response metadata.
 
         Returns:
-            The transformed result, including local file paths when configured.
+            Transformed result, including local file paths when configured.
         """
         if spec is None:
             return body
@@ -325,6 +336,14 @@ class _Execution:
             raise KaloscopeException(ErrorCode.HTTP_REQUEST_FAILED)
 
         def transform(item):
+            """Render or map one item from the RPC response.
+
+            Args:
+                item: Response item to transform.
+
+            Returns:
+                Rendered, mapped or unchanged response item.
+            """
             if "transform" in spec.model_fields_set:
                 return render(
                     spec.transform, context | {"item": item}, raw=True, strict=True
@@ -354,11 +373,11 @@ def _condition(value: bool | str, context: dict) -> bool:
     """Evaluate a boolean value or template condition.
 
     Args:
-        value: The condition to evaluate.
-        context: The variables to render the condition with.
+        value: Condition to evaluate.
+        context: Variables to render the condition with.
 
     Returns:
-        The boolean result of the condition.
+        Boolean result of the condition.
     """
     value = render(value, context, raw=True, strict=True)
     if not isinstance(value, bool):
@@ -373,7 +392,7 @@ def _body(response: httpx.Response) -> Any:
         response: The HTTP response.
 
     Returns:
-        The parsed JSON value or response text.
+        Parsed JSON value or response text.
     """
     try:
         return loads(response.content)
@@ -398,6 +417,14 @@ def local_files(path: str, exclude: list[str]) -> list[str]:
         raise ValueError("RPC file root must be an existing non-symlink path")
 
     def scan_error(error: OSError):
+        """Reject an incomplete directory scan.
+
+        Args:
+            error: Filesystem error reported by directory traversal.
+
+        Raises:
+            ValueError: If the result directory cannot be fully scanned.
+        """
         raise ValueError("RPC file root cannot be fully scanned") from error
 
     boundary = root.resolve()

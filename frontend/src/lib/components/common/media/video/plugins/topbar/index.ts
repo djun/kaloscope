@@ -9,19 +9,19 @@ const { POSITIONS } = Plugin;
  */
 export default class TopBar extends Plugin {
   /**
-   * The last accepted control event timestamp.
+   * Last accepted control event timestamp.
    */
   private clickTimeStamp = 0;
 
   /**
-   * The xgplayer plugin name.
+   * Xgplayer plugin name.
    */
   static get pluginName() {
     return 'topBar';
   }
 
   /**
-   * The default top bar configuration.
+   * Default top bar configuration.
    */
   static get defaultConfig() {
     return {
@@ -35,14 +35,14 @@ export default class TopBar extends Plugin {
   }
 
   /**
-   * The current media title.
+   * Current media title.
    */
   get title(): string {
     return this.config.title || '';
   }
 
   /**
-   * The formatted uploader and upload time label.
+   * Formatted uploader and upload time label.
    */
   get uploader(): string {
     const { uploader, uploadedAt } = this.config;
@@ -66,7 +66,7 @@ export default class TopBar extends Plugin {
   /**
    * Navigate back using the configured callback or app history.
    *
-   * @param event - The control activation event.
+   * @param event - Control activation event.
    */
   onBackIconClick = (event: Event) => {
     if (this.isClickDebounced()) {
@@ -84,7 +84,7 @@ export default class TopBar extends Plugin {
   /**
    * Open the player settings modal.
    *
-   * @param event - The control activation event.
+   * @param event - Control activation event.
    */
   onSettingsIconClick = (event: Event) => {
     if (this.isClickDebounced()) {

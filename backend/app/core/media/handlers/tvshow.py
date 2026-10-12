@@ -27,7 +27,7 @@ class TVShowMediaHandler(MediaHandler):
         """The mime types accepted by the TV show library type.
 
         Returns:
-            The list of mime types.
+            List of mime types.
         """
         return ["video/*"]
 
@@ -50,7 +50,7 @@ class TVShowMediaHandler(MediaHandler):
                 └── Series Name B S02E03.mkv
 
         Returns:
-            The list of hierarchy levels.
+            List of hierarchy levels.
         """
         return [2, 3]
 
@@ -61,7 +61,7 @@ class TVShowMediaHandler(MediaHandler):
             data: The XML data to extract from.
 
         Returns:
-            The extracted metadata.
+            Extracted metadata.
         """
         meta = MediaMeta()
         root = data.getroot()
@@ -110,16 +110,25 @@ class TVShowMediaHandler(MediaHandler):
         """Generate the media items for a TV show.
 
         Args:
-            lib: The media library instance.
-            path: The path to generate from.
+            lib: Media library instance.
+            path: Path to generate from.
 
         Returns:
-            The list of media path info for the media items.
+            List of media path info for the media items.
         """
         result = []
 
-        # helper function to create parent media path info
         def _parent(path: Path, *, series: str, season: int | None) -> MediaPathInfo:
+            """Build series or season metadata for the parent item.
+
+            Args:
+                path: Parent directory path.
+                series: Series directory name.
+                season: Season number, or `None` when unknown.
+
+            Returns:
+                Parent metadata and missing NFO details.
+            """
             info = MediaPathInfo(path)
             info.nfo_path = Path(info.item_dir) / f"{info.item_name}.nfo"
             if not info.nfo_path.exists():
@@ -130,8 +139,16 @@ class TVShowMediaHandler(MediaHandler):
             info.season = season
             return info
 
-        # helper function to create child media path info
         def _child(path: Path, *, parent: MediaItem) -> MediaPathInfo:
+            """Build episode metadata using the parent series information.
+
+            Args:
+                path: Episode file path.
+                parent: Persisted series or season item.
+
+            Returns:
+                Episode metadata and missing NFO details.
+            """
             info = MediaPathInfo(path)
             if info.item_name != (dir := Path(info.item_dir)).name:
                 info.nfo_path = dir / f"{info.item_name}.nfo"

@@ -73,11 +73,11 @@ def _openlist_runner(downloader, driver):
     """Create a synchronizer sharing isolated notification state.
 
     Args:
-        downloader: The downloader whose driver is cached.
-        driver: The cached driver used by the test.
+        downloader: Downloader whose driver is cached.
+        driver: Cached driver used by the test.
 
     Returns:
-        The synchronizer with initialized clocks and shared flags.
+        Synchronizer with initialized clocks and shared flags.
     """
     runner = cast(Any, object.__new__(syncer.DLSyncer))
     runner._app = SimpleNamespace(

@@ -25,13 +25,13 @@ class DiskUsage:
     free: int | None = None
 
     def _format(self, size: int | None) -> str:
-        """Format the disk usage size.
+        """Format disk usage size.
 
         Args:
-            size: The size in bytes.
+            size: Size in bytes.
 
         Returns:
-            The formatted size.
+            Formatted size.
         """
         return format_bytes(size) if size is not None else ""
 
@@ -46,13 +46,13 @@ class DiskUsage:
 
 
 def disk_usage(path: Path | str) -> DiskUsage:
-    """Get the disk usage of a directory.
+    """Get disk usage of a directory.
 
     Args:
-        path: The path to the directory.
+        path: Path to the directory.
 
     Returns:
-        The disk usage statistics object.
+        Disk usage statistics object.
     """
     if not is_directory(path):
         return DiskUsage()
@@ -68,7 +68,7 @@ def is_directory(path: Path | str) -> bool:
     """Check if a path is a directory.
 
     Args:
-        path: The path to check.
+        path: Path to check.
 
     Returns:
         True if the path is a directory, False otherwise.
@@ -88,7 +88,7 @@ def delete_path(path: Path | str):
     When disabled, files and symlinks are unlinked and directories are removed.
 
     Args:
-        path: The file or directory path to delete.
+        path: File or directory path to delete.
     """
     if not isinstance(path, Path):
         path = Path(path)
@@ -104,13 +104,13 @@ def delete_path(path: Path | str):
 
 
 def format_bytes(size_bytes: int) -> str:
-    """Format the size in bytes to a human-readable format.
+    """Format size in bytes to a human-readable format.
 
     Args:
-        size_bytes: The size in bytes.
+        size_bytes: Size in bytes.
 
     Returns:
-        The human-readable size.
+        Human-readable size.
     """
     if size_bytes == 0:
         return "0 B"
@@ -127,8 +127,8 @@ def rename_exclusive(source: Path, destination: Path):
     """Rename a file or directory atomically without overwriting the destination.
 
     Args:
-        source: The file or directory to rename.
-        destination: The final path, which must not already exist.
+        source: File or directory to rename.
+        destination: Final path, which must not already exist.
 
     Raises:
         OSError: If exclusive renaming is unavailable or fails.
@@ -170,10 +170,10 @@ def original_file_info(path: str | Path) -> dict[str, Any]:
     the raw link target and capture the target's size and modification time.
 
     Args:
-        path: The file or directory to inspect without resolving its location.
+        path: File or directory to inspect without resolving its location.
 
     Returns:
-        The absolute path, entry type, regular-file size in bytes, modification
+        Absolute path, entry type, regular-file size in bytes, modification
         time in UTC ISO 8601 format and raw symlink target. Unavailable attributes
         remain `None` if filesystem access or timestamp conversion fails.
         Directory sizes remain `None`.
@@ -208,7 +208,7 @@ def file_state(info: os.stat_result) -> tuple[int, ...]:
     """Return file identity and write attributes for stability checks.
 
     Args:
-        info: The filesystem attributes captured during a build or read.
+        info: Filesystem attributes captured during a build or read.
 
     Returns:
         Identity, size and write timestamps, excluding access time and path.

@@ -31,7 +31,7 @@
   let toggleAction: LogAction = $derived(paused ? 'resume' : 'pause');
 
   /**
-   * Parse the JSON payload from an SSE message.
+   * Parse JSON payload from an SSE message.
    *
    * @param event - The SSE message to parse.
    * @returns The parsed value, or `null` for malformed JSON.
@@ -47,7 +47,7 @@
   /**
    * Validate an SSE payload as a `SystemLog`.
    *
-   * @param value - The payload to validate.
+   * @param value - Payload to validate.
    * @returns Whether the payload is a system log.
    */
   function isSystemLog(value: unknown): value is SystemLog {
@@ -70,7 +70,7 @@
   /**
    * Validate an SSE payload as a `SystemLogState`.
    *
-   * @param value - The payload to validate.
+   * @param value - Payload to validate.
    * @returns Whether the payload is a log state.
    */
   function isLogState(value: unknown): value is SystemLogState {
@@ -91,7 +91,7 @@
   /**
    * Queue a log for the next animation frame.
    *
-   * @param log - The log to queue.
+   * @param log - Log to queue.
    */
   function enqueueLog(log: SystemLog) {
     logQueue.push(log);
@@ -134,7 +134,7 @@
   /**
    * Run a shared log-buffer action.
    *
-   * @param action - The action to run.
+   * @param action - Action to run.
    */
   async function runAction(action: LogAction) {
     // block duplicates before delayed loading feedback appears
@@ -169,7 +169,7 @@
   /**
    * Set whether a log level is visible.
    *
-   * @param level - The level to update.
+   * @param level - Level to update.
    * @param enabled - Whether to show the level.
    */
   function setLevel(level: SystemLogLevel, enabled: boolean) {
@@ -198,7 +198,7 @@
   /**
    * Shorten a Sanic process name for display.
    *
-   * @param processName - The full process name.
+   * @param processName - Full process name.
    * @returns The compact process name.
    */
   function formatProcess(processName: string): string {

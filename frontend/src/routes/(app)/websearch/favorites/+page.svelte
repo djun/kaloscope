@@ -55,7 +55,7 @@
   /**
    * Delete a favorite resource.
    *
-   * @param favorite - The favorite resource.
+   * @param favorite - Favorite resource.
    */
   function del(favorite: Favorite) {
     loading.start();

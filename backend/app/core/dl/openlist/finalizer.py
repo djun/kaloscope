@@ -29,11 +29,11 @@ def reconcile_local_manifest(
     """Remove local paths invalidated by a new non-empty remote manifest.
 
     Args:
-        job: The persisted job whose previous manifest owns the local paths.
-        entries: The latest non-empty remote manifest entries.
+        job: Persisted job whose previous manifest owns the local paths.
+        entries: Latest non-empty remote manifest entries.
 
     Returns:
-        The serialized latest manifest ready for persistence.
+        Serialized latest manifest ready for persistence.
 
     Raises:
         PullError: If a stale local path cannot be handled safely.
@@ -67,15 +67,16 @@ async def finalize_job(
 ) -> DownloadSnapshot:
     """Verify a pulled job and persist its resulting state.
 
-    The remote manifest is rebuilt before checking the local files. A changed
+    Remote manifest is rebuilt before checking the local files. A changed
     manifest returns the job to `SETTLING`; otherwise the task advances to
     `COMPLETED` or `ERROR` based on local verification.
 
     Args:
         client: The OpenList client used to read the remote result.
-        job: The persisted offline download job to finalize.
-        now: The timestamp used for stability scheduling and completion.
+        job: Persisted offline download job to finalize.
+        now: Timestamp used for stability scheduling and completion.
         cleanup_on_success: Whether successful completion requires remote cleanup.
+            Defaults to `False`.
 
     Returns:
         A snapshot of the persisted download state.

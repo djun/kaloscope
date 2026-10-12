@@ -11,7 +11,14 @@ class Software(HWAccelStrategy):
     """Software H.264 strategy based on libx264."""
 
     def video_filters(self, context: TranscodeContext) -> list[str]:
-        """Tone map HDR input to 8-bit BT.709 in system memory."""
+        """Tone map HDR input to 8-bit BT.709 in system memory.
+
+        Args:
+            context: Source metadata, output options and hardware decisions.
+
+        Returns:
+            Ordered video filter expressions.
+        """
         if context.needs_tonemap:
             filters = cpu_geometry_filters(context, include_scale=False)
             filters.extend(cpu_tonemap_filters(context, "yuv420p"))
@@ -24,7 +31,7 @@ class Software(HWAccelStrategy):
         """Build libx264 CRF options with a VBV bitrate cap.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg options for predictable-bandwidth software encoding.
@@ -57,14 +64,14 @@ class Software(HWAccelStrategy):
         """Build segment-timed keyframes without scene-change insertion.
 
         Args:
-            context: The runtime transcode context.
+            context: Runtime transcode context.
 
         Returns:
             FFmpeg options for deterministic segment-aligned keyframes.
         """
         return [
             *segment_keyframe_args(context),
-            # disable scene-change keyframes for deterministic GOPs
+            # disable scene-change keyframes for consistent GOP boundaries
             "-sc_threshold:v:0",
             "0",
         ]

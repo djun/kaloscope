@@ -9,7 +9,7 @@ class EncoderConfig:
     Attributes:
         encoder: The FFmpeg video encoder name.
         hwaccel: The FFmpeg hardware decoder name.
-        hwaccel_output_format: The hardware frame format requested from the decoder.
+        hwaccel_output_format: Hardware frame format requested from the decoder.
     """
 
     encoder: str = "libx264"
@@ -68,10 +68,10 @@ class TranscodeOptions:
     """Validated transcoding parameters for web playback.
 
     Attributes:
-        segment_length: The fixed HLS segment duration in seconds.
-        hwaccel: The selected hardware acceleration strategy.
-        quality: The requested quality preset.
-        resolution: The maximum output resolution.
+        segment_length: Fixed HLS segment duration in seconds.
+        hwaccel: Selected hardware acceleration strategy.
+        quality: Requested quality preset.
+        resolution: Maximum output resolution.
     """
 
     segment_length: ClassVar[int] = 6

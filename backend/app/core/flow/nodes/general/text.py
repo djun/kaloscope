@@ -26,6 +26,13 @@ class TextNode(Node):
 
     @classmethod
     async def execute(cls, *, node_data: dict[str, Any], context: Context, **kwargs):
+        """Write rendered text only within a registered media library.
+
+        Args:
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+        """
         path = Path(cls.path.extract(node_data, context=context))
 
         # security: path must be under one of the MediaLib dirs

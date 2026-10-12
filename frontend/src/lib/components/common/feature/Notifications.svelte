@@ -45,6 +45,9 @@
   const notificationDispatchState = createNotificationDispatchState();
 
   // show the notifications center
+  /**
+   * Request browser notification permission and show recent notices.
+   */
   export const showModal = () => {
     if ('Notification' in window) {
       requestWebNotificationPermission(window.Notification).then((permission) => {
@@ -121,16 +124,16 @@
   /**
    * Delete a notification by ID.
    *
-   * @param id - The notification ID.
+   * @param id - Notification ID.
    */
   function del(id: number) {
     api.post('notification/delete', { json: { ids: [id] } }).then(() => getAll());
   }
 
   /**
-   * Get the title of a notification.
+   * Get title of a notification.
    *
-   * @param notification - The notification object.
+   * @param notification - Notification object.
    * @returns The title of the notification, processed for i18n if it's a template.
    */
   function title(notification: Notification): string {
@@ -142,9 +145,9 @@
   }
 
   /**
-   * Get the content of a notification.
+   * Get content of a notification.
    *
-   * @param notification - The notification object.
+   * @param notification - Notification object.
    * @returns The content of the notification, processed for i18n if it's a template.
    */
   function content(notification: Notification): string {

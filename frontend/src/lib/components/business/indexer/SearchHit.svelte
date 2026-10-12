@@ -30,7 +30,7 @@
   /**
    * Navigate to the global search page with the given title as the keyword.
    *
-   * @param title - The title to search for.
+   * @param title - Title to search for.
    */
   function globalSearch(title: string | null | undefined) {
     if (title) {
@@ -41,8 +41,8 @@
   /**
    * Mark the resources as favorite or not.
    *
-   * @param indexerId - The indexer ID.
-   * @param rsrcs - The resources to mark.
+   * @param indexerId - Indexer ID.
+   * @param rsrcs - Resources to mark.
    */
   export async function markFavorites(indexerId: string | number, rsrcs: Resource[]) {
     const rsrcIds = rsrcs.map((r) => r.id).filter((id) => !!id);
@@ -84,7 +84,7 @@
   /**
    * Mark a resource as favorite.
    *
-   * @param rsrc - The resource to mark.
+   * @param rsrc - Resource to mark.
    */
   function favorite(rsrc: Resource) {
     api.post(`flow/indexer/${indexerId}/favorite`, {
@@ -100,7 +100,7 @@
   /**
    * Unmark a resource as favorite.
    *
-   * @param rsrc - The resource to unmark.
+   * @param rsrc - Resource to unmark.
    */
   function unfavorite(rsrc: Resource) {
     api.post(`flow/indexer/${indexerId}/unfavorite`, {
@@ -112,7 +112,7 @@
   /**
    * Navigate to the details page.
    *
-   * @param rsrc - The clicked resource.
+   * @param rsrc - Clicked resource.
    */
   function gotoDetails(rsrc: Resource) {
     const url = detailsRoute(rsrc.id);
@@ -122,7 +122,7 @@
   /**
    * Generates a URL for the details route of an indexer resource.
    *
-   * @param rsrcId - The resource ID.
+   * @param rsrcId - Resource ID.
    */
   function detailsRoute(rsrcId: string | null | undefined): string | null {
     if (!indexerId || !rsrcId || !detailsConfig) {

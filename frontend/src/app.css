@@ -289,7 +289,7 @@
   @apply md:grid-cols-3! w60:grid-cols-4! w72:grid-cols-5! w84:grid-cols-6! w96:grid-cols-7! w108:grid-cols-8!;
 }
 
-/* flexbox with center alignment */
+/* centered flex layout */
 @utility flex-center {
   @apply flex items-center justify-center;
 }

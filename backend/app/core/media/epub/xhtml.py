@@ -79,7 +79,7 @@ class _DTDEntities(Protocol):
         """Iterate internal entity declarations.
 
         Returns:
-            The declarations exposed by lxml.etree.DTD.iterentities.
+            Declarations exposed by lxml.etree.DTD.iterentities.
         """
         ...
 
@@ -177,7 +177,7 @@ def _plain_text(element: etree._Element) -> str:
     """Collect alternate text once while excluding script and style contents.
 
     Args:
-        element: The validated source element whose visible text is retained.
+        element: Validated source element whose visible text is retained.
 
     Returns:
         Plain text with collapsed HTML whitespace.
@@ -188,7 +188,7 @@ def _plain_text(element: etree._Element) -> str:
         """Append one subtree's text, leaving its tail to the parent.
 
         Args:
-            node: The current source element.
+            node: Current source element.
         """
         if etree.QName(node).localname in _OMITTED:
             return
@@ -213,8 +213,8 @@ class _Converter:
         """Prepare source positions and the package's local resource lookup.
 
         Args:
-            root: The validated XHTML document element.
-            path: The normalized spine member path.
+            root: Validated XHTML document element.
+            path: Normalized spine member path.
             package: Its validated EPUB package.
         """
         self.path = path
@@ -235,7 +235,7 @@ class _Converter:
         """Identify one output fragment by source position within this document.
 
         Args:
-            element: The originating source element.
+            element: Originating source element.
 
         Returns:
             An opaque deterministic block ID.
@@ -257,9 +257,9 @@ class _Converter:
         """Attach a warning to existing content or an empty placeholder.
 
         Args:
-            code: The controlled warning reason.
+            code: Controlled warning reason.
             blocks: Converted content, extended when a placeholder is needed.
-            element: The source element used for a new placeholder ID.
+            element: Source element used for a new placeholder ID.
         """
         if not blocks:
             blocks.append(TextBlock(self.identifier(element), "paragraph", ()))
@@ -273,7 +273,7 @@ class _Converter:
         """Resolve a local manifest image without reading or trusting its bytes.
 
         Args:
-            element: The image's source element.
+            element: Image's source element.
             reference: Its original resource reference, never returned to a reader.
             alt: Plain alternate text retained even when the resource is unavailable.
 
@@ -309,7 +309,7 @@ class _Converter:
         """Extract a bitmap from a simple SVG wrapper or keep its alternate text.
 
         Args:
-            element: The inline SVG document element.
+            element: Inline SVG document element.
 
         Returns:
             A bitmap candidate or a placeholder for unsupported vector content.
@@ -337,7 +337,7 @@ class _Converter:
         """Keep simple lists and flatten complex items without losing content order.
 
         Args:
-            element: The ordered or unordered list element.
+            element: Ordered or unordered list element.
             marks: Emphasis inherited from surrounding inline markup.
 
         Returns:
@@ -403,10 +403,10 @@ class _Converter:
         """Convert mixed children while preserving text and image order.
 
         Args:
-            element: The container whose children are converted.
+            element: Container whose children are converted.
             marks: Inherited emphasis; empty by default.
-            kind: The surrounding text block kind; paragraph by default.
-            level: The heading level, or None outside a heading.
+            kind: Surrounding text block kind; paragraph by default.
+            level: Heading level, or None outside a heading.
             preserve: Preserve preformatted whitespace; false by default.
 
         Returns:
@@ -422,7 +422,7 @@ class _Converter:
 
             Args:
                 value: Source text, or None when no text is present.
-                emphasis: The current supported marks.
+                emphasis: Current supported marks.
                 newline: Preserve an explicit break; false for ordinary text.
             """
             if value:
@@ -443,8 +443,8 @@ class _Converter:
             """Convert one element while leaving its tail to the parent traversal.
 
             Args:
-                node: The current validated source element.
-                emphasis: The supported marks inherited by this element.
+                node: Current validated source element.
+                emphasis: Supported marks inherited by this element.
             """
             name = etree.QName(node).localname
             if name in _OMITTED:
@@ -533,9 +533,9 @@ def read_xhtml_document(
     the caller. Empty documents remain empty for whole-book validation later.
 
     Args:
-        archive: The archive yielded by open_archive after caller access checks.
-        package: The package loaded from the same archive.
-        resource_id: The original manifest ID of a document in its spine.
+        archive: Archive yielded by open_archive after caller access checks.
+        package: Package loaded from the same archive.
+        resource_id: Original manifest ID of a document in its spine.
 
     Returns:
         Ordered blocks, controlled warnings and internal image candidates.

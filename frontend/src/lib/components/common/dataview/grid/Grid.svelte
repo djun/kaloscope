@@ -58,8 +58,8 @@
   /**
    * Handle the drag start event.
    *
-   * @param event - The drag event.
-   * @param item - The item being dragged.
+   * @param event - Drag event.
+   * @param item - Item being dragged.
    */
   function ondragstart(event: DragEvent, item: T) {
     const target = event.currentTarget;
@@ -72,7 +72,7 @@
   /**
    * Handle the drag enter event.
    *
-   * @param item - The item being dragged over.
+   * @param item - Item being dragged over.
    */
   function ondragenter(item: T) {
     if (draggedItem !== null && draggedItem !== item) {
@@ -83,7 +83,7 @@
   /**
    * Handle the drag end event.
    *
-   * @param event - The drag event.
+   * @param event - Drag event.
    */
   function ondragend(event: DragEvent) {
     const target = event.currentTarget;
@@ -97,8 +97,8 @@
   /**
    * Move an item to a new position.
    *
-   * @param item - The item to move.
-   * @param index - The new index to move to.
+   * @param item - Item to move.
+   * @param index - New index to move to.
    */
   const drop = throttle((item: T, index: number) => {
     const origIndex = data.indexOf(item);

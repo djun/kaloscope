@@ -17,6 +17,13 @@ class VariablesNode(Node):
 
     @classmethod
     async def execute(cls, *, node_data: dict[str, Any], context: Context, **kwargs):
+        """Merge rendered JSON variables into the flow context.
+
+        Args:
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+        """
         variables = cls.variables.extract(node_data, context=context)
         if not variables:
             return

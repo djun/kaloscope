@@ -20,7 +20,7 @@
   };
 
   /**
-   * The preset styles for the container.
+   * Preset styles for the container.
    */
   const PRESETS = {
     default: {

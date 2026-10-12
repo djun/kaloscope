@@ -36,14 +36,29 @@ user = Blueprint("user", url_prefix="/user")
 
 @user.get("/count")
 async def count(_) -> HTTPResponse:
-    """Get the count of users."""
+    """Get count of users.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Response containing the requested data.
+    """
     return json(await User.all().count())
 
 
 @user.get("/list")
 @validate(query=UserQuery)
 async def list_users(_, query: UserQuery) -> HTTPResponse:
-    """List the users."""
+    """List the users.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     queries = []
     if query.username:
         queries.append(Q(username__icontains=query.username))
@@ -63,7 +78,15 @@ async def list_users(_, query: UserQuery) -> HTTPResponse:
 @user.post("/create_admin")
 @validate(form=UserCreate)
 async def create_admin(_, body: UserCreate) -> HTTPResponse:
-    """Create the first admin user if no users exist."""
+    """Create first admin user if no users exist.
+
+    Args:
+        _: Unused request.
+        body: Account credentials.
+
+    Returns:
+        Empty response on success.
+    """
     count = await User.all().count()
     if not count:
         await UserService.create(body.username, body.password, UserRole.ADMIN)
@@ -74,7 +97,15 @@ async def create_admin(_, body: UserCreate) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(form=UserCreate)
 async def create_user(_, body: UserCreate) -> HTTPResponse:
-    """Create a new user."""
+    """Create a new user.
+
+    Args:
+        _: Unused request.
+        body: Account credentials.
+
+    Returns:
+        Empty response on success.
+    """
     await UserService.create(body.username, body.password)
     return empty()
 
@@ -83,7 +114,15 @@ async def create_user(_, body: UserCreate) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_users(_, body: IDs) -> HTTPResponse:
-    """Delete the users."""
+    """Delete the users.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     await User.filter(id__in=body.ids).delete()
     return empty()
 
@@ -91,7 +130,15 @@ async def delete_users(_, body: IDs) -> HTTPResponse:
 @user.post("/change_pwd")
 @validate(form=UserPwd)
 async def change_pwd(request: Request, body: UserPwd) -> HTTPResponse:
-    """Change current user's password."""
+    """Change current user's password.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Current and new passwords.
+
+    Returns:
+        Empty response on success.
+    """
     user: UserInfo = request.ctx.user
     await UserService.change_pwd(user.username, body.cur_pwd, body.new_pwd)
     return empty()
@@ -100,7 +147,15 @@ async def change_pwd(request: Request, body: UserPwd) -> HTTPResponse:
 @user.post("/change_avatar")
 @validate(form=UserAvatar)
 async def change_avatar(request: Request, body: UserAvatar) -> HTTPResponse:
-    """Change current user's avatar."""
+    """Change current user's avatar.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Selected avatar.
+
+    Returns:
+        Response containing the requested data.
+    """
     user: UserInfo = request.ctx.user
     return json(await UserService.change_avatar(user.id, body.avatar))
 
@@ -108,7 +163,15 @@ async def change_avatar(request: Request, body: UserAvatar) -> HTTPResponse:
 @user.post("/update_pref")
 @validate(json=UserPreference)
 async def update_pref(request: Request, body: UserPreference) -> HTTPResponse:
-    """Update current user's preference."""
+    """Update current user's preference.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Updated user preferences.
+
+    Returns:
+        Response containing the requested data.
+    """
     user: UserInfo = request.ctx.user
     await UserService.update_pref(user.id, body)
     return json(body.model_dump())
@@ -117,7 +180,15 @@ async def update_pref(request: Request, body: UserPreference) -> HTTPResponse:
 @user.post("/favorite/list")
 @validate(json=FavoriteQuery)
 async def list_favorites(request: Request, body: FavoriteQuery) -> HTTPResponse:
-    """List the current user's favorites."""
+    """List the current user's favorites.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Favorite query.
+
+    Returns:
+        Response containing the requested data.
+    """
     user: UserInfo = request.ctx.user
     queries = [Q(user_id=user.id)]
     if body.indexer_id:
@@ -132,7 +203,15 @@ async def list_favorites(request: Request, body: FavoriteQuery) -> HTTPResponse:
 @authorize()
 @validate(query=HistoryQuery)
 async def list_histories(request: Request, query: HistoryQuery) -> HTTPResponse:
-    """List the current user's histories."""
+    """List the current user's histories.
+
+    Args:
+        request: Incoming request with session and application context.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     user: UserInfo = request.ctx.user
     return json(await UserHistoryService.get_page(user, query))
 
@@ -141,7 +220,15 @@ async def list_histories(request: Request, query: HistoryQuery) -> HTTPResponse:
 @authorize()
 @validate(json=HistoryEntry)
 async def record_history(request: Request, body: HistoryEntry) -> HTTPResponse:
-    """Record a user history entry."""
+    """Record a user history entry.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Resource and saved reading or playback progress.
+
+    Returns:
+        Empty response on success.
+    """
     user: UserInfo = request.ctx.user
     try:
         await UserHistoryService.record(user, body)
@@ -153,7 +240,15 @@ async def record_history(request: Request, body: HistoryEntry) -> HTTPResponse:
 @user.post("/history/delete")
 @validate(json=IDs)
 async def delete_histories(request: Request, body: IDs) -> HTTPResponse:
-    """Delete the current user's histories."""
+    """Delete the current user's histories.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     user: UserInfo = request.ctx.user
     await UserHistory.filter(user_id=user.id, id__in=body.ids).delete()
     return empty()
@@ -161,7 +256,15 @@ async def delete_histories(request: Request, body: IDs) -> HTTPResponse:
 
 @user.get("/<user_id:int>/permissions")
 async def get_permissions(_, user_id: int) -> HTTPResponse:
-    """Get the user's permissions."""
+    """Get user's permissions.
+
+    Args:
+        _: Unused request.
+        user_id: User ID.
+
+    Returns:
+        Response containing the requested data.
+    """
     perms = await UserPermission.filter(user_id=user_id).values("rel_type", "rel_id")
     return json(list(perms))
 
@@ -170,6 +273,15 @@ async def get_permissions(_, user_id: int) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=Permissions)
 async def update_permissions(_, user_id: int, body: Permissions) -> HTTPResponse:
-    """Update the user's permissions."""
+    """Update user's permissions.
+
+    Args:
+        _: Unused request.
+        user_id: User ID.
+        body: Granted resource IDs.
+
+    Returns:
+        Empty response on success.
+    """
     await UserPermissionService.update_permissions(user_id, body)
     return empty()

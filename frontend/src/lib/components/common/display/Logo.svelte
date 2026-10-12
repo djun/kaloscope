@@ -49,7 +49,7 @@
   /**
    * Generate a random triangle SVG element.
    *
-   * @param offset - The triangle offset.
+   * @param offset - Triangle offset.
    * @returns The triangle SVG element.
    */
   function randomTriangle(offset: number) {
@@ -68,9 +68,9 @@
   }
 
   /**
-   * Generate a random gray rgba color.
+   * Generate a random gray RGBA color.
    *
-   * @returns The rgba color string.
+   * @returns The RGBA color string.
    */
   function randomGray() {
     const brightness = 200 + Math.floor(Math.random() * 56);

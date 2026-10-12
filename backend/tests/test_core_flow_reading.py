@@ -49,7 +49,7 @@ def _context(params: dict) -> Context:
     """Create an isolated workflow context without querying a database.
 
     Args:
-        params: The execution boot parameters.
+        params: Execution boot parameters.
 
     Returns:
         A mutable context retaining boot parameters separately from node variables.
@@ -85,10 +85,10 @@ def reading_node(request):
     """Provide the expected library type and its metadata node.
 
     Args:
-        request: The current parametrized fixture request.
+        request: Current parametrized fixture request.
 
     Returns:
-        The library type and node class to exercise.
+        Library type and node class to exercise.
     """
     return request.param
 

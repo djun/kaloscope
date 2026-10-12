@@ -69,8 +69,8 @@ def workspace(tmp_path, monkeypatch):
     """Redirect caches and library locks to the test directory.
 
     Args:
-        tmp_path: The isolated test directory.
-        monkeypatch: The fixture restoring configuration after the test.
+        tmp_path: Isolated test directory.
+        monkeypatch: Fixture restoring configuration after the test.
     """
     directory = tmp_path / "cache"
     directory.mkdir()
@@ -98,12 +98,12 @@ async def _source(
     """Create a library and real reading files without registering media items.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        format: The body format to construct.
+        tmp_path: Isolated filesystem root.
+        format: Body format to construct.
         chapter: Whether to create a comic chapter; defaults to a standalone work.
 
     Returns:
-        The library and source, with a parent path for a comic chapter.
+        Library and source, with a parent path for a comic chapter.
     """
     root = tmp_path / "Library"
     work = root / "Work"
@@ -159,12 +159,12 @@ async def _item(
     """Create a reading source and a directly seeded row for publication tests.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        format: The body format to construct.
+        tmp_path: Isolated filesystem root.
+        format: Body format to construct.
         chapter: Whether to create a comic chapter; defaults to a standalone work.
 
     Returns:
-        The pending item with its library assigned.
+        Pending item with its library assigned.
     """
     lib, source = await _source(tmp_path, format, chapter=chapter)
     parent = (
@@ -199,7 +199,7 @@ def _cache(item: MediaItem) -> Path:
         item: A row with a published index version.
 
     Returns:
-        The version directory in the isolated workspace.
+        Version directory in the isolated workspace.
     """
     assert item.index_version is not None
     return (
@@ -400,9 +400,9 @@ def test_ingest_body_events(tmp_path, monkeypatch, format, chapter):
     """Rebuild changed bodies even when the source size and mtime are preserved.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture disabling application notifications.
-        format: The reading source format.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture disabling application notifications.
+        format: Reading source format.
         chapter: Whether the source is a comic chapter.
     """
     monkeypatch.setattr(media_events, "notify_media_events", lambda _id: None)
@@ -469,9 +469,9 @@ def test_ingest_metadata_events(tmp_path, monkeypatch, format):
     """Apply metadata and cover events without parsing an unchanged body.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture rejecting unnecessary body builds and notifications.
-        format: The reading source format.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture rejecting unnecessary body builds and notifications.
+        format: Reading source format.
     """
     monkeypatch.setattr(media_events, "notify_media_events", lambda _id: None)
 
@@ -524,9 +524,9 @@ def test_ingest_forced_scope(tmp_path, monkeypatch, scope):
     """Limit forced rebuilds to selected chapters while retaining full-force support.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture disabling application notifications.
-        scope: The forced scope or the existing full-force flag to exercise.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture disabling application notifications.
+        scope: Forced scope or the existing full-force flag to exercise.
     """
     monkeypatch.setattr(media_events, "notify_media_events", lambda _id: None)
 
@@ -596,10 +596,10 @@ def test_ingest_forced_invalid(tmp_path, novel, selection, forced):
     """Reject forced containers outside the requested reading scope before writing.
 
     Args:
-        tmp_path: The isolated filesystem root.
+        tmp_path: Isolated filesystem root.
         novel: Whether to use the stricter novel layout.
-        selection: The selected chapter, or None for the whole work.
-        forced: The invalid forced container relative to the work.
+        selection: Selected chapter, or None for the whole work.
+        forced: Invalid forced container relative to the work.
     """
 
     async def run():
@@ -740,9 +740,9 @@ def test_ingest_file_events(tmp_path, monkeypatch, format, chapter):
     """Ingest file events and remove confirmed missing bodies before later reimport.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture controlling task time and application notifications.
-        format: The body format ingested and then removed externally.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture controlling task time and application notifications.
+        format: Body format ingested and then removed externally.
         chapter: Whether the source belongs to a comic collection.
     """
 
@@ -811,8 +811,8 @@ def test_ingest_replacement(tmp_path, format, chapter):
     """Require identity reconciliation before registering another body in a container.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        format: The previously indexed body format.
+        tmp_path: Isolated filesystem root.
+        format: Previously indexed body format.
         chapter: Whether the replaced source belongs to a comic collection.
     """
 
@@ -844,7 +844,7 @@ def test_ingest_missing_sibling(tmp_path):
     """Keep a missing chapter pending without blocking another selected chapter.
 
     Args:
-        tmp_path: The isolated filesystem root.
+        tmp_path: Isolated filesystem root.
     """
 
     async def run():
@@ -894,9 +894,9 @@ def test_consume_file_move(
     """Apply observed file moves before ingestion regardless of work task order.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture controlling event time and notifications.
-        format: The body file format whose identity must survive the move.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture controlling event time and notifications.
+        format: Body file format whose identity must survive the move.
         chapter: Whether the file belongs to a comic collection.
         location: A rename, another container or another comic collection.
         reverse: Whether to consume the destination work's task first.
@@ -1017,9 +1017,9 @@ def test_consume_directory_move(tmp_path, monkeypatch, format, scope, reverse, c
     """Reconcile whole directories and chapters without duplicating old work paths.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture controlling event time and notifications.
-        format: The body format within the moved directory.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture controlling event time and notifications.
+        format: Body format within the moved directory.
         scope: A work, collection, chapter, cross-collection or case-only rename.
         reverse: Whether the destination task is consumed before the source task.
         chained: Whether the directory passes through an intermediate path.
@@ -1169,9 +1169,9 @@ def test_consume_mixed_move(tmp_path, monkeypatch, format, chapter, reverse):
     """Preserve sources, parents and history through nested and mixed renames.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture controlling the event clock and notifications.
-        format: The reading body format to move.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture controlling the event clock and notifications.
+        format: Reading body format to move.
         chapter: Whether to include a parent collection and an unchanged sibling.
         reverse: Whether the work moves first and its destination is consumed first.
     """
@@ -1292,9 +1292,9 @@ def test_consume_mixed_chapter(tmp_path, monkeypatch, format):
     """Move a renamed chapter into a new collection without replacing its identity.
 
     Args:
-        tmp_path: The isolated filesystem root.
-        monkeypatch: The fixture controlling the event clock.
-        format: The chapter body stored as a comic archive or image directory.
+        tmp_path: Isolated filesystem root.
+        monkeypatch: Fixture controlling the event clock.
+        format: Chapter body stored as a comic archive or image directory.
     """
 
     async def run():
@@ -1445,7 +1445,7 @@ def test_ingest_directory_unavailable(tmp_path, monkeypatch, problem):
                     """Simulate failed enumeration without relying on permissions.
 
                     Args:
-                        directory: The work directory being inspected.
+                        directory: Work directory being inspected.
 
                     Raises:
                         PermissionError: For the inaccessible work.
@@ -1482,11 +1482,11 @@ def test_ingest_empty_changed(tmp_path, monkeypatch, change):
                 """Change a saved source after discovery and before revalidation.
 
                 Args:
-                    lib_id: The library passed to source registration.
-                    candidate: The saved empty container selected for revalidation.
+                    lib_id: Library passed to source registration.
+                    candidate: Saved empty container selected for revalidation.
 
                 Returns:
-                    The registered item if its current source is still valid.
+                    Registered item if its current source is still valid.
 
                 Raises:
                     ContentError: If the source or its saved ownership changed.
@@ -1612,12 +1612,12 @@ def test_ingest_library_changed(tmp_path, monkeypatch, change):
                 """Change library ownership after discovery finishes in its worker.
 
                 Args:
-                    function: The discovery function being dispatched.
-                    *args: The positional discovery arguments.
-                    **kwargs: The selected work passed to discovery.
+                    function: Discovery function being dispatched.
+                    *args: Positional discovery arguments.
+                    **kwargs: Selected work passed to discovery.
 
                 Returns:
-                    The completed discovery result from the original library.
+                    Completed discovery result from the original library.
                 """
                 result = await worker(function, *args, **kwargs)
                 if change == "directory":
@@ -2222,7 +2222,7 @@ def test_rename_library_changed(tmp_path, monkeypatch, change, work):
                 """Change the library before its rename lock is acquired.
 
                 Args:
-                    directory: The original library root to lock.
+                    directory: Original library root to lock.
 
                 Yields:
                     Control while the original library lock is held.
@@ -2272,11 +2272,11 @@ def test_move_file_unstable(tmp_path, monkeypatch, change, move):
                 """Change the filesystem after discovery inside source validation.
 
                 Args:
-                    base_path: The root passed to source discovery.
-                    work_path: The selected work, or None for a library scan.
+                    base_path: Root passed to source discovery.
+                    work_path: Selected work, or None for a library scan.
 
                 Returns:
-                    The discovery result from before the filesystem change.
+                    Discovery result from before the filesystem change.
 
                 Raises:
                     asyncio.CancelledError: If cancellation is selected for this test.
@@ -2745,11 +2745,11 @@ def test_move_directory_unstable(tmp_path, monkeypatch, change, scope):
                 """Change the directory after discovery while guards remain active.
 
                 Args:
-                    base_path: The library root passed to source discovery.
-                    work_path: The selected work, or None for a library scan.
+                    base_path: Library root passed to source discovery.
+                    work_path: Selected work, or None for a library scan.
 
                 Returns:
-                    The discovery result before changing the filesystem.
+                    Discovery result before changing the filesystem.
 
                 Raises:
                     asyncio.CancelledError: If cancellation is selected.
@@ -3217,9 +3217,9 @@ def test_consume_directory_delete(tmp_path, monkeypatch, format, scope, scan):
     """Reconcile absent containers while preserving other works and histories.
 
     Args:
-        tmp_path: The isolated library and cache root.
-        monkeypatch: The fixture controlling notifications and event time.
-        format: The body format in the removed container.
+        tmp_path: Isolated library and cache root.
+        monkeypatch: Fixture controlling notifications and event time.
+        format: Body format in the removed container.
         scope: A standalone work, comic chapter, last chapter or whole collection.
         scan: Whether startup scanning rediscovers the loss without a delete event.
     """
@@ -3367,7 +3367,7 @@ def test_consume_file_cleanup(tmp_path, monkeypatch, format, chapter, scan):
                 """Observe cleanup while isolating application trash settings.
 
                 Args:
-                    path: The owned companion selected for deletion.
+                    path: Owned companion selected for deletion.
                 """
                 removed.append(path)
                 path.unlink()
@@ -3499,7 +3499,7 @@ def test_companion_retry(tmp_path, monkeypatch, change):
                 """Change the source or fail between cover and metadata removal.
 
                 Args:
-                    path: The companion selected by the guarded cleanup.
+                    path: Companion selected by the guarded cleanup.
 
                 Raises:
                     PermissionError: Before deleting XML in the permission case.
@@ -3557,7 +3557,7 @@ def test_companion_trash(tmp_path, monkeypatch, trash):
                 """Model the OS trash without writing outside the isolated test root.
 
                 Args:
-                    path: The owned file passed to send2trash.
+                    path: Owned file passed to send2trash.
                 """
                 path.rename(recycled / path.name)
 
@@ -3594,12 +3594,12 @@ def test_companion_interrupted(tmp_path, monkeypatch):
                 """Cancel after companion writes finish and before database cleanup.
 
                 Args:
-                    function: The filesystem worker being executed.
+                    function: Filesystem worker being executed.
                     *args: Positional worker arguments.
                     **kwargs: Keyword worker arguments.
 
                 Returns:
-                    The result of workers other than companion cleanup.
+                    Result of workers other than companion cleanup.
 
                 Raises:
                     asyncio.CancelledError: After companions have been removed.
@@ -3710,7 +3710,7 @@ def test_delete_reading(tmp_path, monkeypatch, format, scope, local):
                 """Delete only files in a filesystem worker.
 
                 Args:
-                    path: The body or companion selected by the real deletion path.
+                    path: Body or companion selected by the real deletion path.
                 """
                 assert threading.get_ident() != main_thread
                 assert path.is_file()
@@ -3866,7 +3866,7 @@ def test_delete_empty_container(tmp_path, monkeypatch, format, trash):
                 """Emulate file recycling inside the isolated test directory.
 
                 Args:
-                    path: The body or companion passed to the shared trash helper.
+                    path: Body or companion passed to the shared trash helper.
                 """
                 assert path.is_file()
                 path.rename(recycled / path.name)
@@ -3916,7 +3916,7 @@ def test_delete_reading_retry(tmp_path, monkeypatch, stage):
                 """Fail one selected file after earlier writes have completed.
 
                 Args:
-                    path: The selected body or companion.
+                    path: Selected body or companion.
 
                 Raises:
                     PermissionError: At the requested body or companion stage.
@@ -3935,12 +3935,12 @@ def test_delete_reading_retry(tmp_path, monkeypatch, stage):
                 """Interrupt after the writer has finished selected file deletion.
 
                 Args:
-                    function: The filesystem worker being awaited.
+                    function: Filesystem worker being awaited.
                     *args: Its positional arguments.
                     **kwargs: Its keyword arguments.
 
                 Returns:
-                    The filesystem worker result unless cancellation is injected.
+                    Filesystem worker result unless cancellation is injected.
 
                 Raises:
                     asyncio.CancelledError: After media files have been removed.
@@ -3954,7 +3954,7 @@ def test_delete_reading_retry(tmp_path, monkeypatch, stage):
                 """Keep cache owners available for retry.
 
                 Args:
-                    _ids: The selected cache owner IDs.
+                    _ids: Selected cache owner IDs.
 
                 Raises:
                     ContentError: For the simulated cache failure.
@@ -3965,10 +3965,10 @@ def test_delete_reading_retry(tmp_path, monkeypatch, stage):
                 """Fail media deletion after history changes enter the transaction.
 
                 Args:
-                    query: The deletion query under test.
+                    query: Deletion query under test.
 
                 Returns:
-                    The history deletion query.
+                    History deletion query.
 
                 Raises:
                     RuntimeError: When removing media records.
@@ -4028,10 +4028,10 @@ def test_delete_reading_scope(tmp_path, monkeypatch, local, change):
                 """Notify the test when deletion has captured the requested IDs.
 
                 Args:
-                    directory: The library lock path.
+                    directory: Library lock path.
 
                 Returns:
-                    The real library lock.
+                    Real library lock.
                 """
                 waiting.set()
                 return library_lock(directory)
@@ -4176,7 +4176,7 @@ def test_delete_reading_guard(tmp_path, monkeypatch, problem):
                 """Reject any write before ownership checks have succeeded.
 
                 Args:
-                    _path: The unexpected deletion candidate.
+                    _path: Unexpected deletion candidate.
 
                 Raises:
                     AssertionError: For every attempted write.
@@ -4210,7 +4210,7 @@ def test_delete_reading_changed(tmp_path, monkeypatch, change):
                 """Change the source immediately after deleting its original page.
 
                 Args:
-                    path: The selected file being removed.
+                    path: Selected file being removed.
                 """
                 path.unlink()
                 if path.name != "1.png":
@@ -4228,12 +4228,12 @@ def test_delete_reading_changed(tmp_path, monkeypatch, change):
                 """Change database ownership after the filesystem writer returns.
 
                 Args:
-                    function: The completed filesystem worker.
+                    function: Completed filesystem worker.
                     *args: Its positional arguments.
                     **kwargs: Its keyword arguments.
 
                 Returns:
-                    The original filesystem result.
+                    Original filesystem result.
                 """
                 result = await write(function, *args, **kwargs)
                 if function is media_service._delete_media_files:
@@ -4406,10 +4406,10 @@ def test_remove_reading_library(tmp_path, monkeypatch, format, problem):
     """Retain records, histories and caches when registered works all disappear.
 
     Args:
-        tmp_path: The isolated library and cache root.
-        monkeypatch: The fixture checking enumeration and simulating access errors.
-        format: The novel or comic source format.
-        problem: The unavailable library state to simulate.
+        tmp_path: Isolated library and cache root.
+        monkeypatch: Fixture checking enumeration and simulating access errors.
+        format: Novel or comic source format.
+        problem: Unavailable library state to simulate.
     """
 
     async def run():
@@ -4463,10 +4463,10 @@ def test_remove_reading_library(tmp_path, monkeypatch, format, problem):
                 """Check library access in a worker thread.
 
                 Args:
-                    directory: The library root being listed.
+                    directory: Library root being listed.
 
                 Returns:
-                    The visible files and directories.
+                    Visible files and directories.
 
                 Raises:
                     PermissionError: For the simulated unreadable library.
@@ -4508,8 +4508,8 @@ def test_remove_reading_library_change(tmp_path, monkeypatch, stage):
     """Recheck library disappearance before caches and database rows are removed.
 
     Args:
-        tmp_path: The isolated library and cache root.
-        monkeypatch: The fixture replacing the library during cleanup.
+        tmp_path: Isolated library and cache root.
+        monkeypatch: Fixture replacing the library during cleanup.
         stage: Whether the root changes during enumeration or after cache cleanup.
     """
 
@@ -4538,7 +4538,7 @@ def test_remove_reading_library_change(tmp_path, monkeypatch, stage):
                 """Replace the root after reading its previous entries.
 
                 Args:
-                    directory: The library root being listed.
+                    directory: Library root being listed.
 
                 Returns:
                     Entries from the original root.
@@ -4549,10 +4549,10 @@ def test_remove_reading_library_change(tmp_path, monkeypatch, stage):
                 return entries
 
             async def changed(function, *args, **kwargs):
-                """Replace the root after removing rebuildable caches.
+                """Replace the root after removing generated caches.
 
                 Args:
-                    function: The cache cleanup operation.
+                    function: Cache cleanup operation.
                     *args: Positional cleanup arguments.
                     **kwargs: Keyword cleanup arguments.
                 """
@@ -4584,8 +4584,8 @@ def test_remove_directory_guard(tmp_path, monkeypatch, stage):
     """Keep ownership and histories if an observed missing directory is restored.
 
     Args:
-        tmp_path: The isolated library and cache root.
-        monkeypatch: The fixture restoring a directory during cache cleanup.
+        tmp_path: Isolated library and cache root.
+        monkeypatch: Fixture restoring a directory during cache cleanup.
         stage: An existing container, a late restoration or a changed item directory.
     """
 
@@ -4622,9 +4622,9 @@ def test_remove_directory_guard(tmp_path, monkeypatch, stage):
                     """Restore only the container and its XML after cache cleanup.
 
                     Args:
-                        function: The cache cleanup operation.
-                        args: Positional cleanup arguments.
-                        kwargs: Keyword cleanup arguments.
+                        function: Cache cleanup operation.
+                        *args: Positional cleanup arguments.
+                        **kwargs: Keyword cleanup arguments.
                     """
                     await write(function, *args, **kwargs)
                     source.directory.mkdir()
@@ -4717,7 +4717,7 @@ def test_remove_reading_unavailable(tmp_path, monkeypatch, problem):
                     """Reject source access without hiding the permission failure.
 
                     Args:
-                        path: The path whose attributes are requested.
+                        path: Path whose attributes are requested.
                         *args: Positional stat arguments.
                         **kwargs: Keyword stat arguments.
 
@@ -4814,12 +4814,12 @@ def test_remove_reading_failure(tmp_path, monkeypatch, problem):
                 """Change state after cleanup to verify deletion revalidation.
 
                 Args:
-                    function: The cache cleanup operation.
+                    function: Cache cleanup operation.
                     *args: Positional cleanup arguments.
                     **kwargs: Keyword cleanup arguments.
 
                 Returns:
-                    The completed filesystem worker result.
+                    Completed filesystem worker result.
                 """
                 result = await original(function, *args, **kwargs)
                 if function is not media_service._remove_reading_caches:
@@ -4848,7 +4848,7 @@ def test_remove_reading_failure(tmp_path, monkeypatch, problem):
                 """Simulate a cache permission error.
 
                 Args:
-                    _path: The cache directory requested for removal.
+                    _path: Cache directory requested for removal.
 
                 Raises:
                     PermissionError: To retain database owners for retry.
@@ -4861,10 +4861,10 @@ def test_remove_reading_failure(tmp_path, monkeypatch, problem):
                 """Fail item deletion after history deletion in the same transaction.
 
                 Args:
-                    query: The queryset selecting histories or media items.
+                    query: Query selecting histories or media items.
 
                 Returns:
-                    The original deletion query for histories.
+                    Original deletion query for histories.
 
                 Raises:
                     RuntimeError: When deleting media items.
@@ -4929,7 +4929,7 @@ def test_remove_reading_cancel(tmp_path, monkeypatch):
                 """Keep cache cleanup active while verifying cancellation and locks.
 
                 Args:
-                    ids: The item IDs selected for cache cleanup.
+                    ids: Item IDs selected for cache cleanup.
                 """
                 assert threading.get_ident() != loop_thread
                 started.set()
@@ -4994,8 +4994,8 @@ def test_create_worker(tmp_path, monkeypatch, cancel):
                 """Keep validation active while inspecting locks and cancellation.
 
                 Args:
-                    *args: The proposed item passed to source validation.
-                    **kwargs: The candidate requirement passed to validation.
+                    *args: Proposed item passed to source validation.
+                    **kwargs: Candidate requirement passed to validation.
                 """
                 try:
                     assert threading.get_ident() != loop_thread
@@ -5169,11 +5169,11 @@ def test_prune_active_build(tmp_path, monkeypatch):
                 """Hold a real build so startup cleanup observes its active lock.
 
                 Args:
-                    source: The selected reading unit.
-                    staging: The private build directory.
+                    source: Selected reading unit.
+                    staging: Private build directory.
 
                 Returns:
-                    The completed index and source snapshots.
+                    Completed index and source snapshots.
                 """
                 result = build(source, staging)
                 started.set()
@@ -5211,11 +5211,11 @@ def test_prune_active_read(tmp_path, monkeypatch):
                 """Hold a content read while cleanup tries to acquire its lock.
 
                 Args:
-                    item: The ready novel guarded by the service.
-                    chapter_id: The selected chapter, or None for the first one.
+                    item: Ready novel guarded by the service.
+                    chapter_id: Selected chapter, or None for the first one.
 
                 Returns:
-                    The content read after concurrent cleanup finishes.
+                    Content read after concurrent cleanup finishes.
                 """
                 started.set()
                 assert released.wait(5)
@@ -5437,10 +5437,10 @@ def test_reuse_unstable(tmp_path, monkeypatch):
                 """Change the source after loading its index in a worker.
 
                 Args:
-                    cache: The published index directory being checked for reuse.
+                    cache: Published index directory being checked for reuse.
 
                 Returns:
-                    The previously loaded index.
+                    Previously loaded index.
                 """
                 assert threading.get_ident() != loop_thread
                 index = load(cache)
@@ -5510,12 +5510,12 @@ def test_publish_failure(tmp_path, monkeypatch, phase):
                 """Fail only the database pointer update after cache publication.
 
                 Args:
-                    row: The item being saved.
-                    *args: The positional save arguments.
-                    **kwargs: The save options, including selected fields.
+                    row: Item being saved.
+                    *args: Positional save arguments.
+                    **kwargs: Save options, including selected fields.
 
                 Returns:
-                    The normal save result for pending state updates.
+                    Normal save result for pending state updates.
 
                 Raises:
                     RuntimeError: If the published version is being saved.
@@ -5528,8 +5528,8 @@ def test_publish_failure(tmp_path, monkeypatch, phase):
                 """Simulate an inaccessible cache destination.
 
                 Args:
-                    *args: The unused writer arguments.
-                    **kwargs: The unused writer options.
+                    *args: Unused writer arguments.
+                    **kwargs: Unused writer options.
 
                 Raises:
                     OSError: For every attempted write.
@@ -5578,12 +5578,12 @@ def test_changed_build(tmp_path, monkeypatch, change):
                 """Apply a concurrent change after the source has been parsed.
 
                 Args:
-                    function: The filesystem operation being dispatched.
-                    *args: The positional operation arguments.
-                    **kwargs: The operation options.
+                    function: Filesystem operation being dispatched.
+                    *args: Positional operation arguments.
+                    **kwargs: Operation options.
 
                 Returns:
-                    The original operation result.
+                    Original operation result.
                 """
                 result = await worker(function, *args, **kwargs)
                 if function is media_service._build_index:
@@ -5637,10 +5637,10 @@ def test_cancel_publication(tmp_path, monkeypatch, phase):
                 """Keep the worker active until cancellation can be inspected.
 
                 Args:
-                    *args: The original filesystem operation arguments.
+                    *args: Original filesystem operation arguments.
 
                 Returns:
-                    The completed filesystem operation result.
+                    Completed filesystem operation result.
                 """
                 assert threading.get_ident() != loop_thread
                 result = operation(*args)
@@ -5950,7 +5950,7 @@ def test_collection_lock(tmp_path, monkeypatch, change):
                 """Signal that the initial lookup has completed before acquiring.
 
                 Args:
-                    directory: The library directory identifying the shared lock.
+                    directory: Library directory identifying the shared lock.
 
                 Yields:
                     Control while the real library lock is held.
@@ -6016,11 +6016,11 @@ async def _ingest_trigger(lib: MediaLib, *, asynchronous: bool = False) -> FlowG
     """Bind a published reading workflow to an isolated library.
 
     Args:
-        lib: The library that owns the first-ingest events.
+        lib: Library that owns the first-ingest events.
         asynchronous: Whether to queue execution; defaults to synchronous saving.
 
     Returns:
-        The graph that writes a complete, fixed metadata candidate.
+        Graph that writes a complete, fixed metadata candidate.
     """
     graph = await FlowGraph.create(
         name="Reading ingest",
@@ -6062,10 +6062,10 @@ def _ingest_engine(monkeypatch: pytest.MonkeyPatch) -> FlowEngine:
     """Use the real flow engine with isolated in-process coordination.
 
     Args:
-        monkeypatch: The fixture restoring engine and service application state.
+        monkeypatch: Fixture restoring engine and service application state.
 
     Returns:
-        The engine without starting application workers or schedules.
+        Engine without starting application workers or schedules.
     """
     engine = FlowEngine.__new__(FlowEngine)
     engine.__dict__["_events"] = Queue()
@@ -6314,8 +6314,8 @@ def test_reading_ingest_interrupted(tmp_path, monkeypatch, phase):
                 """Interrupt dispatch before or after the real workflow writes.
 
                 Args:
-                    *args: The original trigger arguments.
-                    **kwargs: The original execution options.
+                    *args: Original trigger arguments.
+                    **kwargs: Original execution options.
 
                 Raises:
                     RuntimeError: For a controlled dispatch failure.

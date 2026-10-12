@@ -73,10 +73,10 @@ class NodeSchema:
         """Convert the input name to node type.
 
         Args:
-            name: The input name to convert.
+            name: Input name to convert.
 
         Returns:
-            The converted node type.
+            Converted node type.
         """
         name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
         name = re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
@@ -84,9 +84,20 @@ class NodeSchema:
 
 
 class NodeMeta(ABCMeta):
-    """The metaclass for the node class."""
+    """Collect fields and handles during node class creation."""
 
     def __new__(metacls, name: str, bases: tuple[type, ...], namespace: dict[str, Any]):
+        """Collect declared fields and handles for a node class.
+
+        Args:
+            metacls: Node class builder.
+            name: Node class name.
+            bases: Parent classes.
+            namespace: Declared fields, handles and methods.
+
+        Returns:
+            Node class with its field and handle definitions.
+        """
         if name == "Node":
             return super().__new__(metacls, name, bases, namespace)
 
@@ -154,14 +165,28 @@ class Node(metaclass=NodeMeta):
         """Register a node class into the node schemas container.
 
         Args:
-            group: The group of the node.
-            order: The order of the node in the group.
-            width: The width of the node content area.
-            icon: The icon name of the node for the frontend UI.
-            categories: The available graph categories for the node.
+            group: Group of the node.
+            order: Order of the node in the group. Defaults to `0`.
+            width: Width of the node content area. `None` uses the default node
+                width.
+            icon: Icon name of the node for the frontend UI. `None` uses the app
+                icon.
+            categories: Available graph categories for the node. An empty tuple
+                permits all graph categories.
         """
 
         def decorator(node_cls: type[N]) -> type[N]:
+            """Register a node schema and executor without changing its class.
+
+            Args:
+                node_cls: Node class to register.
+
+            Returns:
+                Registered node class.
+
+            Raises:
+                ValueError: If another node uses the same schema type.
+            """
             schema = NodeSchema(
                 # convert the node class name to node type
                 NodeSchema.get_type(node_cls.__name__),
@@ -188,10 +213,10 @@ class Node(metaclass=NodeMeta):
         """Compress the node schema in the flow definition.
 
         Args:
-            definition: The definition to compress.
+            definition: Definition to compress.
 
         Returns:
-            The compressed definition.
+            Compressed definition.
         """
         for node in definition["nodes"]:
             node["data"]["$schema"] = node["data"]["$schema"]["node_type"]
@@ -202,10 +227,10 @@ class Node(metaclass=NodeMeta):
         """Decompress the node schema in the flow definition.
 
         Args:
-            definition: The definition to decompress.
+            definition: Definition to decompress.
 
         Returns:
-            The decompressed definition.
+            Decompressed definition.
         """
         schemas = {schema.node_type: schema for schema in cls.schemas}
         for node in definition["nodes"]:
@@ -227,16 +252,17 @@ class Node(metaclass=NodeMeta):
         """Execute the node with the given data.
 
         Args:
-            graph_id: The flow graph ID.
-            node_id: The node ID.
-            node_data: The node data.
-            context: The context to store the intermediate data.
-            input_handle: The input handle.
-            source: The edge source for this execution.
-            sources: The incoming edge sources for this execution.
+            graph_id: Flow graph ID.
+            node_id: Node ID.
+            node_data: Node data.
+            context: Context to store the intermediate data.
+            input_handle: Input handle. `None` supplies no explicit input handle.
+            source: Edge source for this execution. `None` means no incoming edge.
+            sources: Incoming edge sources for this execution. `None` supplies no
+                connected source list.
 
         Returns:
-            The output handle.
+            Output handle.
         """
         # log the execution
         logger.debug(
@@ -297,9 +323,9 @@ def node_register(
     """Create a node register decorator.
 
     Args:
-        group: The default group of the node.
-        icon: The default icon name of the node.
-        categories: The default available graph categories.
+        group: Default group of the node.
+        icon: Default icon name of the node.
+        categories: Default available graph categories.
     """
     _icon = icon
     _categories = categories
@@ -311,6 +337,17 @@ def node_register(
         icon: str | None = None,
         categories: tuple[GraphCategory, ...] = (),
     ):
+        """Apply the group defaults to a node registration decorator.
+
+        Args:
+            order: Display order within the group; defaults to zero.
+            width: Content width; `None` uses the frontend default.
+            icon: Icon name; `None` uses the group default.
+            categories: Allowed graph categories; empty uses the group defaults.
+
+        Returns:
+            Decorator that registers the node class.
+        """
         return Node.register(
             group,
             order=order,
@@ -323,15 +360,15 @@ def node_register(
 
 
 async def start_config(graph: int | FlowGraph, key: str, *keys: str) -> dict[str, Any]:
-    """Get the start node configuration of the flow graph.
+    """Get start node configuration of the flow graph.
 
     Args:
-        graph: The flow graph ID or instance.
-        key: The first required key.
-        keys: The keys of the configuration to retrieve.
+        graph: Flow graph ID or instance.
+        key: First required key.
+        *keys: Keys of the configuration to retrieve.
 
     Returns:
-        The configuration dictionary.
+        Configuration dictionary.
     """
     # get the flow graph definition and extract the nodes
     if isinstance(graph, int):
@@ -347,6 +384,15 @@ async def start_config(graph: int | FlowGraph, key: str, *keys: str) -> dict[str
 
     # load the configuration of the specified node type
     def load_config(node_type: str) -> dict[str, Any] | None:
+        """Read a start node configuration with string mapping keys.
+
+        Args:
+            node_type: Start node schema type.
+
+        Returns:
+            Parsed mapping, an empty mapping for invalid content, or `None` if the node
+            is absent.
+        """
         data = next(
             (node["data"] for node in nodes if node["data"]["$schema"] == node_type),
             None,
@@ -364,6 +410,14 @@ async def start_config(graph: int | FlowGraph, key: str, *keys: str) -> dict[str
             if isinstance(yaml_config, dict):
                 # dict key must be str
                 def stringify_keys(obj: Any) -> Any:
+                    """Convert nested mapping keys to strings for configuration use.
+
+                    Args:
+                        obj: Parsed YAML value.
+
+                    Returns:
+                        Value with nested mapping keys converted to strings.
+                    """
                     if isinstance(obj, dict):
                         return {str(k): stringify_keys(v) for k, v in obj.items()}
                     if isinstance(obj, list):

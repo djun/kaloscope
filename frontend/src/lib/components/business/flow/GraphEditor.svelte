@@ -43,8 +43,8 @@
   /**
    * Save or update the flow graph basics.
    *
-   * @param form - The form element.
-   * @param data - The form data.
+   * @param form - Form element.
+   * @param data - Form data.
    */
   async function upsert(form: HTMLFormElement, data: FormData) {
     loading.start();

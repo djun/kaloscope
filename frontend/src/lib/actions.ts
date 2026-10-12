@@ -7,8 +7,8 @@ import tippy from 'tippy.js';
 /**
  * A Svelte action to portal an element to a specified parent element.
  *
- * @param target - The target element.
- * @param parent - The parent element to append the target to.
+ * @param target - Target element.
+ * @param parent - Parent element to append the target to.
  * @returns The Svelte action return.
  */
 export function portal(target: HTMLElement, parent?: HTMLElement): ActionReturn {
@@ -25,7 +25,7 @@ export function portal(target: HTMLElement, parent?: HTMLElement): ActionReturn 
 /**
  * A Svelte action to create a tooltip using Tippy.js.
  *
- * @param target - The target element.
+ * @param target - Target element.
  * @param props - The Tippy.js properties.
  * @returns The Svelte action return.
  */
@@ -69,8 +69,8 @@ export function tooltip(target: HTMLElement, props: Partial<Props>): ActionRetur
 /**
  * A Svelte action to create a Cropper.js instance.
  *
- * @param target - The target image element.
- * @param transform - The transform event handler.
+ * @param target - Target image element.
+ * @param transform - Transform event handler.
  * @returns The Svelte action return.
  */
 export function cropper(target: HTMLImageElement, transform: (blob: Promise<Blob | null>) => void): ActionReturn {

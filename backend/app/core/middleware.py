@@ -26,7 +26,7 @@ async def on_request(request: Request):
     """The middleware for request.
 
     Args:
-        request: The request object.
+        request: Request object.
 
     Raises:
         UnauthorizedException: If the request is unauthorized.
@@ -64,11 +64,11 @@ async def on_response(request: Request, response) -> HTTPResponse | None:
     """The middleware for response.
 
     Args:
-        request: The request object.
-        response: The response object.
+        request: Request object.
+        response: Response object.
 
     Returns:
-        The wrapped response object.
+        Wrapped response object.
     """
     if not isinstance(response, HTTPResponse):
         return None
@@ -110,8 +110,8 @@ def set_cache_headers(request: Request, response: HTTPResponse):
     """Prevent stale frontend shells from surviving deployments.
 
     Args:
-        request: The request object.
-        response: The response object.
+        request: Request object.
+        response: Response object.
     """
     if request.path.startswith(URL_PREFIX):
         return
@@ -136,10 +136,10 @@ class SessionHolder:
 
     @staticmethod
     def get_sessions() -> DictProxy[str, UserInfo]:
-        """Get the shared user sessions.
+        """Get shared user sessions.
 
         Returns:
-            The user sessions dictionary.
+            User sessions dictionary.
         """
         return Sanic.get_app().shared_ctx.sessions
 

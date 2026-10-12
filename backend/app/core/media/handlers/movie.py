@@ -22,7 +22,7 @@ class MovieMediaHandler(MediaHandler):
         """The mime types accepted by the movie library type.
 
         Returns:
-            The list of mime types.
+            List of mime types.
         """
         return ["video/*"]
 
@@ -39,7 +39,7 @@ class MovieMediaHandler(MediaHandler):
             └── Film-cd2.avi
 
         Returns:
-            The list of hierarchy levels.
+            List of hierarchy levels.
         """
         return [1, 2]
 
@@ -50,7 +50,7 @@ class MovieMediaHandler(MediaHandler):
             data: The XML data to extract from.
 
         Returns:
-            The extracted metadata.
+            Extracted metadata.
         """
         meta = MediaMeta()
         root = data.getroot()
@@ -95,16 +95,24 @@ class MovieMediaHandler(MediaHandler):
         """Generate the media items for a movie.
 
         Args:
-            lib: The media library instance.
-            path: The path to generate from.
+            lib: Media library instance.
+            path: Path to generate from.
 
         Returns:
-            The list of media path info for the media items.
+            List of media path info for the media items.
         """
         result = []
 
-        # helper function to create media path info from a path
         def _path_info(path: Path, *, nfo: bool = False) -> MediaPathInfo:
+            """Extract movie metadata and optionally request NFO generation.
+
+            Args:
+                path: Media file or directory path.
+                nfo: Request a missing movie NFO when `True`; defaults to `False`.
+
+            Returns:
+                Path metadata using the library language.
+            """
             info = MediaPathInfo(path)
             if nfo:
                 info.nfo_path = Path(info.item_dir) / f"{info.item_name}.nfo"

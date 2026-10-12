@@ -25,7 +25,7 @@
   /**
    * Login user with given data and redirect to home page.
    *
-   * @param data - The login form data.
+   * @param data - Login form data.
    */
   function login(data: FormData) {
     loading.start();

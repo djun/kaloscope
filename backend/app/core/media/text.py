@@ -81,7 +81,7 @@ class TextIndex(BaseModel):
         """Require contiguous bounded ranges and unique chapter identities.
 
         Returns:
-            The validated index.
+            Validated index.
 
         Raises:
             ValueError: If ranges overlap, omit bytes or exceed section limits.
@@ -108,10 +108,10 @@ def _text_encoding(file: BinaryIO) -> str:
     """Prefer a BOM or full strict UTF-8 validation before sampled detection.
 
     Args:
-        file: The seekable source stream; the caller rewinds before decoding.
+        file: Source stream that supports seeking; the caller rewinds before decoding.
 
     Returns:
-        The selected Python codec name.
+        Selected Python codec name.
 
     Raises:
         ContentError: If no sufficiently coherent legacy encoding is detected.
@@ -144,7 +144,7 @@ def _text_encoding(file: BinaryIO) -> str:
         file.seek(start)
         sample = file.read(_READ_BYTES)
 
-    # prefer a complete line; otherwise account for a truncated multibyte tail
+    # prefer a complete line; otherwise allow for a truncated UTF-8 character
     newline = sample.rfind(b"\n")
     if newline >= len(sample) // 2:
         sample = sample[: newline + 1]
@@ -187,7 +187,7 @@ def _write_text(text: TextIO, output: BinaryIO) -> tuple[TextChapter, ...]:
 
     Args:
         text: A strictly decoded stream using universal newline translation.
-        output: The new binary UTF-8 cache stream.
+        output: New binary UTF-8 cache stream.
 
     Returns:
         Ordered chapter ranges covering every written byte exactly once.
@@ -206,7 +206,7 @@ def _write_text(text: TextIO, output: BinaryIO) -> tuple[TextChapter, ...]:
         """Write and index the next complete UTF-8 prefix.
 
         Args:
-            size: The number of buffered bytes to emit.
+            size: Number of buffered bytes to emit.
         """
         nonlocal part
         if len(chapters) >= _MAX_CHAPTERS:
@@ -268,11 +268,11 @@ def build_text_index(source: "ReadingSource", cache_dir: Path) -> TextIndex | Ep
     Existing directories are never overwritten; failed new builds are removed.
 
     Args:
-        source: The novel reading source discovered by its library handler.
+        source: Novel reading source discovered by its library handler.
         cache_dir: A nonexistent cache directory whose parent already exists.
 
     Returns:
-        The index saved beside content.txt for TXT or content.jsonl for EPUB.
+        Index saved beside the TXT or EPUB content file.
 
     Raises:
         ContentError: If the source is unsafe, unsupported, empty, unstable,
@@ -339,7 +339,7 @@ def load_text_index(cache_dir: Path) -> TextIndex | EpubIndex:
         cache_dir: A completed internal cache directory selected by the caller.
 
     Returns:
-        The validated index without reading the entire cached body.
+        Validated index without reading the entire cached body.
 
     Raises:
         ContentError: If the cache is missing, corrupt or from an unsupported schema.
@@ -395,8 +395,8 @@ def read_text_resource(
     """Read a novel's indexed raster image in a caller-authorized worker.
 
     Args:
-        source_path: The current source inside the validated library boundary.
-        cache_dir: The completed internal cache directory for that source version.
+        source_path: Current source inside the validated library boundary.
+        cache_dir: Completed internal cache directory for that source version.
         resource_id: An exact image ID from the current EPUB index.
 
     Returns:

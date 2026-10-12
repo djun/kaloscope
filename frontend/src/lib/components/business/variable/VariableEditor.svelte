@@ -34,8 +34,8 @@
   /**
    * Save or update the variable.
    *
-   * @param form - The form element.
-   * @param data - The form data.
+   * @param form - Form element.
+   * @param data - Form data.
    */
   function upsert(form: HTMLFormElement, data: FormData) {
     loading.start();

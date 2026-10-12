@@ -63,7 +63,7 @@ Object.entries(locales).forEach(([path, content]) => {
 });
 
 /**
- * The base plugins for the video player.
+ * Base plugins for the video player.
  *
  * https://h5player.bytedance.com/guide/preset.html
  */
@@ -91,7 +91,7 @@ const BASE_PLUGINS = [
 ];
 
 /**
- * Create the 12-bar spinner used by the `Loading` plugin.
+ * Create 12-bar spinner used by the `Loading` plugin.
  *
  * @returns The spinner element.
  */
@@ -110,7 +110,7 @@ function createLoadingSpinner(): HTMLElement {
 }
 
 /**
- * The custom icons for the player controls.
+ * Custom icons for the player controls.
  *
  * https://h5player.bytedance.com/plugins/icons.html
  */
@@ -135,15 +135,15 @@ const ICONS = {
  */
 export default class DefaultPreset {
   /**
-   * The plugins enabled for this player instance.
+   * Plugins enabled for this player instance.
    */
   plugins: Partial<BasePlugin>[];
 
   /**
-   * Build the player plugin list and shared media options.
+   * Build player plugin list and shared media options.
    *
-   * @param _ - The unused preset context supplied by xgplayer.
-   * @param options - The player options updated by the preset.
+   * @param _ - Unused preset context supplied by xgplayer.
+   * @param options - Player options updated by the preset.
    */
   constructor(_: unknown, options: IPlayerOptions) {
     this.plugins = [...BASE_PLUGINS];
@@ -190,7 +190,7 @@ export default class DefaultPreset {
 /**
  * Guesses the video type based on the URL.
  *
- * @param url - The media resource URL.
+ * @param url - Media resource URL.
  * @returns The guessed video type as a string.
  */
 function guessVideoType(url?: IUrl): string | null {
@@ -210,10 +210,10 @@ function guessVideoType(url?: IUrl): string | null {
 }
 
 /**
- * Gets the video plugins based on the video type.
+ * Get video plugins based on the video type.
  *
- * @param videoType - The video type, either from options or guessed from the URL.
- * @param url - The media URL, used to check if it's a transcoded stream.
+ * @param videoType - Video type, either from options or guessed from the URL.
+ * @param url - Media URL, used to check if it's a transcoded stream.
  * @returns An array of video plugins.
  */
 export function videoPlugins(videoType: string | null | undefined, url: IUrl | undefined): VideoPlugin[] {

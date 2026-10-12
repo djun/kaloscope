@@ -28,7 +28,7 @@
   let indeterminate = $state(false);
 
   /**
-   * Get the selected keys.
+   * Get selected keys.
    *
    * @returns The selected keys.
    */

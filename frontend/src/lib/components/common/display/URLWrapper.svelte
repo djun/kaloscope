@@ -26,7 +26,7 @@
   /**
    * Standardize the URL by trimming whitespace and removing the HTTP/HTTPS prefix.
    *
-   * Update the security toggle only when the URL includes an HTTP or HTTPS prefix.
+   * Update security toggle only when the URL includes an HTTP or HTTPS prefix.
    *
    * @param url - The URL to standardize.
    * @returns The standardized URL.

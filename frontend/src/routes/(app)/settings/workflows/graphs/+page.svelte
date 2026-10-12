@@ -45,8 +45,8 @@
   /**
    * Search for flow graphs.
    *
-   * @param page - The page number.
-   * @param size - The page size.
+   * @param page - Page number.
+   * @param size - Page size.
    */
   function search(page: number = 1, size: number = pagination.size) {
     loading.start();
@@ -77,7 +77,7 @@
   /**
    * Retract a flow graph by ID.
    *
-   * @param id - The flow graph ID.
+   * @param id - Flow graph ID.
    */
   function retract(id: number) {
     loading.start();
@@ -90,7 +90,7 @@
   /**
    * Delete a flow graph by ID.
    *
-   * @param id - The flow graph ID.
+   * @param id - Flow graph ID.
    */
   function del(id: number) {
     loading.start();
@@ -103,8 +103,8 @@
   /**
    * Upgrade a flow graph by ID.
    *
-   * @param id - The flow graph ID.
-   * @param tmpl - The newest template to reference.
+   * @param id - Flow graph ID.
+   * @param tmpl - Newest template to reference.
    */
   function upgrade(id: number, tmpl: FlowTemplate) {
     loading.start();

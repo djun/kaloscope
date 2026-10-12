@@ -7,7 +7,7 @@ from app.core.renderer import render
 
 @dataclass(kw_only=True)
 class Field[V](ABC):
-    """The base dataclass for all node fields."""
+    """Base definition for node fields."""
 
     id: str = field(init=False, repr=False)
     field_type: str = field(init=False, repr=False)
@@ -27,7 +27,7 @@ class Field[V](ABC):
         """The method to be implemented by the subclasses to return the field type.
 
         Returns:
-            The field type.
+            Field type.
         """
         raise NotImplementedError
 
@@ -37,12 +37,13 @@ class Field[V](ABC):
         """Extract the field value from the node data.
 
         Args:
-            data: The node data to extract the field value.
-            context: The context to render the field value.
-            raw: Whether to render the value as raw object.
+            data: Node data to extract the field value.
+            context: Context to render the field value. `None` skips template
+                rendering.
+            raw: Whether to render the value as raw object. Defaults to `False`.
 
         Returns:
-            The field value.
+            Field value.
         """
         value = data.get(self.id, self.default)
         if context is not None:

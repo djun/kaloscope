@@ -125,7 +125,7 @@
   /**
    * Normalize text payloads into the viewer's paragraph-based rendering model.
    *
-   * @param text - The plain-text payload to display.
+   * @param text - Plain-text payload to display.
    * @returns Paragraphs retaining the indices supplied by local content APIs.
    */
   function normalizeTextContent(text: string | string[]): string[] {
@@ -196,7 +196,7 @@
   /**
    * Mount the text viewer with plain text or structured blocks.
    *
-   * @param options - The text viewer options.
+   * @param options - Text viewer options.
    */
   export async function mount(options: TextViewerOptions) {
     if (!options) {
@@ -226,7 +226,7 @@
   }
 
   /**
-   * Get the currently visible paragraph or block and relative position inside it.
+   * Get currently visible paragraph or block and relative position inside it.
    *
    * @returns The current position, or null while content is hidden or being restored.
    */
@@ -286,7 +286,7 @@
   /**
    * Select a chapter and notify the parent page.
    *
-   * @param chapter - The chapter to select.
+   * @param chapter - Chapter to select.
    */
   function selectChapter(chapter: Chapter) {
     chaptersOpen = false;
@@ -306,8 +306,8 @@
   /**
    * Adjust a numeric reader setting within its configured range.
    *
-   * @param key - The setting key to adjust.
-   * @param delta - The amount to add to the current value.
+   * @param key - Setting key to adjust.
+   * @param delta - Amount to add to the current value.
    */
   function clamp(key: keyof typeof SLIDER_CONFIGS, delta: number) {
     if ($settings === null) {

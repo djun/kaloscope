@@ -35,7 +35,7 @@
   /**
    * Save or update the DNS resolver.
    *
-   * @param data - The form data.
+   * @param data - Form data.
    */
   function upsert(data: FormData) {
     loading.start();

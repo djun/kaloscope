@@ -67,8 +67,8 @@ def _safe_path(root: Path, path: Path):
     """Validate a path before accessing it during organization.
 
     Args:
-        root: The absolute media library root.
-        path: The absolute source or destination path to validate.
+        root: Absolute media library root.
+        path: Absolute source or destination path to validate.
 
     Raises:
         ValueError: If the path escapes the library, exceeds path limits, or
@@ -94,8 +94,8 @@ def _metadata(path: Path, lib_type: LibType, root_tag: str) -> dict:
 
     Args:
         path: The NFO file path.
-        lib_type: The library type used to select a metadata handler.
-        root_tag: The required XML root element name.
+        lib_type: Library type used to select a metadata handler.
+        root_tag: Required XML root element name.
 
     Raises:
         OSError: If the NFO file cannot be read.
@@ -103,7 +103,7 @@ def _metadata(path: Path, lib_type: LibType, root_tag: str) -> dict:
         ValueError: If the root element is unexpected or the title is missing.
 
     Returns:
-        The extracted metadata, including the NFO path.
+        Extracted metadata, including the NFO path.
     """
     # require a complete XML document before changing files
     from app.core.media.handlers.base import get_handler
@@ -123,13 +123,13 @@ def _metadata(path: Path, lib_type: LibType, root_tag: str) -> dict:
 
 
 def _identity(metadata: dict) -> tuple | None:
-    """Get the external identity used to match media directories.
+    """Get external identity used to match media directories.
 
     Args:
-        metadata: The parsed media metadata.
+        metadata: Parsed media metadata.
 
     Returns:
-        The metadata site and external ID, or `None` if no ID is available.
+        Metadata site and external ID, or `None` if no ID is available.
     """
     value = metadata.get("id")
     return (metadata.get("site"), value) if value else None
@@ -139,10 +139,10 @@ def _fingerprint(path: Path) -> list[int]:
     """Read file attributes used to detect changes during recovery.
 
     Args:
-        path: The file or symlink path to inspect without following the link.
+        path: File or symlink path to inspect without following the link.
 
     Returns:
-        The device ID, inode, byte size, and modification time in nanoseconds.
+        Device ID, inode, byte size, and modification time in nanoseconds.
     """
     stat = path.lstat()
     return [stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns]
@@ -152,10 +152,10 @@ def _companions(path: Path) -> list[Path]:
     """Find the NFO and subtitle files associated with a video basename.
 
     Args:
-        path: The video file path.
+        path: Video file path.
 
     Returns:
-        The matching files and symlinks in the video's directory, accepting
+        Matching files and symlinks in the video's directory, accepting
         case-insensitive extensions and excluding subtitles with a longer
         matching video basename.
     """
@@ -187,10 +187,10 @@ def _reference_key(path: Path) -> str:
     """Normalize a file reference without following its final symlink.
 
     Args:
-        path: The file reference whose parent directory aliases are resolved.
+        path: File reference whose parent directory aliases are resolved.
 
     Returns:
-        The absolute path normalized to `NFC` and case-folded for alias lookup,
+        Absolute path normalized to `NFC` and case-folded for alias lookup,
         preserving the final component to distinguish a link from its target.
     """
     return unicodedata.normalize(
@@ -201,12 +201,12 @@ def _reference_key(path: Path) -> str:
 def _validate_link_references(root: Path, moves: dict[str, str]):
     """Reject moves referenced by library symlinks outside the plan.
 
-    Include unindexed links and directory aliases without traversing directory
-    symlinks. Normalize case and Unicode when matching references.
+    Include links without index records and directory aliases. Do not traverse
+    directory symlinks. Normalize case and Unicode when matching references.
 
     Args:
-        root: The absolute media library root to inspect.
-        moves: The planned source and destination paths, including retained links
+        root: Absolute media library root to inspect.
+        moves: Planned source and destination paths, including retained links
             whose targets the plan updates.
 
     Raises:
@@ -248,13 +248,13 @@ def _relocate_reference(
     """Update a local resource reference for the NFO's destination.
 
     Args:
-        value: The resource path or URL stored in the NFO metadata.
-        old_nfo: The original NFO path used to resolve relative references.
-        new_nfo: The destination NFO path used to rebuild relative references.
-        moves: The mapping from source file paths to destination file paths.
+        value: Resource path or URL stored in the NFO metadata.
+        old_nfo: Original NFO path used to resolve relative references.
+        new_nfo: Destination NFO path used to rebuild relative references.
+        moves: Mapping from source file paths to destination file paths.
 
     Returns:
-        The adjusted local path or unchanged reference with surrounding whitespace
+        Adjusted local path or unchanged reference with surrounding whitespace
         removed, or `None` if no reference was provided.
     """
     if value is None:
@@ -277,18 +277,18 @@ def _relocate_reference(
 
 
 def _shared_artwork(root: Path, artwork: set[Path], nfo_paths: set[Path]) -> set[Path]:
-    """Find artwork referenced by NFOs outside the organization plan.
+    """Find artwork referenced by NFO files outside the organization plan.
 
-    Inspect files on disk so references from unindexed media are also preserved.
+    Inspect disk files to preserve references from media without index records.
     Keep all candidate artwork in place if another NFO cannot be read or parsed.
 
     Args:
-        root: The media library root to search for other NFO files.
-        artwork: The local artwork paths proposed for movement.
+        root: Media library root to search for other NFO files.
+        artwork: Local artwork paths proposed for movement.
         nfo_paths: The NFO paths whose references are updated by the plan.
 
     Returns:
-        The artwork paths that must remain at their original locations.
+        Artwork paths that must remain at their original locations.
     """
     candidates = {path: path.resolve() for path in artwork}
     shared = set()
@@ -326,15 +326,16 @@ def _nfo_edits(
     """Prepare NFO edits for resource references and season metadata.
 
     Args:
-        moves: The mapping from source file paths to destination file paths.
-        seasons: Optional destination NFO paths mapped to their season numbers;
+        moves: Mapping from source file paths to destination file paths.
+        seasons: Optional destination NFO paths mapped to their season numbers; `None`
+            leaves season metadata unchanged.
             a `None` season removes the season element.
 
     Raises:
         OSError: If an NFO source cannot be read.
 
     Returns:
-        The destination paths, original content hashes, and replacement XML for
+        Destination paths, original content hashes, and replacement XML for
         changed NFO files, including symlinks so the caller can reject unsafe
         moves. Invalid XML documents are skipped.
     """
@@ -388,8 +389,8 @@ def _context(metadata: dict, parent: dict | None) -> dict:
     """Build template values from media and optional parent metadata.
 
     Args:
-        metadata: The media item's parsed metadata.
-        parent: The parent show's metadata, or `None` for a standalone item.
+        metadata: Media item's parsed metadata.
+        parent: Parent show's metadata, or `None` for a standalone item.
 
     Returns:
         A metadata copy with a parent namespace and supported missing values
@@ -408,8 +409,8 @@ async def _validate_updates(lib: MediaLib, updates: list[dict]):
     """Check ORM constraints before a journal can move any files.
 
     Args:
-        lib: The media library whose destination paths must remain unique.
-        updates: The planned media item field values, including item IDs.
+        lib: Media library whose destination paths must remain unique.
+        updates: Planned media item field values, including item IDs.
 
     Raises:
         ValueError: If a field cannot be saved or a destination path conflicts
@@ -435,7 +436,7 @@ async def _validate_moves(root: Path, moves: dict[str, str]):
     """Validate file destinations, filesystem boundaries and external links.
 
     Args:
-        root: The absolute library root.
+        root: Absolute library root.
         moves: Source and destination file paths, including unchanged companions.
 
     Raises:
@@ -481,7 +482,7 @@ async def _validate_downloads(lib: MediaLib, affected_paths: set[str]):
     """Protect original downloads and defer incomplete transfers.
 
     Args:
-        lib: The library containing the planned destinations.
+        lib: Library containing the planned destinations.
         affected_paths: Files moved or rewritten by the plan.
 
     Raises:
@@ -526,7 +527,7 @@ def _reading_metadata(source: "ReadingSource") -> dict:
     """Read naming fields without using the display title's filename fallback.
 
     Args:
-        source: The discovered source inside a validated work directory.
+        source: Discovered source inside a validated work directory.
 
     Returns:
         Current fields with external priority and supported parent inheritance.
@@ -550,11 +551,11 @@ def _opf_edits(paths: set[Path], moves: dict[str, str]) -> list[dict]:
     """Relocate local OPF links while preserving unrelated metadata and elements.
 
     Args:
-        paths: Owned external OPFs, including lower-priority companion files.
+        paths: Owned external OPF files, including lower-priority companion files.
         moves: Source and destination paths for every file in the work.
 
     Returns:
-        Recoverable edits only for OPFs whose local links actually change.
+        Recoverable edits only for OPF files whose local links actually change.
 
     Raises:
         OSError: If an OPF cannot be read.
@@ -598,8 +599,8 @@ def _reading_files(lib: MediaLib, items: list[MediaItem]) -> dict:
     """Plan one complete reading work in a worker thread without changing files.
 
     Args:
-        lib: The reading library with an enabled naming template.
-        items: The work followed by all its chapters, or one standalone item.
+        lib: Reading library with an enabled naming template.
+        items: Work followed by all its chapters, or one standalone item.
 
     Returns:
         File moves, item path updates, OPF edits and the target work directory.
@@ -752,9 +753,9 @@ async def _reading_plan(
     """Build a reading plan with shared collision and download safeguards.
 
     Args:
-        lib: The reading library whose lock is held by the caller.
+        lib: Reading library whose lock is held by the caller.
         group: All chapters or the standalone reading item.
-        parent: The collection item, or None for a standalone work.
+        parent: Collection item, or None for a standalone work.
 
     Returns:
         A journal compatible with the existing organization executor.
@@ -804,12 +805,14 @@ async def _plan(
     Preserve media IDs and shared resources.
 
     Args:
-        lib: The media library containing the naming template and root path.
-        group: The nonempty group of media items to organize together.
-        parent: The group's directory item, or `None` for a standalone movie.
-        season: The resolved group season used for the destination directory and
+        lib: Media library containing the naming template and root path.
+        group: Nonempty group of media items to organize together.
+        parent: Group's directory item, or `None` for a standalone movie.
+        season: Resolved group season used for the destination directory and `None`
+            keeps the current season.
             missing episode metadata, or `None` to use the parent metadata.
-        split: Whether the source directory is being split into season groups.
+        split: Whether the source directory is being split into season groups. Defaults
+            to `False`.
 
     Raises:
         OSError: If required files cannot be inspected or read.
@@ -819,7 +822,7 @@ async def _plan(
             original download source or linked NFO, or cannot be saved.
 
     Returns:
-        The journal payload describing file moves, metadata changes, reference
+        Journal payload describing file moves, metadata changes, reference
         edits, and source directory cleanup.
     """
     if lib.lib_type in (LibType.NOVEL, LibType.COMIC):
@@ -1268,12 +1271,12 @@ async def _plan(
 def _move_files(root: Path, payload: dict):
     """Apply or resume a journal's filesystem changes under the library lock.
 
-    Preserve recorded permissions when publishing copied NFOs. Accept legacy
+    Preserve recorded permissions when publishing copied NFO files. Accept legacy
     journals without a recorded `mode`, retaining their private temporary-file mode.
 
     Args:
-        root: The absolute media library root.
-        payload: The persisted organization plan with file identities and edits.
+        root: Absolute media library root.
+        payload: Persisted organization plan with file identities and edits.
 
     Raises:
         OrganizePendingError: If a file changed or disappeared unexpectedly.
@@ -1366,6 +1369,7 @@ def _move_files(root: Path, payload: dict):
             continue
         if hashlib.sha256(current).hexdigest() != edit["before"]:
             raise OrganizePendingError(f"metadata changed during organization: {path}")
+
         # replace only the original metadata contents verified against the journal
         descriptor, name = tempfile.mkstemp(prefix=".organizing-", dir=path.parent)
         temporary = Path(name)
@@ -1383,20 +1387,20 @@ def _move_files(root: Path, payload: dict):
 async def _finish(lib: MediaLib, event: MediaEvent) -> dict[str, str]:
     """Finish a journal's filesystem and database updates under the library lock.
 
-    Keep episode NFOs scannable if the journal lacks full metadata, including
+    Keep episode NFO files scannable if the journal lacks full metadata, including
     legacy plans. Retain filesystem events for reused sources or destinations
     changed by external writers before the database commit.
     Preserve existing original snapshots and capture file information for new parents.
 
     Args:
-        lib: The media library whose lock is held by the caller.
-        event: The persisted organization event containing the plan to finish.
+        lib: Media library whose lock is held by the caller.
+        event: Persisted organization event containing the plan to finish.
 
     Raises:
         OrganizePendingError: If the plan cannot be completed and needs recovery.
 
     Returns:
-        The mapping from original media paths to their organized destinations.
+        Mapping from original media paths to their organized destinations.
     """
     payload = event.payload
     try:
@@ -1483,7 +1487,7 @@ def _remove_empty_directories(path: Path):
     """Remove empty directories from the source tree after organization.
 
     Args:
-        path: The source directory to clean up from its leaves to its root.
+        path: Source directory to clean up from its leaves to its root.
     """
     if not path.exists():
         return
@@ -1495,16 +1499,16 @@ def _remove_empty_directories(path: Path):
 async def recover_organizing(lib: MediaLib) -> dict[str, str]:
     """Finish persisted plans before accepting filesystem events or scan results.
 
-    The caller must hold the library lock throughout recovery.
+    Caller must hold the library lock throughout recovery.
 
     Args:
-        lib: The media library whose pending organization events are recovered.
+        lib: Media library whose pending organization events are recovered.
 
     Raises:
         OrganizePendingError: If a persisted plan cannot be completed.
 
     Returns:
-        The combined mapping from original paths to recovered destinations.
+        Combined mapping from original paths to recovered destinations.
     """
     mapping = {}
     for event in await MediaEvent.filter(lib_id=lib.id, event_type="organize"):
@@ -1518,14 +1522,14 @@ async def _season_groups(
     """Group episodes by season when the directory template uses a season field.
 
     Args:
-        lib: The media library containing the directory naming template.
-        group: The video items sharing the source directory.
-        parent: The directory item whose NFO and stored season supply fallback
+        lib: Media library containing the directory naming template.
+        group: Video items sharing the source directory.
+        parent: Directory item whose NFO and stored season supply fallback
             metadata, if any.
 
     Raises:
         ValueError: If splitting requires unknown seasons or would leave
-            unindexed videos in the source directory.
+            videos without index records in the source directory.
 
     Returns:
         Pairs of season numbers and item lists, or one pair with a `None` season
@@ -1587,15 +1591,15 @@ async def organize_items(lib: MediaLib, item_ids: list[int]) -> dict[str, str]:
     Save inherited seasons before splitting so retries survive parent NFO edits.
 
     Args:
-        lib: The media library whose lock is held by the caller.
-        item_ids: The media item IDs identifying groups to organize.
+        lib: Media library whose lock is held by the caller.
+        item_ids: Media item IDs identifying groups to organize.
 
     Raises:
         OrganizePendingError: If a persisted organization plan cannot finish.
         OrganizeDeferredError: If any group is waiting for its remaining transfers.
 
     Returns:
-        The combined mapping of paths changed by recovery and new plans.
+        Combined mapping of paths changed by recovery and new plans.
     """
     mapping = await recover_organizing(lib)
     if not lib.rename_template or not item_ids:

@@ -38,23 +38,33 @@
     explicit?: boolean;
   };
 
+  /**
+   * Open a prompt dialog.
+   *
+   * @param msg - Dialog content and response callbacks.
+   */
   export function prompt(msg: Omit<Message, 'prompt' | 'explicit'>) {
     show({ ...msg, prompt: true });
   }
 
+  /**
+   * Open a confirmation dialog.
+   *
+   * @param msg - Dialog content and response callbacks.
+   */
   export function confirm(msg: Partial<Omit<Message, 'prompt' | 'advice' | 'placeholder' | 'options' | 'explicit'>>) {
     show({ ...msg, prompt: false, title: msg.title ?? '' });
   }
 
   /**
-   * The reactive map of message instances.
+   * Reactive map of message instances.
    */
   export const messages = new SvelteMap<string, Message>();
 
   /**
    * Show a message dialog.
    *
-   * @param msg - The message dialog instance.
+   * @param msg - Message dialog instance.
    */
   async function show(msg: Message) {
     // https://svelte.dev/docs/kit/shallow-routing
@@ -76,10 +86,10 @@
   /**
    * Close a message dialog.
    *
-   * @param id - The id of the message dialog.
+   * @param id - Id of the message dialog.
    * @param shallow - Whether to close the dialog by navigating back.
-   * @param callback - The callback function to be called before closing the dialog.
-   * @param event - The mouse event that triggered the close action.
+   * @param callback - Callback function to be called before closing the dialog.
+   * @param event - Mouse event that triggered the close action.
    */
   function close(id: string, shallow?: boolean, callback?: () => void, event: MouseEvent | null = null) {
     if (event) {

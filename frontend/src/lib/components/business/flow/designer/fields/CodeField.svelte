@@ -2,7 +2,7 @@
   import type { Field, FlowGraphContext } from '$lib/types';
 
   /**
-   * The supported languages for the code field.
+   * Supported languages for the code field.
    */
   type Language = 'yaml' | 'json' | 'jsonc' | 'jinja2' | 'python' | 'javascript';
 
@@ -18,7 +18,7 @@
   /**
    * Load a template file by its name.
    *
-   * @param template - The name of the template file.
+   * @param template - Name of the template file.
    */
   const loadTemplate = (template: string) => templates[`/src/templates/${template}`] ?? '';
 </script>
@@ -60,9 +60,9 @@
   const { label, tooltip, placeholder } = nodeFormatter;
 
   /**
-   * Get the language support object for CodeMirror.
+   * Get language support object for CodeMirror.
    *
-   * @param lang - The language name.
+   * @param lang - Language name.
    */
   const languageSupport = (lang: string | null) => {
     switch (lang) {

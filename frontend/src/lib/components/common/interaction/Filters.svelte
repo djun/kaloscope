@@ -30,7 +30,7 @@
   /**
    * Check if the element is covered by the bottom of the screen.
    *
-   * @param element - The element to check.
+   * @param element - Element to check.
    * @returns True if the element is covered, false otherwise.
    */
   function isBottomOverflow(element: Element | null): boolean {
@@ -41,10 +41,10 @@
   }
 
   /**
-   * Get the range string from the stored array value.
+   * Get range string from the stored array value.
    *
-   * @param key - The filter key.
-   * @returns The range string for Cally.
+   * @param key - Filter key.
+   * @returns The range string for the calendar.
    */
   function rangeValue(key: string): string {
     const value = values[key];
@@ -55,9 +55,9 @@
   }
 
   /**
-   * Get the range label from the stored array value.
+   * Get range label from the stored array value.
    *
-   * @param key - The filter key.
+   * @param key - Filter key.
    * @returns The range label.
    */
   function rangeLabel(key: string): string {
@@ -69,9 +69,9 @@
   }
 
   /**
-   * Format a Cally date event detail as an ISO date string.
+   * Format a calendar date event detail as an ISO date string.
    *
-   * @param date - The Cally event date.
+   * @param date - Calendar event date.
    * @returns The ISO date string.
    */
   function formatDate(date: Date): string {

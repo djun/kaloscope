@@ -52,10 +52,10 @@ def _publish_task_action(
     """Publish a deferred driver action to the synchronizer owner.
 
     Args:
-        request: The current Sanic request.
-        id: The local `DownloadTask` ID.
-        command: The optional `(action, expected_state)` service result.
-        local: Whether deletion should include local files.
+        request: Current Sanic request.
+        id: Local `DownloadTask` ID.
+        command: Optional `(action, expected_state)` service result.
+        local: Whether deletion should include local files. Defaults to `False`.
     """
     if command is None:
         return
@@ -66,7 +66,14 @@ def _publish_task_action(
 
 @download.get("/manager/list")
 async def list_downloaders(request: Request) -> HTTPResponse:
-    """List the downloaders."""
+    """List the download clients.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Response containing the requested data.
+    """
     downloaders = await DownloaderService.dump_list(Downloader.all())
     for downloader in downloaders:
         # check if the downloader is up or down
@@ -90,14 +97,29 @@ async def list_downloaders(request: Request) -> HTTPResponse:
 @download.post("/manager/sort")
 @validate(json=IDs)
 async def sort_downloaders(_, body: IDs) -> HTTPResponse:
-    """Sort the downloaders."""
+    """Sort the download clients.
+
+    Args:
+        _: Unused request.
+        body: Record IDs in display order.
+
+    Returns:
+        Empty response on success.
+    """
     await DownloaderService.update_priorities(body.ids)
     return empty()
 
 
 @download.get("/manager/presets")
 async def get_downloader_presets(_) -> HTTPResponse:
-    """Get the downloader presets."""
+    """Get downloader presets.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Response containing the requested data.
+    """
     return json(await DownloaderService.get_presets())
 
 
@@ -105,7 +127,15 @@ async def get_downloader_presets(_) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=Endpoint)
 async def get_openlist_tools(request: Request, body: Endpoint) -> HTTPResponse:
-    """Get the offline download tools exposed by an OpenList endpoint."""
+    """Get offline download tools exposed by an OpenList endpoint.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Remote endpoint connection settings.
+
+    Returns:
+        Response containing the requested data.
+    """
     try:
         tools = await OpenListClient(body, request.app.ctx.httpx).tools(
             request.args.get("path", "")
@@ -119,7 +149,15 @@ async def get_openlist_tools(request: Request, body: Endpoint) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=DownloaderUpsert)
 async def upsert_downloader(_, body: DownloaderUpsert) -> HTTPResponse:
-    """Create or update a downloader."""
+    """Create or update a downloader.
+
+    Args:
+        _: Unused request.
+        body: Download client settings.
+
+    Returns:
+        Response containing the requested data.
+    """
     downloader = await DownloaderService.upsert(body)
     return json(await DownloaderService.dump(downloader))
 
@@ -128,7 +166,15 @@ async def upsert_downloader(_, body: DownloaderUpsert) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_downloaders(_, body: IDs) -> HTTPResponse:
-    """Delete the downloaders."""
+    """Delete the download clients.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     await Downloader.filter(id__in=body.ids).delete()
     return empty()
 
@@ -136,7 +182,15 @@ async def delete_downloaders(_, body: IDs) -> HTTPResponse:
 @download.get("/plan/list")
 @validate(query=DownloadPlanQuery)
 async def list_plans(_, query: DownloadPlanQuery) -> HTTPResponse:
-    """List the download plans."""
+    """List the download plans.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     queries = []
     if query.graph_id:
         queries.append(Q(graph_id=query.graph_id))
@@ -159,7 +213,15 @@ async def list_plans(_, query: DownloadPlanQuery) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=DownloadPlanUpsert)
 async def upsert_plan(_, body: DownloadPlanUpsert) -> HTTPResponse:
-    """Create or update a download plan."""
+    """Create or update a download plan.
+
+    Args:
+        _: Unused request.
+        body: Download plan fields.
+
+    Returns:
+        Response containing the requested data.
+    """
     plan = await DownloadPlanService.upsert(body)
     return json(await DownloadPlanService.dump(plan))
 
@@ -168,18 +230,41 @@ async def upsert_plan(_, body: DownloadPlanUpsert) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=IDs)
 async def delete_plans(_, body: IDs) -> HTTPResponse:
-    """Delete the download plans."""
+    """Delete the download plans.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     await DownloadPlan.filter(id__in=body.ids).delete()
     return empty()
 
 
 @download.get("/dir/list")
 async def list_directories(_) -> HTTPResponse:
-    """List the download directories."""
+    """List the download directories.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Response containing the requested data.
+    """
     directories = await DownloadDir.all().order_by("-last_used").limit(3).values("path")
     if not directories:
         # check if the path is readable
         def readable(p: Path) -> bool:
+            """Check whether a download directory can be read.
+
+            Args:
+                p: Candidate download directory.
+
+            Returns:
+                Whether the path is a readable directory.
+            """
             try:
                 return p.is_dir() and os.access(p, os.R_OK)
             except OSError:
@@ -209,7 +294,15 @@ async def list_directories(_) -> HTTPResponse:
 @download.get("/list")
 @validate(query=DownloadQuery)
 async def list_tasks(_, query: DownloadQuery) -> HTTPResponse:
-    """List the download tasks."""
+    """List the download tasks.
+
+    Args:
+        _: Unused request.
+        query: Query filters and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     queries = []
     if query.name:
         queries.append(Q(name__icontains=query.name))
@@ -225,7 +318,14 @@ async def list_tasks(_, query: DownloadQuery) -> HTTPResponse:
 
 @download.post("/validate")
 async def valid_magnet_link(request: Request) -> HTTPResponse:
-    """Validate a download source."""
+    """Validate a download source.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Response containing the requested data.
+    """
     link = request.body.decode(ENCODING)
     downloader_id = request.args.get("downloader_id")
     if downloader_id is not None:
@@ -243,7 +343,15 @@ async def valid_magnet_link(request: Request) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(form=DownloadAdd)
 async def add_task(_, body: DownloadAdd) -> HTTPResponse:
-    """Add a download task."""
+    """Add a download task.
+
+    Args:
+        _: Unused request.
+        body: Download source, destination and options.
+
+    Returns:
+        Response containing the requested data.
+    """
     task = await DownloadTaskService.add(body)
     return json(await DownloadTaskService.dump(task))
 
@@ -251,7 +359,15 @@ async def add_task(_, body: DownloadAdd) -> HTTPResponse:
 @download.post("/pause")
 @validate(json=IDs)
 async def pause_tasks(request: Request, body: IDs) -> HTTPResponse:
-    """Pause the download tasks."""
+    """Pause the download tasks.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     for id in body.ids:
         try:
             task_id = int(id)
@@ -267,7 +383,15 @@ async def pause_tasks(request: Request, body: IDs) -> HTTPResponse:
 @download.post("/start")
 @validate(json=IDs)
 async def start_tasks(request: Request, body: IDs) -> HTTPResponse:
-    """Start the download tasks."""
+    """Start the download tasks.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     for id in body.ids:
         try:
             task_id = int(id)
@@ -283,7 +407,15 @@ async def start_tasks(request: Request, body: IDs) -> HTTPResponse:
 @download.post("/retry")
 @validate(json=IDs)
 async def retry_tasks(request: Request, body: IDs) -> HTTPResponse:
-    """Retry the download tasks."""
+    """Retry the download tasks.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     for id in body.ids:
         try:
             task_id = int(id)
@@ -300,7 +432,15 @@ async def retry_tasks(request: Request, body: IDs) -> HTTPResponse:
 @authorize(role=UserRole.ADMIN)
 @validate(json=DownloadDel)
 async def delete_tasks(request: Request, body: DownloadDel) -> HTTPResponse:
-    """Delete the download tasks."""
+    """Delete the download tasks.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Task IDs and local file deletion option.
+
+    Returns:
+        Empty response on success.
+    """
     for id in body.ids:
         try:
             task_id = int(id)
@@ -315,7 +455,11 @@ async def delete_tasks(request: Request, body: DownloadDel) -> HTTPResponse:
 
 @download.get("/stats")
 async def get_stats(request: Request):
-    """Get the download statistics."""
+    """Get download statistics.
+
+    Args:
+        request: Incoming request with session and application context.
+    """
     syncer: DLSyncer = request.app.ctx.dl_syncer
     syncer.accelerate()
     try:

@@ -21,8 +21,8 @@ export const subroutes = persisted<Record<string, string>>('subroutes');
 /**
  * Create a writable store that persists to localStorage.
  *
- * @param key - The localStorage key.
- * @param value - The initial value.
+ * @param key - LocalStorage key.
+ * @param value - Initial value.
  * @returns A writable store.
  */
 export function persisted<T>(key: string, value: T | null = null): Writable<T | null> {
@@ -54,7 +54,7 @@ export function persisted<T>(key: string, value: T | null = null): Writable<T | 
 /**
  * Create a writable store that listens to media query changes.
  *
- * @param query - The media query string.
+ * @param query - Media query string.
  * @param immediate - Whether the initial value should match the query.
  * @returns A writable store.
  */
@@ -105,7 +105,7 @@ export function historyBack() {
 /**
  * Navigate to the last visited subroute.
  *
- * @param defaultRoute - The default route to navigate to if no match is found.
+ * @param defaultRoute - Default route to navigate to if no match is found.
  */
 export function restoreRoute(defaultRoute?: string) {
   const pathname = normalizePathname(page.url.pathname);
@@ -119,9 +119,9 @@ export function restoreRoute(defaultRoute?: string) {
 /**
  * Capture the scroll position of the current page before navigation.
  *
- * @param from - The source navigation target.
- * @param to - The destination navigation target.
- * @param view - The data view instance to capture scroll position from.
+ * @param from - Source navigation target.
+ * @param to - Destination navigation target.
+ * @param view - Data view instance to capture scroll position from.
  * @param standalone - Whether the app is in standalone display mode.
  */
 export function captureScrollPosition(
@@ -147,7 +147,7 @@ export function captureScrollPosition(
 /**
  * Restore the scroll position for the current page.
  *
- * @param target - The target window or data view to scroll.
+ * @param target - Target window or data view to scroll.
  * @param toTop - Whether to scroll to the top instead of restoring the position.
  */
 export function restorePosition<T>(target: Window | DataView<T> | null | undefined, toTop?: boolean) {

@@ -15,7 +15,7 @@ type SubtitleMeta = {
 };
 
 /**
- * The subset of the xgplayer subtitle renderer used by the styled subtitle plugin.
+ * Subset of the xgplayer subtitle renderer used by the styled subtitle plugin.
  */
 type SubtitleRendererApi = {
   config?: {
@@ -34,7 +34,7 @@ type SubtitleRendererApi = {
 };
 
 /**
- * The media dimensions required for subtitle scale calculation.
+ * Media dimensions required for subtitle scale calculation.
  */
 type VideoSize = Pick<HTMLVideoElement, 'videoWidth' | 'videoHeight'>;
 
@@ -48,6 +48,14 @@ export type SubtitleStyleSettings = {
   timeOffset: number;
 };
 
+/**
+ * Keep a subtitle layout value within its bounds.
+ *
+ * @param value - Value to constrain.
+ * @param min - Lower bound.
+ * @param max - Upper bound.
+ * @returns Value within the allowed range.
+ */
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
@@ -67,7 +75,7 @@ export default class StyledTextTrack extends TextTrack {
   private subtitleTimeOffset = 0;
 
   /**
-   * The subtitle renderer currently bound to layout update events.
+   * Subtitle renderer currently bound to layout update events.
    */
   private boundSubtitleRenderer?: SubtitleRendererApi;
 
@@ -291,6 +299,8 @@ export default class StyledTextTrack extends TextTrack {
    * Patch xgplayer's subtitle clock so subtitle offset updates take effect immediately.
    *
    * Positive offsets delay subtitles; negative offsets advance them.
+   *
+   * @param subtitleRenderer - Active subtitle renderer whose clock will be patched.
    */
   private syncSubtitleTimeOffset(subtitleRenderer: SubtitleRendererApi) {
     const originalGetTime =

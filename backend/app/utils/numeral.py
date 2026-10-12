@@ -22,10 +22,10 @@ def cn_to_int(string: str) -> int | None:
     """Convert a simplified Chinese numeral string (1~9999) to an integer.
 
     Args:
-        string: The input string containing Chinese numeral characters.
+        string: Input string containing Chinese numeral characters.
 
     Returns:
-        The integer value represented by the input string, or `None` if the string
+        Integer value represented by the input string, or `None` if the string
         is not a valid Chinese numeral.
     """
     if not string:

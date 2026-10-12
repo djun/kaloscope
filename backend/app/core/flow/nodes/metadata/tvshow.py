@@ -36,8 +36,8 @@ class TVShowNode(Node):
         """Generate the NFO and optionally stop the workflow.
 
         Args:
-            node_data: The node's field values.
-            context: The workflow context.
+            node_data: Node's field values.
+            context: Workflow context.
             **kwargs: Additional execution arguments.
 
         Raises:

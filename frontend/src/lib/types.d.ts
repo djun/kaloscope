@@ -323,7 +323,7 @@ export type MediaContentQuery = {
 };
 
 /**
- * The published version required by an indexed image request.
+ * Published version required by an indexed image request.
  */
 export type MediaAssetQuery = {
   version: string;
@@ -825,7 +825,7 @@ export type Field = {
 };
 
 /**
- * The schema that defines a workflow node type.
+ * Schema that defines a workflow node type.
  */
 export type NodeSchema = {
   node_type: string;
@@ -863,7 +863,7 @@ export type Definition = {
 };
 
 /**
- * A timed danmaku comment.
+ * A timed overlay comment comment.
  */
 export type Danmaku = {
   id?: string | null;
@@ -875,7 +875,7 @@ export type Danmaku = {
 };
 
 /**
- * An anime returned by the danmaku server.
+ * An anime returned by the comment server.
  */
 export type DanmakuAnime = {
   anime_id: string;
@@ -1089,7 +1089,7 @@ export type SystemLog = {
 };
 
 /**
- * The service-wide state of system log monitoring.
+ * Service-wide state of system log monitoring.
  */
 export type SystemLogState = {
   paused: boolean;

@@ -30,8 +30,8 @@
   /**
    * Search for global variables.
    *
-   * @param page - The page number.
-   * @param size - The page size.
+   * @param page - Page number.
+   * @param size - Page size.
    */
   function search(page: number = 1, size: number = pagination.size) {
     loading.start();
@@ -59,7 +59,7 @@
   /**
    * Delete a global variable by ID.
    *
-   * @param id - The global variable ID.
+   * @param id - Global variable ID.
    */
   function del(id: number) {
     loading.start();

@@ -67,10 +67,10 @@ def compile_jsonpath(expr: str) -> Any:
     See https://github.com/h2non/jsonpath-ng for more details.
 
     Args:
-        expr: The string expression to compile.
+        expr: String expression to compile.
 
     Returns:
-        The compiled JSONPath expression object.
+        Compiled JSONPath expression object.
     """
     jsonpath = JSONPATH_CACHE.get(expr)
     if jsonpath is None:
@@ -84,10 +84,10 @@ def compile_xpath(expr: str) -> Any:
     See https://lxml.de/xpathxslt.html#xpath for more details.
 
     Args:
-        expr: The string expression to compile.
+        expr: String expression to compile.
 
     Returns:
-        The compiled XPath expression object.
+        Compiled XPath expression object.
     """
     xpath = XPATH_CACHE.get(expr)
     if xpath is None:
@@ -101,10 +101,10 @@ def compile_regex(expr: str) -> re.Pattern[str]:
     See https://docs.python.org/3/library/re.html for more details.
 
     Args:
-        expr: The string expression to compile.
+        expr: String expression to compile.
 
     Returns:
-        The compiled regular expression object.
+        Compiled regular expression object.
     """
     pattern = REGEX_CACHE.get(expr)
     if pattern is None:
@@ -116,11 +116,11 @@ def trim(obj: Any, chars: str | None = None) -> Any:
     """Strip leading and trailing characters.
 
     Args:
-        obj: The object to strip.
-        chars: The characters to strip. Defaults to whitespace.
+        obj: Object to strip.
+        chars: Characters to strip. Defaults to whitespace.
 
     Returns:
-        The stripped object.
+        Stripped object.
     """
     return deep_strip(obj, chars=chars)
 
@@ -129,11 +129,11 @@ def ltrim(obj: Any, chars: str | None = None) -> Any:
     """Strip leading characters.
 
     Args:
-        obj: The object to strip.
-        chars: The characters to strip. Defaults to whitespace.
+        obj: Object to strip.
+        chars: Characters to strip. Defaults to whitespace.
 
     Returns:
-        The stripped object.
+        Stripped object.
     """
     return deep_strip(obj, "left", chars)
 
@@ -142,11 +142,11 @@ def rtrim(obj: Any, chars: str | None = None) -> Any:
     """Strip trailing characters.
 
     Args:
-        obj: The object to strip.
-        chars: The characters to strip. Defaults to whitespace.
+        obj: Object to strip.
+        chars: Characters to strip. Defaults to whitespace.
 
     Returns:
-        The stripped object.
+        Stripped object.
     """
     return deep_strip(obj, "right", chars)
 
@@ -155,10 +155,10 @@ def json_escape(string: str) -> str:
     """Escape a string for JSON.
 
     Args:
-        string: The string to escape.
+        string: String to escape.
 
     Returns:
-        The escaped string.
+        Escaped string.
     """
     return json.escape(string)
 
@@ -171,7 +171,7 @@ def jsonpath_first(obj: Any, expr: str) -> Any:
         expr: The JSONPath expression.
 
     Returns:
-        The first matched value, or `None` if not found.
+        First matched value, or `None` if not found.
     """
     jsonpath = compile_jsonpath(expr)
     if isinstance(obj, str):
@@ -201,10 +201,10 @@ def _cleanup_namespaces(tree: Any) -> Any:
     """Remove XML namespaces from all element tags in place.
 
     Args:
-        tree: The parsed lxml element tree.
+        tree: Parsed lxml element tree.
 
     Returns:
-        The cleaned-up tree.
+        Cleaned-up tree.
     """
     for elem in tree.iter():
         elem.tag = etree.QName(elem).localname
@@ -224,7 +224,7 @@ def _parse_xml_or_html(string: str) -> Any:
         string: The XML/HTML string to parse.
 
     Returns:
-        The parsed lxml element tree.
+        Parsed lxml element tree.
     """
     content = string.lstrip()
     # bytes are always UTF-8 encoded; force the parser to use UTF-8 so it
@@ -247,7 +247,7 @@ def xpath_first(obj: Any, expr: str) -> Any:
         expr: The XPath expression.
 
     Returns:
-        The first matched value, or `None` if not found.
+        First matched value, or `None` if not found.
     """
     xpath = compile_xpath(expr)
     if isinstance(obj, str):
@@ -281,11 +281,11 @@ def regex_first(string: str, expr: str) -> Any:
     """Find first match in a string using a regular expression.
 
     Args:
-        string: The string to search.
-        expr: The regular expression.
+        string: String to search.
+        expr: Regular expression.
 
     Returns:
-        The first captured group, or `None` if not found.
+        First captured group, or `None` if not found.
     """
     pattern = compile_regex(expr)
     match = pattern.search(string)
@@ -296,8 +296,8 @@ def regex_all(string: str, expr: str) -> list:
     """Find all matches in a string using a regular expression.
 
     Args:
-        string: The string to search.
-        expr: The regular expression.
+        string: String to search.
+        expr: Regular expression.
 
     Returns:
         A list of all matched groups.
@@ -326,13 +326,13 @@ def _find(
     """Find values in an object using an expression.
 
     Args:
-        obj: The object to search.
-        expr: The expression to use.
-        limit: The limit of results to return.
-        expr_type: The type of expression.
+        obj: Object to search.
+        expr: Expression to use.
+        limit: Limit of results to return. Defaults to `'auto'`.
+        expr_type: Type of expression.
 
     Returns:
-        The result of the search.
+        Result of the search.
     """
     auto = limit == "auto"
     slicer = slice(0, None)
@@ -357,7 +357,6 @@ def _find(
     finder = _FINDERS[f"{expr_type}_{finder_type}"]
     result = finder(obj, expr)
 
-    # return the result
     if not isinstance(result, list):
         return result
     elif auto:
@@ -371,10 +370,10 @@ def s2t(string: str) -> str:
     """Convert a string from simplified to traditional Chinese.
 
     Args:
-        string: The simplified Chinese string.
+        string: Simplified Chinese string.
 
     Returns:
-        The traditional Chinese string.
+        Traditional Chinese string.
     """
     return S2T_CONVERTER.convert(string)
 
@@ -383,10 +382,10 @@ def t2s(string: str) -> str:
     """Convert a string from traditional to simplified Chinese.
 
     Args:
-        string: The traditional Chinese string.
+        string: Traditional Chinese string.
 
     Returns:
-        The simplified Chinese string.
+        Simplified Chinese string.
     """
     return T2S_CONVERTER.convert(string)
 
@@ -398,7 +397,7 @@ def b64decode(s: str | bytes) -> str:
         s: The Base64 encoded bytes or string.
 
     Returns:
-        The decoded string.
+        Decoded string.
     """
     return base64.b64decode(s).decode(ENCODING)
 
@@ -407,7 +406,7 @@ def b64encode(s: str | bytes) -> str:
     """Encode the bytes or string to Base64.
 
     Args:
-        s: The bytes or string to encode.
+        s: Bytes or string to encode.
 
     Returns:
         The Base64 encoded string.
@@ -418,15 +417,15 @@ def b64encode(s: str | bytes) -> str:
 
 
 def parent_path(path: Path | str, levels: int = 1, resolve: bool = False) -> str:
-    """Return the parent directory of a path.
+    """Return parent directory of a path.
 
     Args:
-        path: The path to get the parent of.
-        levels: The number of levels to go up.
-        resolve: Whether to resolve to an absolute path first.
+        path: Path to get the parent of.
+        levels: Number of levels to go up. Defaults to `1`.
+        resolve: Whether to resolve to an absolute path first. Defaults to `False`.
 
     Returns:
-        The parent directory path string.
+        Parent directory path string.
     """
     if not isinstance(path, Path):
         path = Path(path)
@@ -454,11 +453,12 @@ def _datetime(value: Any, tz: float | None = None) -> datetime.datetime | None:
     """Convert a value to a datetime object.
 
     Args:
-        value: The value to convert (datetime, date, int, float, or str).
-        tz: The timezone offset in hours (e.g. 8 for UTC+8).
+        value: Value to convert (datetime, date, int, float, or str).
+        tz: Timezone offset in hours (e.g. 8 for UTC+8). `None` preserves parsed
+            zones and uses local time for timestamps.
 
     Returns:
-        The converted datetime object, or `None` if the value cannot be parsed.
+        Converted datetime object, or `None` if the value cannot be parsed.
     """
     if isinstance(value, datetime.datetime):
         return value
@@ -505,12 +505,13 @@ def strftime(
     """Format a datetime value as a string.
 
     Args:
-        value: The datetime value to format.
-        format: The datetime format string.
-        tz: The timezone offset in hours.
+        value: Datetime value to format.
+        format: Datetime format string. Defaults to `'%Y-%m-%d %H:%M:%S'`.
+        tz: Timezone offset in hours. `None` preserves parsed zones and uses local
+            time for timestamps.
 
     Returns:
-        The formatted datetime string, or the original value if it cannot be parsed.
+        Formatted datetime string, or the original value if it cannot be parsed.
     """
     if value is None or isinstance(value, bool):
         return ""
@@ -524,8 +525,9 @@ def year(value: Any, tz: float | None = None) -> int | None:
     """Extract the 4-digit year from a timestamp or date string.
 
     Args:
-        value: The value to extract the year from.
-        tz: The timezone offset in hours.
+        value: Value to extract the year from.
+        tz: Timezone offset in hours. `None` preserves parsed zones and uses local
+            time for timestamps.
 
     Returns:
         The 4-digit year as an integer, or `None` if not found.
@@ -547,10 +549,10 @@ def _str(value: Any) -> str:
     """Convert a value to a string, treating None and bool as empty string.
 
     Args:
-        value: The value to convert.
+        value: Value to convert.
 
     Returns:
-        The converted string.
+        Converted string.
     """
     if value is None or isinstance(value, bool):
         return ""
@@ -561,12 +563,12 @@ def prefix(value: Any, prefix: Any, strict: bool = True) -> str:
     """Add a prefix to a string value.
 
     Args:
-        value: The value to add the prefix to.
-        prefix: The prefix to add.
+        value: Value to add the prefix to.
+        prefix: Prefix to add.
         strict: Whether to return empty string if the value or prefix is falsy.
 
     Returns:
-        The prefixed string.
+        Prefixed string.
     """
     if strict and (not value or not prefix):
         return ""
@@ -577,12 +579,12 @@ def suffix(value: Any, suffix: Any, strict: bool = True) -> str:
     """Add a suffix to a string value.
 
     Args:
-        value: The value to add the suffix to.
-        suffix: The suffix to add.
+        value: Value to add the suffix to.
+        suffix: Suffix to add.
         strict: Whether to return empty string if the value or suffix is falsy.
 
     Returns:
-        The suffixed string.
+        Suffixed string.
     """
     if strict and (not value or not suffix):
         return ""
@@ -626,7 +628,7 @@ def is_file(path: Any) -> bool:
     """Check if the given path is an existing file.
 
     Args:
-        path: The path to check, can be a string or a Path object.
+        path: Path to check, can be a string or a Path object.
 
     Returns:
         True if the path exists and is a file, False otherwise.
@@ -642,7 +644,7 @@ def is_dir(path: Any) -> bool:
     """Check if the given path is an existing directory.
 
     Args:
-        path: The path to check, can be a string or a Path object.
+        path: Path to check, can be a string or a Path object.
 
     Returns:
         True if the path exists and is a directory, False otherwise.
@@ -664,13 +666,13 @@ def _check_undefined(value: Any) -> Any:
     """Check rendered values for undefined variables.
 
     Args:
-        value: The rendered value to check.
+        value: Rendered value to check.
 
     Raises:
         jinja2.UndefinedError: If the value contains an undefined variable.
 
     Returns:
-        The original value without modifying its contents.
+        Original value without modifying its contents.
     """
     if isinstance(value, jinja2.Undefined):
         raise jinja2.UndefinedError(value._undefined_message)
@@ -690,12 +692,12 @@ def _compile_template(
     """Compile and cache a Jinja template or a single expression.
 
     Args:
-        value: The template string to compile.
+        value: Template string to compile.
         raw: Whether to preserve native expression types.
         strict: Whether to raise an error for undefined variables.
 
     Returns:
-        The compiled template or single expression.
+        Compiled template or single expression.
     """
     env = STRICT_ENV if strict else ENV
     if raw:
@@ -722,13 +724,14 @@ def render(
     """Render a JSON value with a context.
 
     Args:
-        value: The value to render.
-        context: The context to render with.
-        raw: Whether to preserve native types in single expressions.
-        strict: Whether to raise an error for undefined variables.
+        value: Value to render.
+        context: Context to render with.
+        raw: Whether to preserve native types in single expressions. Defaults to
+            `False`.
+        strict: Whether to raise an error for undefined variables. Defaults to `False`.
 
     Returns:
-        The rendered value.
+        Rendered value.
     """
     if isinstance(value, str) and is_template(value):
         if raw and (key := raw_key(context, value)) is not None:
@@ -756,11 +759,11 @@ def raw_key(dictionary: dict, string: str) -> str | None:
     """Check if a template string is a nested key in a dictionary.
 
     Args:
-        dictionary: The dictionary to check.
-        string: The template string to check.
+        dictionary: Dictionary to check.
+        string: Template string to check.
 
     Returns:
-        The stripped key if it is in the dictionary, None otherwise.
+        Stripped key if it is in the dictionary, None otherwise.
     """
     key = string.strip()
     if key.startswith(VARIABLE_START_STRING) and key.endswith(VARIABLE_END_STRING):
@@ -783,7 +786,7 @@ def is_template(string: str) -> bool:
     """Check if a string is a Jinja2 template.
 
     Args:
-        string: The string to check.
+        string: String to check.
 
     Returns:
         True if the string is a Jinja2 template, False otherwise.
@@ -799,9 +802,9 @@ def contains_symbols(string: str, open_symbol: str, close_symbol: str) -> bool:
     """Check if a string contains a pair of symbols.
 
     Args:
-        string: The string to check.
-        open_symbol: The open symbol.
-        close_symbol: The close symbol.
+        string: String to check.
+        open_symbol: Open symbol.
+        close_symbol: Close symbol.
 
     Returns:
         True if the string contains the pair of symbols, False otherwise.

@@ -368,6 +368,14 @@ class JobUpsert(BaseModel):
 
     @model_validator(mode="after")
     def validate_trigger_fields(self) -> Self:
+        """Require the fields used by the selected schedule trigger.
+
+        Returns:
+            Validated job settings.
+
+        Raises:
+            ValueError: If required trigger fields or the time range are invalid.
+        """
         if self.trigger == JobTrigger.DATE:
             if self.run_date is None:
                 raise ValueError("run_date required")

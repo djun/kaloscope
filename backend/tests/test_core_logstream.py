@@ -32,7 +32,16 @@ def _record(
     level: int = logging.INFO,
     exc_info=None,
 ) -> logging.LogRecord:
-    """Build a complete log record for `Handler` tests."""
+    """Build a log record for monitoring tests.
+
+    Args:
+        message: Message text.
+        level: Log level; defaults to INFO.
+        exc_info: Exception details; defaults to no exception.
+
+    Returns:
+        Test log record.
+    """
     return logging.LogRecord(
         name="sanic.root",
         level=level,
@@ -45,7 +54,15 @@ def _record(
 
 
 def _access_record(status: int, request: str) -> logging.LogRecord:
-    """Build a Sanic-style access record."""
+    """Build an access record for stream filter tests.
+
+    Args:
+        status: HTTP response status.
+        request: Logged request path.
+
+    Returns:
+        Test access record.
+    """
     record = _record("")
     record.status = status
     record.request = request
@@ -53,7 +70,12 @@ def _access_record(status: int, request: str) -> logging.LogRecord:
 
 
 def _wait_for(predicate, timeout: float = 1.0):
-    """Wait for a collector state predicate to become true."""
+    """Wait briefly for an asynchronous test condition.
+
+    Args:
+        predicate: Condition that signals completion.
+        timeout: Maximum wait in seconds; defaults to one second.
+    """
     deadline = time.monotonic() + timeout
     while not predicate() and time.monotonic() < deadline:
         time.sleep(0.01)
@@ -156,7 +178,7 @@ def test_exception_message():
 
 
 def test_truncation():
-    """Large multibyte messages must stay within the byte limit."""
+    """Large UTF-8 messages must stay within the byte limit."""
     records = queue.Queue()
     handler = LogQueueHandler(records)
 
@@ -506,7 +528,7 @@ def test_worker_lifecycle(monkeypatch):
 
 
 def test_lifecycle_failure(monkeypatch, capsys):
-    """Monitor lifecycle failures must not escape or write diagnostics."""
+    """Monitor startup and shutdown failures must not escape or write diagnostics."""
     calls = []
 
     class BrokenCollector:

@@ -14,7 +14,7 @@ async def publish_video(context: Context) -> None:
     """Publish automatic video candidates while keeping manual previews read-only.
 
     Args:
-        context: The workflow context containing parsed candidates and target fields.
+        context: Workflow context containing parsed candidates and target fields.
 
     Raises:
         ContentError: If automatic output is invalid. Existing NFO files and removed
@@ -40,8 +40,8 @@ def parse_candidates(response: str, format: Literal["opf", "comicinfo"]) -> list
     """Validate bounded JSONC candidates using the same rules as metadata saving.
 
     Args:
-        response: The rendered response containing up to 100 candidate objects.
-        format: The target metadata format for candidate round-trip validation.
+        response: Rendered response containing up to 100 candidate objects.
+        format: Target metadata format for candidate round-trip validation.
 
     Returns:
         Normalized candidates, including an empty list for no search results.
@@ -71,11 +71,11 @@ async def reading_item(context: Context, lib_type: LibType) -> int | None:
     """Resolve the automatic target or validate a manual preview's library type.
 
     Args:
-        context: The workflow context with server-selected source boot parameters.
-        lib_type: The library type supported by the calling metadata node.
+        context: Workflow context with server-selected source boot parameters.
+        lib_type: Library type supported by the calling metadata node.
 
     Returns:
-        The current item ID, or None for a manual preview without publication.
+        Current item ID, or None for a manual preview without publication.
 
     Raises:
         ContentError: If the source is missing, invalid or belongs to another type.

@@ -25,22 +25,27 @@ _DNS_CACHE_TTL = 6 * 60 * 60
 
 
 class DNSCache:
-    """Per-nameserver DNS cache with TTL expiration."""
+    """Per-DNS server DNS cache with TTL expiration."""
 
     def __init__(self, ttl: int = _DNS_CACHE_TTL):
+        """Create a separate DNS cache for each server.
+
+        Args:
+            ttl: Cache duration in seconds; defaults to six hours.
+        """
         self._ttl = ttl
         # {nameserver: {host: (ip, expires_at)}}
         self._cache: dict[str, dict[str, tuple[str, float]]] = {}
 
     def get(self, nameserver: str, host: str) -> str | None:
-        """Get cached IP for host from a specific nameserver.
+        """Get cached IP for host from a specific DNS server.
 
         Args:
-            nameserver: The nameserver that was used for resolution.
-            host: The hostname to look up in the cache.
+            nameserver: DNS server used for resolution.
+            host: Hostname to look up in the cache.
 
         Returns:
-            The cached IP address if valid, or `None` if not found / expired.
+            Cached IP address if valid, or `None` if not found / expired.
         """
         entries = self._cache.get(nameserver)
         if entries and (entry := entries.get(host)):
@@ -51,12 +56,12 @@ class DNSCache:
         return None
 
     def set(self, nameserver: str, host: str, ip: str):
-        """Cache resolved IP for host under a specific nameserver.
+        """Cache resolved IP for host under a specific DNS server.
 
         Args:
-            nameserver: The nameserver that was used for resolution.
-            host: The hostname that was resolved.
-            ip: The resolved IP address to cache.
+            nameserver: DNS server used for resolution.
+            host: Hostname that was resolved.
+            ip: Resolved IP address to cache.
         """
         entries = self._cache.setdefault(nameserver, {})
         entries[host] = (ip, time.monotonic() + self._ttl)
@@ -66,18 +71,32 @@ class NetworkTransport(httpx.AsyncHTTPTransport):
     """An HTTP transport that routes requests via custom DNS and proxy rules."""
 
     def __init__(self, **kwargs):
+        """Keep transport options for custom DNS and proxy routing.
+
+        Args:
+            **kwargs: Options forwarded to the base and proxy HTTP transports.
+        """
         self._transport_kwargs = kwargs
         self._proxy_transports: dict[str, httpx.AsyncHTTPTransport] = {}
         self._dns_cache = DNSCache()
         super().__init__(**kwargs)
 
     async def aclose(self):
+        """Close proxy transports before the default transport."""
         for transport in self._proxy_transports.values():
             await transport.aclose()
         self._proxy_transports.clear()
         await super().aclose()
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        """Apply matching DNS and proxy rules before sending a request.
+
+        Args:
+            request: HTTP request to route; DNS rules may replace its host.
+
+        Returns:
+            HTTP response from the selected transport.
+        """
         url = str(request.url)
         host = request.url.host
         logger.debug("Handling request for URL: %s", url)
@@ -128,14 +147,14 @@ class NetworkTransport(httpx.AsyncHTTPTransport):
         return await super().handle_async_request(request)
 
     def _match(self, url: str, rules: list[URLRule]) -> URLRule | None:
-        """Find the first URLRule that matches the given URL.
+        """Find the first URL rule that matches the given URL.
 
         Args:
             url: The URL to match against the rules.
-            rules: A list of URLRule objects to check.
+            rules: A list of URL rules to check.
 
         Returns:
-            The first matching URLRule, or `None` if no rules match.
+            First matching URL rule, or `None` if no rules match.
         """
         for rule in rules:
             # ensure pattern ends with '*' for prefix matching
@@ -150,11 +169,11 @@ class NetworkTransport(httpx.AsyncHTTPTransport):
         """Resolve host using the provided list of DNS resolvers.
 
         Args:
-            host: The hostname to resolve.
+            host: Hostname to resolve.
             resolvers: A list of DNS resolvers to query for the hostname.
 
         Returns:
-            The resolved IP address, or `None` if no rules match.
+            Resolved IP address, or `None` if no rules match.
         """
         # check cache first, return the first cached result if available
         for resolver in resolvers:
@@ -173,11 +192,11 @@ class NetworkTransport(httpx.AsyncHTTPTransport):
         """Perform a single DNS query via DoT or DoH.
 
         Args:
-            host: The hostname to resolve.
+            host: Hostname to resolve.
             resolver: The DNS resolver configuration.
 
         Returns:
-            The resolved IP address, or `None` on failure / DNSSEC validation error.
+            Resolved IP address, or `None` on failure / DNSSEC validation error.
         """
         try:
             query = dns.message.make_query(host, dns.rdatatype.A)
@@ -220,10 +239,10 @@ class NetworkTransport(httpx.AsyncHTTPTransport):
 
         Args:
             proxy: The HTTP proxy to use for the request.
-            request: The original request that needs to be proxied.
+            request: Original request that needs to be proxied.
 
         Returns:
-            The response from the proxied request.
+            Response from the proxied request.
         """
 
         proxy_url = _build_proxy_url(proxy)
@@ -244,7 +263,7 @@ def ip_address(address: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | 
     """Check if the given string is a valid IP address.
 
     Args:
-        address: The string to check.
+        address: String to check.
 
     Returns:
         An IP address object, or `None` if the string is not a valid IP address.
@@ -259,10 +278,10 @@ async def resolve_proxy(url: str) -> str | None:
     """Resolve the proxy URL from the first matching rule for `url`.
 
     Args:
-        url: The request URL to match against configured proxy rules.
+        url: Request URL to match against configured proxy rules.
 
     Returns:
-        The first matching proxy URL, or `None` if no rule matches.
+        First matching proxy URL, or `None` if no rule matches.
     """
     proxy_rules = (
         await URLRule.filter(http_proxy=True, proxy_id__not_isnull=True)
@@ -289,10 +308,10 @@ def _build_proxy_url(proxy: HTTPProxy) -> str:
     """Build a URL for `proxy`, including credentials when configured.
 
     Args:
-        proxy: The proxy configuration to encode.
+        proxy: Proxy configuration to encode.
 
     Returns:
-        The proxy URL.
+        Proxy URL.
     """
     scheme = "socks5" if proxy.protocol == ProxyProtocol.SOCKS5 else "http"
     if (username := proxy.username) and (password := proxy.password):

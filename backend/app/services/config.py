@@ -11,10 +11,10 @@ class ConfigService(BaseService[GlobalConfig], model=GlobalConfig):
         """Create or update a global config.
 
         Args:
-            obj: The global config data.
+            obj: Global config data.
 
         Returns:
-            The global config instance.
+            Global config instance.
         """
         config, _ = await GlobalConfig.get_or_create(key=obj.key)
         await GlobalConfig.filter(id=config.id).update(value=json.dumps(obj.value))

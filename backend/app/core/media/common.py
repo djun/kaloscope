@@ -13,7 +13,7 @@ class ContentError(ValueError):
         """Store the error code for the caller's indexing or response handling.
 
         Args:
-            code: The stable content failure code.
+            code: Stable content failure code.
         """
         super().__init__(code)
         self.code = code

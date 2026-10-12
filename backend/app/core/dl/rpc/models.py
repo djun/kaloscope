@@ -78,6 +78,14 @@ class API(BaseModel):
 
     @model_validator(mode="after")
     def validate_request(self):
+        """Validate request fields against the selected transport type.
+
+        Returns:
+            Validated request settings.
+
+        Raises:
+            ValueError: If required fields or transport options are incompatible.
+        """
         verbs = [self.get, self.post, self.put, self.patch, self.delete]
         if sum(value is not None for value in verbs) > 1:
             raise ValueError("An RPC request must specify only one HTTP method")
@@ -96,7 +104,7 @@ class API(BaseModel):
 
     @property
     def http_method(self) -> tuple[str, str]:
-        """Get the configured HTTP method and path, defaulting to POST."""
+        """Get configured HTTP method and path, defaulting to POST."""
         for method in ("get", "post", "put", "patch", "delete"):
             if (path := getattr(self, method)) is not None:
                 return method.upper(), path
@@ -130,6 +138,17 @@ class Session(BaseModel):
     @field_validator("refresh_statuses")
     @classmethod
     def validate_statuses(cls, value: list[int]) -> list[int]:
+        """Limit session refresh to authentication rejection statuses.
+
+        Args:
+            value: HTTP statuses that trigger session refresh.
+
+        Returns:
+            Validated status list.
+
+        Raises:
+            ValueError: If any status is other than 401 or 403.
+        """
         if any(status not in (401, 403) for status in value):
             raise ValueError("Only authentication rejections can refresh a session")
         return value
@@ -162,6 +181,17 @@ class RpcConfig(Endpoint):
     @field_validator("unix_socket")
     @classmethod
     def validate_socket(cls, value: str | None) -> str | None:
+        """Require an absolute Unix socket path when supplied.
+
+        Args:
+            value: Socket path, or `None` to use a network connection.
+
+        Returns:
+            Validated socket path.
+
+        Raises:
+            ValueError: If the socket path is relative.
+        """
         if value is not None and not PurePosixPath(value).is_absolute():
             raise ValueError("RPC unix_socket must be absolute")
         return value

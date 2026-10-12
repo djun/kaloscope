@@ -37,12 +37,12 @@ def execute(node_id, node_data, context):
 `.trimStart();
 
   /**
-   * The supported script languages.
+   * Supported script languages.
    */
   type Language = 'python' | 'javascript';
 
   /**
-   * The node data for the script field.
+   * Node data for the script field.
    */
   type NodeData = {
     language: Language;
@@ -50,7 +50,7 @@ def execute(node_id, node_data, context):
   };
 
   /**
-   * The converted script data.
+   * Converted script data.
    */
   type ScriptData = {
     language: Language;
@@ -78,10 +78,10 @@ def execute(node_id, node_data, context):
   const { updateNodeData } = useSvelteFlow();
 
   /**
-   * Get the script data.
+   * Get script data.
    *
-   * @param language - The language of the script.
-   * @param code - The code of the script.
+   * @param language - Language of the script.
+   * @param code - Code of the script.
    * @returns The script data object.
    */
   function scriptData(language: Language, code: string | null = null): ScriptData {

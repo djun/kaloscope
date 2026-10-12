@@ -37,6 +37,21 @@ class LoopNode(Node):
         **kwargs,
     ) -> OutputHandle | None:
         # extract the loop variable
+        """Start or advance the loop and bind its current value.
+
+        Args:
+            node_id: Current node ID.
+            node_data: Configured fields and mutable node state.
+            context: Shared variables and storage for this flow run.
+            input_handle: Handle receiving this execution.
+            **kwargs: Unused execution arguments supplied by the flow engine.
+
+        Returns:
+            Loop start or exit handle, or `None` for an unrelated input.
+
+        Raises:
+            ValueError: If the loop input has no defined length.
+        """
         var = cls.expression.extract(node_data, context=context, raw=True)
         varname = cls.varname.extract(node_data)
         if isinstance(var, int):

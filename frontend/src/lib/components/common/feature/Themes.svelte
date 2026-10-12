@@ -83,7 +83,7 @@
   /**
    * Switch the daisyUI theme by setting the `data-theme` attribute on the root element.
    *
-   * @param theme - The theme to activate.
+   * @param theme - Theme to activate.
    */
   function switchTheme(theme: string) {
     themeStore.set(theme);
@@ -95,7 +95,7 @@
     const metaTag = document.querySelector('meta[name="theme-color"]');
     if (metaTag && themeColor) {
       // https://caniuse.com/meta-theme-color
-      // Safari on iOS >= 26.0 doesn't support the `theme-color` meta tag anymore
+      // safari on iOS >= 26.0 doesn't support the `theme-color` meta tag anymore
       metaTag.setAttribute('content', themeColor);
     }
   }
@@ -158,5 +158,5 @@
   </ul>
 </Modal>
 
-<!-- This div is used to set the PWA theme color dynamically based on the selected theme. -->
+<!-- this div is used to set the PWA theme color dynamically based on the selected theme -->
 <div id="pwa-theme-color" style="background-color: var({pwaThemeColor}); display: none;"></div>

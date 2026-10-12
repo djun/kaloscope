@@ -18,8 +18,8 @@ def import_subclasses(cls: type, globals: dict[str, Any]):
     """Import all subclasses of a given class in the current directory.
 
     Args:
-        cls: The class to find subclasses.
-        globals: The globals dictionary of the caller.
+        cls: Base class whose subclasses should be imported.
+        globals: Globals dictionary of the caller.
     """
     modname = globals["__name__"]
     modpath = Path(globals["__file__"])
@@ -39,20 +39,26 @@ def import_subclasses(cls: type, globals: dict[str, Any]):
 def register_blueprints(
     app: Sanic, *module_names: str | ModuleType, url_prefix: str | None = None
 ):
-    """Modified version of the Sanic auto-discovery example.
+    """Discover and register route blueprints from the supplied modules.
 
     See https://sanic.dev/en/guide/how-to/autodiscovery.html for more details.
 
     Args:
         app: The Sanic application instance.
-        module_names: The module names to search for blueprints.
-        url_prefix: The URL prefix to be prepended to all blueprint routes.
+        *module_names: Module names to search for blueprints.
+        url_prefix: The URL prefix to be prepended to all blueprint routes. `None` keeps
+            the blueprint route prefixes.
     """
 
     blueprints = set()
     _imported = set()
 
     def _find_bps(module):
+        """Collect route blueprints exposed by a loaded module.
+
+        Args:
+            module: Imported module to inspect.
+        """
         nonlocal blueprints
         for _, member in getmembers(module):
             if isinstance(member, Blueprint):

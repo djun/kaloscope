@@ -93,7 +93,7 @@ async def _proxy_environment(url: str) -> dict[str, str]:
     """Build Git proxy environment variables for a repository URL.
 
     Args:
-        url: The repository URL to match against the proxy rules.
+        url: Repository URL to match against the proxy rules.
 
     Returns:
         A dict of proxy environment variables for Git, or an empty dict.
@@ -135,7 +135,7 @@ async def fetch_origin(repo: FlowRepository):
     """Fetch the latest changes from the remote repository.
 
     Args:
-        repo: The repository to synchronize.
+        repo: Repository to synchronize.
     """
     repo_dir = Path(KaloscopeConfig.get_workspace("repositories"))
     repo_path = repo_dir / repo.repo_name
@@ -173,7 +173,12 @@ async def fetch_origin(repo: FlowRepository):
 
 
 def _pull_origin(repo_path: Path, proxy_env: dict[str, str]):
-    """Pull a repository with proxy settings and a bounded Git timeout."""
+    """Pull a repository with proxy settings and a bounded Git timeout.
+
+    Args:
+        repo_path: Existing local repository path.
+        proxy_env: Git proxy environment variables.
+    """
     repository = Repo(repo_path)
     with repository.git.custom_environment(**proxy_env):
         repository.remotes.origin.pull(kill_after_timeout=_GIT_SYNC_TIMEOUT)
@@ -184,6 +189,11 @@ def _clone_origin(repo_url: str, repo_path: Path, proxy_env: dict[str, str]):
 
     This intentionally uses the low-level Git clone command because `Repo.clone_from`
     runs through `as_process=True`, where `kill_after_timeout` does not take effect.
+
+    Args:
+        repo_url: Remote repository URL.
+        repo_path: Local checkout destination.
+        proxy_env: Git proxy environment variables.
     """
     Git.check_unsafe_protocols(repo_url)
     git = Git()
@@ -195,8 +205,8 @@ async def scan_directory(path: Path, repo: str):
     """Scan the directory for flow graph templates and update the database.
 
     Args:
-        path: The path to the repository.
-        repo: The name of the repository.
+        path: Path to the repository.
+        repo: Name of the repository.
     """
     # update the newest flag for all templates in the repository
     await FlowTemplate.filter(repo_id=repo).update(newest=False)
@@ -247,14 +257,15 @@ async def scan_directory(path: Path, repo: str):
 
 
 async def save_icon(icon: Any, path: str | None = None) -> str | None:
-    """Save the icon file to the workspace.
+    """Save icon file to the workspace.
 
     Args:
-        icon: The uploaded icon file or a base64 encoded string.
-        path: The relative path to the existing icon file, if any.
+        icon: Uploaded icon file or a base64 encoded string.
+        path: Relative path to the existing icon file, if any. `None` selects a new
+            destination.
 
     Returns:
-        The relative path to the saved icon file, or `None` if no icon is provided.
+        Relative path to the saved icon file, or `None` if no icon is provided.
     """
     if icon is None:
         return None

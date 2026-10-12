@@ -80,7 +80,7 @@
   /**
    * Render an option label.
    *
-   * @param label - The option label to render.
+   * @param label - Option label to render.
    * @returns The translated label, or the original label when translation is disabled.
    */
   function optionLabel(label: string | undefined) {

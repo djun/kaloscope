@@ -16,7 +16,15 @@ auth = Blueprint("auth", url_prefix="/auth")
 @auth.post("/login")
 @validate(form=UserLogin)
 async def login(request: Request, body: UserLogin) -> HTTPResponse:
-    """Login a user and return a token."""
+    """Log in a user and return a token.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Login credentials.
+
+    Returns:
+        Response containing the requested data.
+    """
     user = await UserService.login(body.username, body.password)
     token = uuid.uuid4().hex
     # store the user session in the shared context
@@ -30,7 +38,14 @@ async def login(request: Request, body: UserLogin) -> HTTPResponse:
 
 @auth.post("/logout")
 async def logout(request: Request) -> HTTPResponse:
-    """Logout the current user."""
+    """Log out the current user.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Empty response on success.
+    """
     sessions = SessionHolder.get_sessions()
     remove(sessions, request.token)
     return empty()
@@ -38,7 +53,14 @@ async def logout(request: Request) -> HTTPResponse:
 
 @auth.get("/current")
 async def current(request: Request) -> HTTPResponse:
-    """Get the current user's information."""
+    """Get current user's information.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Response containing the requested data.
+    """
     result = request.ctx.user.model_dump() if hasattr(request.ctx, "user") else {}
     if result:
         user = await User.get_or_none(id=result["id"])
@@ -51,7 +73,14 @@ async def current(request: Request) -> HTTPResponse:
 
 @auth.get("/online")
 async def online(request: Request) -> HTTPResponse:
-    """Get the current user's sessions."""
+    """Get current user's sessions.
+
+    Args:
+        request: Incoming request with session and application context.
+
+    Returns:
+        Response containing the requested data.
+    """
     sessions = SessionHolder.get_sessions()
     # remove expired tokens
     now = timezone.now()
@@ -68,7 +97,15 @@ async def online(request: Request) -> HTTPResponse:
 @auth.post("/kickout")
 @validate(json=IDs)
 async def kickout(request: Request, body: IDs) -> HTTPResponse:
-    """Kick out the specified user sessions."""
+    """Kick out the specified user sessions.
+
+    Args:
+        request: Incoming request with session and application context.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     user: UserInfo = request.ctx.user
     sessions = SessionHolder.get_sessions()
     remove(sessions, vfilter=lambda u: u.id == user.id and u.login_id in body.ids)

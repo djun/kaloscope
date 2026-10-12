@@ -12,7 +12,17 @@ PACKAGE_JSON = ROOT_DIR / "frontend" / "package.json"
 
 
 def parse_version(text: str) -> tuple[int, int, int]:
-    """Extract semver tuple from pyproject.toml content."""
+    """Read the three-part version from project metadata.
+
+    Args:
+        text: Project metadata file contents.
+
+    Returns:
+        Major, minor and patch numbers.
+
+    Raises:
+        ValueError: If no three-part version is present.
+    """
     m = re.search(r'^version\s*=\s*"(\d+)\.(\d+)\.(\d+)"', text, re.MULTILINE)
     if not m:
         raise ValueError("version not found in pyproject.toml")
@@ -20,7 +30,17 @@ def parse_version(text: str) -> tuple[int, int, int]:
 
 
 def bump(major: int, minor: int, patch: int, part: str) -> tuple[int, int, int]:
-    """Increment the specified version part, resetting lower parts."""
+    """Increment a version part and reset lower parts.
+
+    Args:
+        major: Current major version.
+        minor: Current minor version.
+        patch: Current patch version.
+        part: Version part; values other than major or minor select patch.
+
+    Returns:
+        Updated major, minor and patch numbers.
+    """
     if part == "major":
         return major + 1, 0, 0
     if part == "minor":
@@ -29,7 +49,12 @@ def bump(major: int, minor: int, patch: int, part: str) -> tuple[int, int, int]:
 
 
 def update_toml(path: Path, version: str):
-    """Replace version in a TOML file: version = "x.y.z" """
+    """Replace the version field in a TOML file.
+
+    Args:
+        path: Metadata file to update.
+        version: New three-part version string.
+    """
     content = path.read_text(encoding="utf-8")
     updated = re.sub(
         r'(^version\s*=\s*")[^"]+(")',
@@ -42,7 +67,12 @@ def update_toml(path: Path, version: str):
 
 
 def update_json(path: Path, version: str):
-    """Replace version in a JSON file: "version": "x.y.z" """
+    """Replace the version field in a JSON file.
+
+    Args:
+        path: Metadata file to update.
+        version: New three-part version string.
+    """
     content = path.read_text(encoding="utf-8")
     updated = re.sub(
         r'("version"\s*:\s*")[^"]+(")',
@@ -65,6 +95,7 @@ def choose_part() -> str:
 
 def main():
     # read current version from pyproject.toml
+    """Update both project versions using the CLI choice or a prompt."""
     toml_content = PYPROJECT.read_text(encoding="utf-8")
     major, minor, patch = parse_version(toml_content)
     old_ver = f"{major}.{minor}.{patch}"

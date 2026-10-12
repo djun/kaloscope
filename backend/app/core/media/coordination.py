@@ -13,7 +13,7 @@ def notify_media_events(lib_id: int):
     Standalone callers without an application leave recovery to watcher startup.
 
     Args:
-        lib_id: The library whose pending events need to be reloaded.
+        lib_id: Library whose pending events need to be reloaded.
     """
     try:
         shared = getattr(Sanic.get_app(), "shared_ctx", None)
@@ -31,10 +31,10 @@ def library_lock(directory: str) -> AsyncFileLock:
     the event loop; process exit releases the OS lock.
 
     Args:
-        directory: The library root, resolved to identify the shared lock.
+        directory: Library root, resolved to identify the shared lock.
 
     Returns:
-        A new, unacquired asynchronous file lock for the library.
+        A new asynchronous library file lock that is not yet held.
     """
     key = hashlib.sha256(str(Path(directory).resolve()).encode()).hexdigest()
     return AsyncFileLock(
@@ -47,7 +47,7 @@ def index_lock_path(id: int) -> Path:
     """Locate the native lock shared by index readers, builders and cleanup.
 
     Args:
-        id: The internal media item ID.
+        id: Internal media item ID.
 
     Returns:
         A stable lock path outside the replaceable cache directory.

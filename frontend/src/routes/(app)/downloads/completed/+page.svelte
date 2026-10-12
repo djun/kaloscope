@@ -36,8 +36,8 @@
   /**
    * Search for download tasks.
    *
-   * @param page - The page number.
-   * @param size - The page size.
+   * @param page - Page number.
+   * @param size - Page size.
    * @param auto - Whether to search automatically.
    */
   function search(page: number = 1, size: number = pagination.size, auto: boolean = false) {
@@ -106,9 +106,9 @@
   }
 
   /**
-   * Build the deduplicated error tooltip for a download task.
+   * Build deduplicated error tooltip for a download task.
    *
-   * @param task - The download task.
+   * @param task - Download task.
    * @returns The localized structured error and optional driver message.
    */
   function errorTooltip(task: DownloadTask): string {
@@ -119,7 +119,7 @@
   /**
    * Copy the magnet link of a download task.
    *
-   * @param task - The download task.
+   * @param task - Download task.
    */
   async function copyMagnetLink(task: DownloadTask) {
     if (!task.magnet_link || !navigator.clipboard) {

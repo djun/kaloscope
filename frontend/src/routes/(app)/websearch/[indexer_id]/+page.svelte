@@ -88,7 +88,7 @@
   });
 
   /**
-   * Get the auth status.
+   * Get auth status.
    *
    * @param warning - Whether to show a warning message.
    */
@@ -111,7 +111,7 @@
   /**
    * Login to the indexer with the provided credentials.
    *
-   * @param loginForm - The form element.
+   * @param loginForm - Form element.
    */
   function login(loginForm: HTMLFormElement) {
     loginLoading.start();

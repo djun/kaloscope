@@ -48,12 +48,12 @@ async def _login(client: httpx.AsyncClient, lib_id: int, name: str = "Reader") -
     """Log in an ordinary user with one library grant.
 
     Args:
-        client: The isolated HTTP client.
-        lib_id: The library to grant to this user.
-        name: The account name, defaulting to Reader.
+        client: Isolated HTTP client.
+        lib_id: Library to grant to this user.
+        name: Account name, defaulting to Reader.
 
     Returns:
-        The stored user owning the client's session.
+        Stored user owning the client's session.
     """
     user = await User.create(
         username=name, password=encrypt("test-password"), role=UserRole.USER
@@ -72,10 +72,10 @@ async def _entry(item: MediaItem) -> dict[str, Any]:
     """Build a position from the same published content consumed by the reader.
 
     Args:
-        item: The indexed novel, standalone comic or comic child.
+        item: Indexed novel, standalone comic or comic child.
 
     Returns:
-        The history request with an actual paragraph, block or page identity.
+        History request with an actual paragraph, block or page identity.
     """
     content = await MediaItemService.get_content(item.id, _user(), MediaContentQuery())
     locator: dict[str, Any] = {"version": content.version, "offset": 0.25}

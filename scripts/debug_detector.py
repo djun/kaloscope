@@ -12,8 +12,8 @@ def connectable(host: str, port: int) -> bool:
     """Check if a port is connectable.
 
     Args:
-        host: The host to connect to.
-        port: The port to connect to.
+        host: Host to connect to.
+        port: Port to connect to.
 
     Returns:
         True if the port is connectable, False otherwise.

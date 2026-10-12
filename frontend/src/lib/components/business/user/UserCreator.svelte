@@ -23,8 +23,8 @@
   /**
    * Create a new user with given data.
    *
-   * @param form - The form element.
-   * @param data - The form data.
+   * @param form - Form element.
+   * @param data - Form data.
    */
   function create(form: HTMLFormElement, data: FormData) {
     if (data.get('password') !== data.get('confirm_pwd')) {

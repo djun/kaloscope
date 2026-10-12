@@ -47,7 +47,7 @@ def _directory_state(path: Path) -> tuple[int, ...]:
         path: A container within the caller-validated library boundary.
 
     Returns:
-        The directory identity and modification attributes.
+        Directory identity and modification attributes.
 
     Raises:
         ContentError: If the path is not a real directory.
@@ -81,7 +81,7 @@ def _read_local_cover(directory: Path, relative_path: str) -> CoverImage | None:
     """Read one optional image while checking every directory below its container.
 
     Args:
-        directory: The validated work or chapter container.
+        directory: Validated work or chapter container.
         relative_path: A resolved relative path within that container.
 
     Returns:
@@ -128,8 +128,8 @@ def _resolve_cover(base: str, href: str) -> str | None:
     """Resolve an OPF cover URL without fetching remote URLs or leaving its root.
 
     Args:
-        base: The external OPF filename or embedded OPF member path.
-        href: The unresolved reference retained by the metadata parser.
+        base: External OPF filename or embedded OPF member path.
+        href: Unresolved reference retained by the metadata parser.
 
     Returns:
         A safe relative path, or None for a remote or invalid reference.
@@ -146,9 +146,9 @@ def _read_member_cover(
     """Read one optional archive image, including its complete size and CRC check.
 
     Args:
-        source: The validated EPUB or comic archive source.
+        source: Validated EPUB or comic archive source.
         archive: Its stable archive yielded by open_archive.
-        member: The selected image member, without trusting its declared MIME.
+        member: Selected image member, without trusting its declared MIME.
 
     Returns:
         Verified image bytes, or None for unsupported or oversized image content.
@@ -175,8 +175,8 @@ def _check_embedded(archive: ZipFile, origin: MetadataSource) -> None:
     """Require the cover hint to belong to the current embedded metadata bytes.
 
     Args:
-        archive: The currently opened source archive.
-        origin: The freshly parsed embedded metadata supplying the cover hint.
+        archive: Currently opened source archive.
+        origin: Freshly parsed embedded metadata supplying the cover hint.
 
     Raises:
         ContentError: If metadata disappeared, changed or exceeds its limit.
@@ -197,8 +197,8 @@ def _read_epub_cover(
     """Read a declared EPUB cover independently of its spine or readable body.
 
     Args:
-        source: The validated EPUB source.
-        origin: The parsed embedded OPF with a cover reference.
+        source: Validated EPUB source.
+        origin: Parsed embedded OPF with a cover reference.
 
     Returns:
         A supported local image, or None for an unusable or encrypted cover.
@@ -229,11 +229,11 @@ def _read_comic_cover(
     """Select a comic archive cover from markers, named images or the first body page.
 
     Args:
-        source: The validated CBZ or ZIP source.
+        source: Validated CBZ or ZIP source.
         metadata: Current external and embedded ComicInfo results for this source.
 
     Returns:
-        The first usable candidate, or None when no supported cover is available.
+        First usable candidate, or None when no supported cover is available.
 
     Raises:
         ContentError: If the archive is unsafe, corrupt, changing or over limits.
@@ -266,7 +266,7 @@ def _read_comic_cover(
 def read_cover(source: ReadingSource, metadata: MetadataRead) -> CoverImage | None:
     """Read the current local cover without caches, writes, HTTP or body parsing.
 
-    The caller checks permissions, visibility, layout and all library ancestors,
+    Caller checks permissions, visibility, layout and all library ancestors,
     supplies fresh metadata for the same source and runs this work in a worker.
     Named external covers win, then external and embedded metadata hints, then
     named archive covers and the first comic body image. Parent covers and child
@@ -275,7 +275,7 @@ def read_cover(source: ReadingSource, metadata: MetadataRead) -> CoverImage | No
 
     Args:
         source: A reading unit or collection within a caller-validated library.
-        metadata: The current read_metadata result for that exact source.
+        metadata: Current read_metadata result for that exact source.
 
     Returns:
         Verified image bytes and internal ownership, or None for a placeholder.

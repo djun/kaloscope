@@ -5,7 +5,7 @@ import OptionsIcon from 'xgplayer/es/plugins/common/optionsIcon';
 import './index.css';
 
 /**
- * The option attributes used by xgplayer's delegated option list.
+ * Option attributes used by xgplayer's delegated option list.
  */
 type AttrObject = {
   [key: string]: string | number | undefined;
@@ -13,7 +13,7 @@ type AttrObject = {
 };
 
 /**
- * The previous and selected definition option values.
+ * Previous and selected definition option values.
  */
 type ChangeData = {
   from: AttrObject | null;
@@ -32,14 +32,14 @@ type DelegateEvent = Event & {
  */
 export default class Definitions extends OptionsIcon {
   /**
-   * The xgplayer plugin name.
+   * Xgplayer plugin name.
    */
   static get pluginName() {
     return 'definitions';
   }
 
   /**
-   * The default definition selector configuration.
+   * Default definition selector configuration.
    */
   static get defaultConfig() {
     return {
@@ -68,8 +68,8 @@ export default class Definitions extends OptionsIcon {
   /**
    * Switch playback to the selected definition.
    *
-   * @param event - The delegated option click event.
-   * @param data - The previous and selected option values.
+   * @param event - Delegated option click event.
+   * @param data - Previous and selected option values.
    */
   onItemClick = (event: DelegateEvent, data: ChangeData) => {
     super.onItemClick(event, data);
@@ -140,7 +140,7 @@ export default class Definitions extends OptionsIcon {
   }
 
   /**
-   * Remove the definition selector event binding.
+   * Remove definition selector event binding.
    */
   destroy() {
     super.destroy();

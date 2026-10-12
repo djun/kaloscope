@@ -16,6 +16,17 @@ class Endpoint(BaseModel):
     @field_validator("host")
     @classmethod
     def normalize_host(cls, value: str) -> str:
+        """Validate and normalize the host without URL suffixes.
+
+        Args:
+            value: Host name or IP address.
+
+        Returns:
+            Normalized host name.
+
+        Raises:
+            ValueError: If the host is empty, invalid or contains URL suffixes.
+        """
         if any(character in value for character in "/@?#"):
             raise ValueError("Downloader host cannot contain URL suffixes")
         try:
@@ -29,16 +40,27 @@ class Endpoint(BaseModel):
     @field_validator("path")
     @classmethod
     def normalize_path(cls, value: str) -> str:
+        """Validate the base path and remove trailing slashes.
+
+        Args:
+            value: Endpoint path; an empty string selects the server root.
+
+        Returns:
+            Absolute base path without a trailing slash.
+
+        Raises:
+            ValueError: If a nonempty path is relative.
+        """
         if value and not value.startswith("/"):
             raise ValueError("Downloader path must be absolute")
         return value.rstrip("/")
 
     @property
     def base_url(self) -> str:
-        """Get the normalized endpoint URL.
+        """Get normalized endpoint URL.
 
         Returns:
-            The normalized endpoint URL.
+            Normalized endpoint URL.
         """
         return str(
             httpx.URL(

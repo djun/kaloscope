@@ -56,11 +56,11 @@ def resolve_epub_reference(base_path: str, reference: str) -> str | None:
     """Resolve a resource URL within the package root without accessing files.
 
     Args:
-        base_path: The normalized referring member path, or empty for the root.
+        base_path: Normalized referring member path, or empty for the root.
         reference: A relative URL, optionally including a fragment identifier.
 
     Returns:
-        The normalized local member path, or None for an external URL.
+        Normalized local member path, or None for an external URL.
 
     Raises:
         ContentError: If a local reference is malformed, ambiguous or escapes the root.
@@ -111,13 +111,13 @@ def _read_xml(
     """Read a bounded EPUB XML member with external resolution disabled.
 
     Args:
-        archive: The archive yielded by open_archive.
-        member: The selected member, or None when a required file is missing.
-        root_tag: The expected namespace-qualified document element.
+        archive: Archive yielded by open_archive.
+        member: Selected member, or None when a required file is missing.
+        root_tag: Expected namespace-qualified document element.
         navigation: Allow an unloaded navigation DOCTYPE; false for descriptors.
 
     Returns:
-        The validated XML root, without loading DTDs, entities or external files.
+        Validated XML root, without loading DTDs, entities or external files.
 
     Raises:
         ContentError: If XML is missing, malformed, unsafe, unsupported or over limits.
@@ -163,11 +163,11 @@ def _encrypted_paths(archive: ZipFile, members: dict[str, ZipInfo]) -> set[str]:
     """Locate encrypted or obfuscated members without attempting decryption.
 
     Args:
-        archive: The archive yielded by open_archive.
+        archive: Archive yielded by open_archive.
         members: Validated local files keyed by normalized member path.
 
     Returns:
-        The referenced paths, including obfuscated fonts that will not be loaded.
+        Referenced paths, including obfuscated fonts that will not be loaded.
 
     Raises:
         ContentError: If encryption declarations are malformed or over limits.
@@ -197,10 +197,10 @@ def _parse_manifest(
     """Map manifest IDs to unique local paths or unavailable external resources.
 
     Args:
-        root: The package document's single manifest element.
-        package_path: The normalized package document path.
+        root: Package document's single manifest element.
+        package_path: Normalized package document path.
         members: Validated local files keyed by normalized member path.
-        encrypted: The paths declared encrypted or obfuscated by the container.
+        encrypted: Paths declared encrypted or obfuscated by the container.
 
     Returns:
         Declared resources keyed by their original manifest IDs.
@@ -246,7 +246,7 @@ def _parse_spine(
     """Keep declared reading order, including auxiliary XHTML documents.
 
     Args:
-        root: The package document's single spine element.
+        root: Package document's single spine element.
         resources: Resources keyed by manifest ID.
 
     Returns:
@@ -294,7 +294,7 @@ def locate_epub_package(
         archive: A stable archive already validated by open_archive.
 
     Returns:
-        The package path, normalized member map and encrypted member paths.
+        Package path, normalized member map and encrypted member paths.
 
     Raises:
         ContentError: If container descriptors are invalid, unsafe or over limits.
@@ -344,7 +344,7 @@ def read_epub_opf(archive: ZipFile) -> tuple[str, bytes]:
         archive: A stable archive yielded by open_archive after caller access checks.
 
     Returns:
-        The exact package member name and bounded XML bytes for metadata parsing.
+        Exact package member name and bounded XML bytes for metadata parsing.
 
     Raises:
         ContentError: If descriptors are invalid or encrypted, the package is
@@ -367,10 +367,10 @@ def load_epub_package(archive: ZipFile) -> EpubPackage:
     or persisting descriptive metadata.
 
     Args:
-        archive: The archive yielded by open_archive after caller access checks.
+        archive: Archive yielded by open_archive after caller access checks.
 
     Returns:
-        The first declared rendition's resource manifest and reading order.
+        First declared rendition's resource manifest and reading order.
 
     Raises:
         ContentError: If required structure is missing, malformed, unsupported
@@ -422,11 +422,11 @@ def read_epub_titles(archive: ZipFile, package: EpubPackage) -> dict[str, str]:
     document headings. Archive corruption and I/O failures still propagate.
 
     Args:
-        archive: The archive yielded by open_archive after caller access checks.
-        package: The package loaded from the same archive.
+        archive: Archive yielded by open_archive after caller access checks.
+        package: Package loaded from the same archive.
 
     Returns:
-        The first usable title for each referenced spine member path.
+        First usable title for each referenced spine member path.
 
     Raises:
         ContentError: If a member read detects archive corruption.

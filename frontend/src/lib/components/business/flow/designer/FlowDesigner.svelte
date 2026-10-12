@@ -44,7 +44,7 @@
   /**
    * Handle the drag over event.
    *
-   * @param event - The drag event.
+   * @param event - Drag event.
    */
   function ondragover(event: DragEvent) {
     event.preventDefault();
@@ -56,7 +56,7 @@
   /**
    * Handle the drop event.
    *
-   * @param event - The drag event.
+   * @param event - Drag event.
    */
   function ondrop(event: DragEvent) {
     event.preventDefault();
@@ -81,7 +81,7 @@
   /**
    * Check if the connection is valid.
    *
-   * @param conn - The connection to check.
+   * @param conn - Connection to check.
    */
   const isValidConnection: IsValidConnection = (conn) => {
     // the node can't connect to itself directly
@@ -103,6 +103,7 @@
       },
       {} as Record<string, Record<string, string | null>>
     );
+
     // construct the node-sources and node-targets maps
     const incomers = { [`${conn.target}`]: [{ source: conn.source, sourceHandle: conn.sourceHandle }] };
     const outgoers = { [`${conn.source}`]: [{ target: conn.target, targetHandle: conn.targetHandle }] };
@@ -119,6 +120,7 @@
       }
       outgoers[source].push({ target: edge.target, targetHandle: edge.targetHandle });
     }
+
     // check if the connection is valid
     const conflictingTags = findConflictingTags(
       tags,
@@ -148,12 +150,12 @@
   /**
    * Find the conflicting tags.
    *
-   * @param tags - The tags of the node handles.
-   * @param incomers - The node-sources map.
-   * @param outgoers - The node-targets map.
-   * @param nodeIds - The node IDs to check.
-   * @param checked - The checked node IDs.
-   * @param result - The result set.
+   * @param tags - Tags of the node handles.
+   * @param incomers - Node-sources map.
+   * @param outgoers - Node-targets map.
+   * @param nodeIds - Node IDs to check.
+   * @param checked - Checked node IDs.
+   * @param result - Result set.
    */
   function findConflictingTags(
     tags: Record<string, Record<string, string | null>>,
@@ -200,12 +202,12 @@
   /**
    * Find the first loop source tag.
    *
-   * @param tags - The tags of the node handles.
-   * @param incomers - The node-sources map.
-   * @param nodeId - The source node ID.
-   * @param handleId - The source handle ID.
-   * @param closeId - The close node ID.
-   * @param checked - The checked node IDs.
+   * @param tags - Tags of the node handles.
+   * @param incomers - Node-sources map.
+   * @param nodeId - Source node ID.
+   * @param handleId - Source handle ID.
+   * @param closeId - Close node ID.
+   * @param checked - Checked node IDs.
    */
   function findLoopSourceTag(
     tags: Record<string, Record<string, string | null>>,
@@ -242,12 +244,12 @@
   /**
    * Find the first loop target tag.
    *
-   * @param tags - The tags of the node handles.
-   * @param outgoers - The node-targets map.
-   * @param nodeId - The target node ID.
-   * @param handleId - The target handle ID.
-   * @param closeId - The close node ID.
-   * @param checked - The checked node IDs.
+   * @param tags - Tags of the node handles.
+   * @param outgoers - Node-targets map.
+   * @param nodeId - Target node ID.
+   * @param handleId - Target handle ID.
+   * @param closeId - Close node ID.
+   * @param checked - Checked node IDs.
    */
   function findLoopTargetTag(
     tags: Record<string, Record<string, string | null>>,
@@ -284,9 +286,9 @@
   /**
    * Find the tag of the node handle.
    *
-   * @param tags - The tags of the node handles.
-   * @param nodeId - The node ID.
-   * @param handleId - The handle ID.
+   * @param tags - Tags of the node handles.
+   * @param nodeId - Node ID.
+   * @param handleId - Handle ID.
    */
   function findTag(
     tags: Record<string, Record<string, string | null>>,
@@ -300,9 +302,9 @@
   /**
    * Find the loop tag of the node handle.
    *
-   * @param tags - The tags of the node handles.
-   * @param nodeId - The node ID.
-   * @param handleId - The handle ID.
+   * @param tags - Tags of the node handles.
+   * @param nodeId - Node ID.
+   * @param handleId - Handle ID.
    */
   function findLoopTag(
     tags: Record<string, Record<string, string | null>>,
@@ -318,6 +320,11 @@
   const validators = new Set<() => boolean>();
   setContext('flow/graph', {
     validators: validators,
+    /**
+     * Register a graph validator for the lifetime of its component.
+     *
+     * @param validator - Validation callback returning whether the graph is valid.
+     */
     addValidator: (validator: () => boolean) => {
       onMount(() => {
         validators.add(validator);
@@ -327,7 +334,7 @@
   });
 
   /**
-   * Hide all visible tippies on the document.
+   * Hide all visible tooltips on the document.
    */
   const hideAllTips = () => hideAll();
 
@@ -350,7 +357,7 @@
       .finally(() => {
         loading.end();
       });
-    // hide all visible tippies when the pane is touched
+    // hide all visible tooltips when the pane is touched
     const pane = document.getElementsByClassName('svelte-flow__pane')[0];
     pane.addEventListener('touchstart', hideAllTips);
     return () => pane.removeEventListener('touchstart', hideAllTips);

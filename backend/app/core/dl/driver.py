@@ -30,7 +30,7 @@ class DownloadSource(StrEnum):
 
 
 class DownloadState(StrEnum):
-    """A persisted lifecycle state for a download task."""
+    """A persisted task state for a download task."""
 
     DOWNLOADING = auto()
     SUBMITTING = auto()
@@ -71,7 +71,14 @@ class DownloadIdentity:
 
     @classmethod
     def from_task(cls, task: DownloadTask) -> Self:
-        """Create an identity from a `DownloadTask`."""
+        """Create an identity from a `DownloadTask`.
+
+        Args:
+            task: Persisted download task.
+
+        Returns:
+            Identity with local and remote task references.
+        """
         return cls(
             task_id=task.id,
             remote_id=task.unique_id,
@@ -81,7 +88,7 @@ class DownloadIdentity:
 
     @property
     def match_keys(self) -> tuple[tuple[str, str], ...]:
-        """Get the keys to match the identity against."""
+        """Get keys to match the identity against."""
         keys = []
         if self.info_hash_v2:
             keys.append(("info_hash_v2", self.info_hash_v2))
@@ -138,10 +145,10 @@ class DownloaderDriver(Protocol):
 
     @property
     def source_types(self) -> frozenset[DownloadSource]:
-        """Get the source formats accepted by the driver.
+        """Get source formats accepted by the driver.
 
         Returns:
-            The supported source formats.
+            Supported source formats.
         """
         ...
 
@@ -158,15 +165,15 @@ class DownloaderDriver(Protocol):
         """Validate the configured downloader endpoint.
 
         Returns:
-            The endpoint version when available, otherwise `None`.
+            Endpoint version when available, otherwise `None`.
         """
         ...
 
     async def version(self) -> str | None:
-        """Get the downloader endpoint version.
+        """Get downloader endpoint version.
 
         Returns:
-            The endpoint version when available, otherwise `None`.
+            Endpoint version when available, otherwise `None`.
         """
         ...
 
@@ -174,10 +181,10 @@ class DownloaderDriver(Protocol):
         """Prepare data that must be persisted before submission.
 
         Args:
-            request: The normalized download request.
+            request: Normalized download request.
 
         Returns:
-            The persistence draft, or `None` when the task can be created after
+            Persistence draft, or `None` when the task can be created after
             submission.
         """
         ...
@@ -186,10 +193,10 @@ class DownloaderDriver(Protocol):
         """Submit a download request.
 
         Args:
-            request: The normalized download request.
+            request: Normalized download request.
 
         Returns:
-            The initial task snapshot returned by the driver.
+            Initial task snapshot returned by the driver.
         """
         ...
 
@@ -199,10 +206,10 @@ class DownloaderDriver(Protocol):
         """Synchronize task state with the downloader.
 
         Args:
-            identities: The tasks to synchronize.
+            identities: Tasks to synchronize.
 
         Returns:
-            The task snapshots produced during this synchronization cycle.
+            Task snapshots produced during this synchronization cycle.
         """
         ...
 
@@ -213,15 +220,16 @@ class DownloaderDriver(Protocol):
         *,
         retry_target: DownloadState | None = None,
     ) -> frozenset[DownloadAction]:
-        """Get the actions available for a task in its current state.
+        """Get actions available for a task in its current state.
 
         Args:
-            identity: The task identity.
-            state: The persisted task state.
-            retry_target: The state that a retry would restore, if known.
+            identity: Task identity.
+            state: Persisted task state.
+            retry_target: State that a retry would restore, if known. `None` means
+                the retry destination is unknown.
 
         Returns:
-            The actions currently supported for the task.
+            Actions currently supported for the task.
         """
         ...
 
@@ -229,10 +237,10 @@ class DownloaderDriver(Protocol):
         """Pause a task.
 
         Args:
-            identity: The task identity.
+            identity: Task identity.
 
         Returns:
-            The resulting state, or `None` when no state update is required.
+            Resulting state, or `None` when no state update is required.
         """
         ...
 
@@ -240,10 +248,10 @@ class DownloaderDriver(Protocol):
         """Resume a paused task.
 
         Args:
-            identity: The task identity.
+            identity: Task identity.
 
         Returns:
-            The resulting state, or `None` when no state update is required.
+            Resulting state, or `None` when no state update is required.
         """
         ...
 
@@ -251,7 +259,7 @@ class DownloaderDriver(Protocol):
         """Cancel a task without deleting its persisted record.
 
         Args:
-            identity: The task identity.
+            identity: Task identity.
         """
         ...
 
@@ -259,10 +267,10 @@ class DownloaderDriver(Protocol):
         """Retry a failed task.
 
         Args:
-            identity: The task identity.
+            identity: Task identity.
 
         Returns:
-            The restored state, or `None` when retry is unavailable.
+            Restored state, or `None` when retry is unavailable.
         """
         ...
 
@@ -270,8 +278,8 @@ class DownloaderDriver(Protocol):
         """Delete a task and optionally its local files.
 
         Args:
-            identity: The task identity.
-            local: Whether to delete downloaded local files.
+            identity: Task identity.
+            local: Whether to delete downloaded local files. Defaults to `False`.
         """
         ...
 

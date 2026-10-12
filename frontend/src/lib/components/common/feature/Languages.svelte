@@ -18,7 +18,7 @@
   /**
    * Switch the locale.
    *
-   * @param code - The language code.
+   * @param code - Language code.
    */
   function switchLocale(code: string) {
     locale.set(code);

@@ -1142,7 +1142,7 @@ def test_reading_library(tmp_path, monkeypatch, lib_type):
                 """Confirm initial discovery sees the committed workflow binding.
 
                 Args:
-                    lib: The newly created library.
+                    lib: Newly created library.
                 """
                 triggers = await FlowTriggerService.get_triggers(
                     GraphCategory.INGEST, lib.id

@@ -36,7 +36,7 @@
   import type { PageData } from './$types';
 
   /**
-   * The type of the board resources.
+   * Type of the board resources.
    */
   type Resources = {
     title?: string | null;
@@ -44,7 +44,7 @@
   };
 
   /**
-   * The type of the dashboard panel.
+   * Type of the dashboard panel.
    */
   type Board = {
     id: number;
@@ -60,12 +60,12 @@
   };
 
   /**
-   * The type of the history entry.
+   * Type of the history entry.
    */
   type HistoryType = 'video' | 'search' | 'reading';
 
   /**
-   * The type of the search history.
+   * Type of the search history.
    */
   type SearchHistory = {
     id: number;
@@ -113,7 +113,7 @@
   /**
    * Load board resources for a given flow graph.
    *
-   * @param graph - The flow graph instance.
+   * @param graph - Flow graph instance.
    */
   async function load(graph: FlowGraph) {
     const { id, name, icon } = graph;
@@ -189,11 +189,11 @@
   const WEEKDAY_COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#0ea5e9', '#2563eb'];
 
   /**
-   * Get the metadata for a week tab.
+   * Get metadata for a week tab.
    *
-   * @param today - The current date.
-   * @param index - The index of the tab.
-   * @param weekStart - The week start day.
+   * @param today - Current date.
+   * @param index - Index of the tab.
+   * @param weekStart - Week start day.
    * @returns The metadata for the week tab.
    */
   function getWeekMeta(today: Date, index: number, weekStart: number | null | undefined) {
@@ -207,7 +207,7 @@
   }
 
   /**
-   * Load the user histories if enabled in preferences.
+   * Load user histories if enabled in preferences.
    */
   async function loadHistories() {
     if (loadWatches) {
@@ -259,7 +259,7 @@
    * Delete a history entry by ID and type.
    *
    * @param id - The ID of the history entry to delete.
-   * @param type - The type of the history entry.
+   * @param type - Type of the history entry.
    */
   function deleteHistory(id: number, type: HistoryType) {
     api.post('user/history/delete', { json: { ids: [id] } }).then(() => {
@@ -276,7 +276,7 @@
   /**
    * Delete all history entries of a given type with confirmation.
    *
-   * @param type - The type of the history entries to delete.
+   * @param type - Type of the history entries to delete.
    */
   function deleteAllHistories(type: HistoryType) {
     confirm({
@@ -301,7 +301,7 @@
   /**
    * Play a media item from the watch history in the video player.
    *
-   * @param w - The watch history entry.
+   * @param w - Watch history entry.
    */
   function playMedia(w: WatchHistory) {
     const media = w.media;
@@ -323,7 +323,7 @@
   /**
    * Navigate to the search page for the given history entry.
    *
-   * @param s - The search history entry.
+   * @param s - Search history entry.
    */
   function gotoSearch(s: SearchHistory) {
     const keyword = s.keyword;

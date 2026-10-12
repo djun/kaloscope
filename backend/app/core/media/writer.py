@@ -33,13 +33,13 @@ class MetadataWrite(BaseModel):
 
 
 def _metadata_paths(source: ReadingSource) -> tuple[Path, list[Path]]:
-    """Resolve a canonical sidecar and higher-priority OPFs owned by the source.
+    """Resolve a canonical sidecar and higher-priority OPF files owned by the source.
 
     Args:
-        source: The source whose container has already been validated by the caller.
+        source: Source whose container has already been validated by the caller.
 
     Returns:
-        The fixed-format destination and existing OPFs superseded by publication.
+        Fixed-format destination and existing OPF files superseded by publication.
 
     Raises:
         ContentError: If a metadata name is ambiguous or is not a regular file.
@@ -73,14 +73,14 @@ def write_metadata(
     *,
     overwrite: bool,
 ) -> bool:
-    """Publish complete XML and retire superseded OPFs under the caller's library lock.
+    """Publish XML and retire old OPF files under the caller's library lock.
 
-    The caller validates source ownership and checks the mutable snapshots after
+    Caller validates source ownership and checks the mutable snapshots after
     writing. Its container timestamp is advanced after writing or accepting valid
     local metadata; body and ancestor snapshots still require a match.
 
     Args:
-        source: The current validated source, never a client-supplied output path.
+        source: Current validated source, never a client-supplied output path.
         data: Complete XML bytes generated and round-trip validated from the candidate.
         states: Source and ancestor snapshots updated after this writer's own changes.
         overwrite: True for an explicit manual save; False only creates absent metadata.
@@ -171,6 +171,7 @@ def write_metadata(
                         return False
                     raise
             states[source.directory] = file_state(source.directory.stat())
+
         # publishing first keeps recoverable metadata if removing an older OPF fails
         if overwrite:
             for path in superseded:

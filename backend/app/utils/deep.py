@@ -12,12 +12,12 @@ def deep_strip(
     """Recursively strip strings from an object.
 
     Args:
-        obj: The object to strip.
-        side: The side to strip from.
-        chars: The characters to strip.
+        obj: Object to strip.
+        side: Side to strip from. Defaults to `'both'`.
+        chars: Characters to strip. `None` strips whitespace.
 
     Returns:
-        The stripped object.
+        Stripped object.
     """
     if isinstance(obj, str):
         if side == "both":
@@ -38,11 +38,11 @@ def deep_update(m1: MutableMapping, m2: Mapping) -> MutableMapping:
     """Recursively update a mapping with another mapping.
 
     Args:
-        m1: The mapping to update.
-        m2: The mapping to update with.
+        m1: Mapping to update.
+        m2: Mapping to update with.
 
     Returns:
-        The updated mapping.
+        Updated mapping.
     """
     for k, v2 in m2.items():
         v1 = m1.get(k)

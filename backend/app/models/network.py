@@ -40,7 +40,7 @@ class HTTPProxy(TortoiseModel):
     rules: ReverseRelation["URLRule"]
 
     def pw_length(self) -> int:
-        """Get the length of the decrypted password."""
+        """Get length of the decrypted password."""
         if not self.password:
             return 0
         return len(xor_decrypt(self.password))

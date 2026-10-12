@@ -51,10 +51,10 @@ class FlowRepositoryService(BaseService[FlowRepository], model=FlowRepository):
         """Add a flow repository.
 
         Args:
-            add: The repository to add.
+            add: Repository to add.
 
         Returns:
-            The added flow repository.
+            Added flow repository.
         """
 
         # extract the repository name
@@ -111,7 +111,7 @@ class FlowRepositoryService(BaseService[FlowRepository], model=FlowRepository):
         """Delete a flow repository.
 
         Args:
-            id: The flow repository ID.
+            id: Flow repository ID.
         """
         repo = await FlowRepository.get(id=id)
         await repo.delete()
@@ -130,11 +130,11 @@ class FlowTemplateService(BaseService[FlowTemplate], model=FlowTemplate):
         """Reference a template to create a new flow graph.
 
         Args:
-            id: The flow template ID.
-            name: The name of the new flow graph.
+            id: Flow template ID.
+            name: Name of the new flow graph.
 
         Returns:
-            The created flow graph instance.
+            Created flow graph instance.
         """
         tmpl = await FlowTemplate.get(id=id)
         if not tmpl:
@@ -161,11 +161,11 @@ class FlowTemplateService(BaseService[FlowTemplate], model=FlowTemplate):
         """Copy a template to create a new flow graph.
 
         Args:
-            id: The flow template ID.
-            name: The name of the new flow graph.
+            id: Flow template ID.
+            name: Name of the new flow graph.
 
         Returns:
-            The created flow graph instance.
+            Created flow graph instance.
         """
         tmpl = await FlowTemplate.get(id=id)
         if not tmpl:
@@ -187,13 +187,13 @@ class FlowTemplateService(BaseService[FlowTemplate], model=FlowTemplate):
 
     @classmethod
     async def get_newest(cls, tmpl: dict) -> dict | None:
-        """Get the newest template for the same repo and path.
+        """Get newest template for the same repo and path.
 
         Args:
-            tmpl: The serialized template dict.
+            tmpl: Serialized template dict.
 
         Returns:
-            The serialized newest template dict, or `None` if no newer template exists.
+            Serialized newest template dict, or `None` if no newer template exists.
         """
         newest = (
             await FlowTemplate.filter(
@@ -217,7 +217,7 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
         """Generate a unique name for the flow graph.
 
         Args:
-            name: The base name to check for uniqueness.
+            name: Base name to check for uniqueness.
 
         Returns:
             A unique name that does not conflict with existing flow graphs.
@@ -239,13 +239,13 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
         """Create or update a flow graph.
 
         Args:
-            obj: The flow graph basics.
+            obj: Flow graph basics.
 
         Raises:
             KaloscopeException: If the name already exists.
 
         Returns:
-            The flow graph instance.
+            Flow graph instance.
         """
         # check if the name already exists
         filter = Q(name=obj.name)
@@ -278,14 +278,14 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
 
     @classmethod
     async def save_graph(cls, id: int, draft: dict) -> FlowGraph:
-        """Save the flow graph draft.
+        """Save flow graph draft.
 
         Args:
-            id: The flow graph ID.
+            id: Flow graph ID.
             draft: The JSON content of the nodes and edges.
 
         Returns:
-            The saved flow graph instance.
+            Saved flow graph instance.
         """
         graph = await FlowGraph.get(id=id)
         # check if the graph is editable
@@ -304,11 +304,11 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
         """Publish the flow graph.
 
         Args:
-            id: The flow graph ID.
+            id: Flow graph ID.
             definition: The JSON content of the nodes and edges.
 
         Returns:
-            The published flow graph instance.
+            Published flow graph instance.
         """
         graph = await FlowGraph.get(id=id)
         definition = Node.compress(definition)
@@ -343,11 +343,11 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
         """Upgrade the flow graph by referencing a new template.
 
         Args:
-            id: The flow graph ID.
-            tmpl: The serialized template dict to reference.
+            id: Flow graph ID.
+            tmpl: Serialized template dict to reference.
 
         Returns:
-            The upgraded flow graph instance.
+            Upgraded flow graph instance.
         """
         graph = await FlowGraph.get(id=id)
         # check if the graph is editable
@@ -370,7 +370,7 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
         """Retract the flow graph and pause all running associated jobs.
 
         Args:
-            id: The flow graph ID.
+            id: Flow graph ID.
         """
         state = GraphState.DRAFT
         if await FlowGraph.filter(id=id, state__not=state).update(state=state) == 1:
@@ -385,7 +385,7 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
         """Export the published flow graphs as a zip file.
 
         Args:
-            ids: The list of flow graph IDs to export.
+            ids: List of flow graph IDs to export.
 
         Returns:
             A bytes object with the zip data, or `None` if empty.
@@ -401,7 +401,7 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
             """Encodes the icon file as a base64 string.
 
             Args:
-                icon: The icon file path.
+                icon: Icon file path.
 
             Returns:
                 A base64 encoded string of the icon file, or `None` if not found.
@@ -439,10 +439,10 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
         """Import flow graphs from a zip file.
 
         Args:
-            zip: The zip file containing flow graph definitions.
+            zip: Zip file containing flow graph definitions.
 
         Returns:
-            The number of created flow graphs.
+            Number of created flow graphs.
         """
         created = 0
         with zipfile.ZipFile(io.BytesIO(zip.body), mode="r") as zf:
@@ -489,7 +489,7 @@ class FlowGraphService(BaseService[FlowGraph], model=FlowGraph):
         """Delete a flow graph.
 
         Args:
-            id: The flow graph ID.
+            id: Flow graph ID.
         """
         if await FlowGraph.filter(id=id, state=GraphState.DRAFT).delete() > 0:
             # also delete the related user histories and permissions
@@ -502,10 +502,10 @@ class FlowLogService(BaseService[FlowLog], model=FlowLog):
 
     @classmethod
     async def get_logs(cls, graph_id: int) -> list[list[dict]]:
-        """Get the execution logs of the flow graph.
+        """Get execution logs of the flow graph.
 
         Args:
-            graph_id: The flow graph ID.
+            graph_id: Flow graph ID.
 
         Returns:
             A list of groups of log entries. Each group is a list of dictionaries with
@@ -562,8 +562,8 @@ class FlowTriggerService(BaseService[FlowTrigger], model=FlowTrigger):
         """Bind flow triggers to a specific category and relation ID.
 
         Args:
-            category: The category to bind the triggers to.
-            rel_id: The relation ID to bind the triggers to.
+            category: Category to bind the triggers to.
+            rel_id: Relation ID to bind the triggers to.
             triggers: A list of GraphRef objects representing the flow triggers.
         """
         await FlowTrigger.filter(category=category, rel_id=rel_id).delete()
@@ -583,11 +583,11 @@ class FlowTriggerService(BaseService[FlowTrigger], model=FlowTrigger):
 
     @classmethod
     async def get_triggers(cls, category: GraphCategory, rel_id: int) -> list[dict]:
-        """Get the flow triggers for a specific category and relation ID.
+        """Get flow triggers for a specific category and relation ID.
 
         Args:
-            category: The graph category to filter the triggers.
-            rel_id: The relation ID to filter the triggers.
+            category: Graph category to filter the triggers.
+            rel_id: Relation ID to filter the triggers.
 
         Returns:
             A list of dictionaries containing the flow trigger details.
@@ -628,11 +628,12 @@ class FlowTriggerService(BaseService[FlowTrigger], model=FlowTrigger):
         """Fire the flow triggers for a specific category and relation ID.
 
         Args:
-            category: The graph category to filter the triggers.
-            rel_id: The relation ID to filter the triggers.
-            bootparams: The boot parameters for execution.
-            repeatable: Whether the execution is repeatable.
-            recoverable: Whether the execution is recoverable.
+            category: Graph category to filter the triggers.
+            rel_id: Relation ID to filter the triggers.
+            bootparams: Boot parameters for execution. `None` adds no startup
+                parameters.
+            repeatable: Whether the execution is repeatable. Defaults to `False`.
+            recoverable: Whether the execution is recoverable. Defaults to `True`.
         """
         graph_ids = [
             GraphRef(graph_id=trigger["graph_id"], asynchronous=trigger["asynchronous"])
@@ -657,10 +658,10 @@ class FlowJobService(BaseService[FlowJob], model=FlowJob):
         """Create or update a flow job.
 
         Args:
-            obj: The flow job data.
+            obj: Flow job data.
 
         Returns:
-            The flow job instance.
+            Flow job instance.
         """
         engine = cls.app_ctx().flow_engine
         data = obj.model_dump(exclude={"id"})

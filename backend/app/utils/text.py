@@ -8,7 +8,7 @@ def natural_key(name: str) -> tuple:
     """Sort ASCII numbers naturally, breaking equal keys with the original text.
 
     Args:
-        name: The text to compare after Unicode normalization and case folding.
+        name: Text to compare after Unicode normalization and case folding.
 
     Returns:
         A normalized natural-sort key paired with the original text for stable ties.
@@ -23,13 +23,13 @@ def truncate_utf8(value: str, limit: int, *, marker: str = "…") -> str:
     """Truncate text to a UTF-8 byte limit without splitting characters.
 
     Args:
-        value: The text to truncate.
-        limit: The maximum encoded length, including the truncation marker.
-        marker: The suffix for truncated text; defaults to an ellipsis.
+        value: Text to truncate.
+        limit: Maximum encoded length, including the truncation marker.
+        marker: Suffix for truncated text; defaults to an ellipsis.
             Markers larger than the limit are also truncated at character boundaries.
 
     Returns:
-        The original text when it fits, otherwise a bounded prefix and marker.
+        Original text when it fits, otherwise a bounded prefix and marker.
 
     Raises:
         ValueError: If the byte limit is negative.

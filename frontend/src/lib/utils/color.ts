@@ -1,7 +1,7 @@
 /**
  * Check if a color is white.
  *
- * @param color - The color string to check.
+ * @param color - Color string to check.
  * @returns Whether the value matches a supported white color notation.
  */
 export function isWhite(color: string | null | undefined): boolean {

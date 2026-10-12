@@ -9,7 +9,7 @@
   let modal: Modal;
   let fileTree: FileTree;
 
-  // the download directory and downloaders
+  // the download directory and download clients
   let directory: DownloadDir | null = $state(null);
   let downloaders: Downloader[] = $state([]);
   let downloaderId: number = $state(0);
@@ -50,7 +50,7 @@
     sub_repl: text().maxlength(512).required(false)
   }));
 
-  // the oncreate callback
+  // callback after task creation
   let oncreate: (() => void) | null;
 
   /**
@@ -123,7 +123,7 @@
   }
 
   /**
-   * Get the download directories.
+   * Get download directories.
    */
   async function getDirectories(): Promise<DownloadDir[]> {
     try {
@@ -136,7 +136,7 @@
   }
 
   /**
-   * Get the downloaders.
+   * Get download clients.
    */
   async function getDownloaders(): Promise<Downloader[]> {
     try {
@@ -149,7 +149,7 @@
   }
 
   /**
-   * Get the media libraries.
+   * Get media libraries.
    */
   async function getMediaLibs(): Promise<MediaLib[]> {
     try {
@@ -162,7 +162,7 @@
   }
 
   /**
-   * Get the platform.
+   * Get platform.
    */
   async function getPlatform(): Promise<string> {
     try {
@@ -177,7 +177,7 @@
   /**
    * Add a download task.
    *
-   * @param data - The form data.
+   * @param data - Form data.
    */
   function addTask(data: FormData) {
     loading.start();

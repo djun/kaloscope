@@ -90,7 +90,7 @@
   /**
    * Confirm deletion of a single transcode task.
    *
-   * @param task - The transcode task to delete.
+   * @param task - Transcode task to delete.
    */
   function confirmDelete(task: TranscodeTask) {
     confirm({
@@ -103,7 +103,7 @@
   /**
    * Delete transcode tasks and refresh the task list.
    *
-   * @param ids - The task IDs to delete.
+   * @param ids - Task IDs to delete.
    */
   function deleteTasks(ids: string[]) {
     for (const id of ids) {
@@ -122,7 +122,7 @@
   /**
    * Stop a running transcode task.
    *
-   * @param task - The transcode task to stop.
+   * @param task - Transcode task to stop.
    */
   function stopTask(task: TranscodeTask) {
     loadingIds.add(task.id);
@@ -133,9 +133,9 @@
   }
 
   /**
-   * Format the progress and encoded segment count of a transcode task.
+   * Format progress and encoded segment count of a transcode task.
    *
-   * @param task - The transcode task to format.
+   * @param task - Transcode task to format.
    */
   function formatProgress(task: TranscodeTask): string {
     const segments = $_('transcode.segments', task.encoded_segments);

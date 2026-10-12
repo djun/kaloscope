@@ -26,6 +26,11 @@
 
   // the modal dialog instance
   let modal: Modal;
+  /**
+   * Load requested path before opening the file picker.
+   *
+   * @param expandTo - Path to reveal; omitted keeps the current selection.
+   */
   export const showModal = (expandTo?: string) => {
     if (!paths || paths.length === 0 || expandTo) {
       if (expandTo) {
@@ -131,8 +136,8 @@
   /**
    * List the files and directories in the given path.
    *
-   * @param path - The path to list.
-   * @param expandTo - The path to expand to.
+   * @param path - Path to list.
+   * @param expandTo - Path to expand to.
    */
   async function list(path: string, expandTo?: string): Promise<Path[]> {
     try {
@@ -155,7 +160,7 @@
   /**
    * Unfold the given path and load its children.
    *
-   * @param path - The path to unfold.
+   * @param path - Path to unfold.
    */
   async function unfold(path: Path) {
     current = path.path;
@@ -173,7 +178,7 @@
   /**
    * Confirm the selected path and close the modal.
    *
-   * @param path - The path to confirm.
+   * @param path - Path to confirm.
    */
   export function confirm(path?: string) {
     loading.start();

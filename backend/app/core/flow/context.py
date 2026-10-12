@@ -69,9 +69,9 @@ class Context:
         """Create a new context object.
 
         Args:
-            graph_id: The flow graph ID.
-            bootparams: The boot parameters.
-            storage: The storage dictionary.
+            graph_id: Flow graph ID.
+            bootparams: Boot parameters.
+            storage: Storage dictionary. `None` starts with empty storage.
 
         Returns:
             A new context object.
@@ -124,27 +124,60 @@ class Context:
 
     @after("union")
     def __setitem__(self, key: str, value: Any):
+        """Store a variable and rebuild the merged context.
+
+        Args:
+            key: Storage variable name.
+            value: Value to store.
+        """
         self._deleted.discard(key)
         self.storage[key] = value
 
     @after("union")
     def setdefault(self, key: str, default: Any):
+        """Set a missing storage variable and rebuild the context.
+
+        Args:
+            key: Storage variable name.
+            default: Value to store when the key is absent.
+
+        Returns:
+            Existing value, or the stored default.
+        """
         self._deleted.discard(key)
         return self.storage.setdefault(key, default)
 
     @after("union")
     def __delitem__(self, key: str):
+        """Track a removed storage variable for later context merges.
+
+        Args:
+            key: Storage variable name.
+
+        Raises:
+            KeyError: If the storage key is absent.
+        """
         self._deleted.add(key)
         del self.storage[key]
 
     @after("union")
     def pop(self, key: str, default: Any = None):
+        """Remove a storage variable and track the deletion.
+
+        Args:
+            key: Storage variable name.
+            default: Value returned when the storage key is absent; defaults to `None`.
+
+        Returns:
+            Removed value, or the default if the key is absent.
+        """
         if key in self.storage:
             self._deleted.add(key)
         return self.storage.pop(key, default)
 
     @after("union")
     def clear(self):
+        """Track all storage deletions and rebuild the merged context."""
         self._deleted.update(self.storage.keys())
         self.storage.clear()
 
@@ -153,10 +186,10 @@ class Context:
         """Merge the context with another context.
 
         Args:
-            other: The other context to merge with.
+            other: Other context to merge with.
 
         Returns:
-            The merged context.
+            Merged context.
         """
         if isinstance(other, Context):
             # remove keys that are marked as deleted in the other context
@@ -175,10 +208,10 @@ class Context:
         """Bind the loop variable to the context.
 
         Args:
-            node_data: The loop node data.
+            node_data: Loop node data.
 
         Returns:
-            The context object.
+            Context object.
         """
         self.loopvar = node_data.get(LOOP_KEY)
         return self

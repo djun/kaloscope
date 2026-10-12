@@ -83,10 +83,10 @@ class OpenListCoordinator:
         """Synchronize due jobs while applying instance-level failure policy.
 
         Args:
-            identities: The local tasks assigned to this OpenList driver.
+            identities: Local tasks assigned to this OpenList driver.
 
         Returns:
-            The task snapshots produced by this synchronization cycle.
+            Task snapshots produced by this synchronization cycle.
         """
         # a configuration change replaces the driver and clears this auth block
         if self._auth_blocked:
@@ -105,10 +105,10 @@ class OpenListCoordinator:
         """Execute one synchronization cycle for due persisted jobs.
 
         Args:
-            identities: The local tasks assigned to this OpenList driver.
+            identities: Local tasks assigned to this OpenList driver.
 
         Returns:
-            The snapshots whose state was resolved during this cycle.
+            Snapshots whose state was resolved during this cycle.
         """
         # import lazily because `syncer` loads the OpenList driver
         from app.core.dl.syncer import submission_lock
@@ -352,12 +352,12 @@ class OpenListCoordinator:
         """Recover submissions whose remote task ID was not confirmed.
 
         Args:
-            jobs: The uncertain persisted submissions.
-            candidates: The unfinished and finished OpenList task candidates.
-            now: The current synchronization timestamp.
+            jobs: Uncertain persisted submissions.
+            candidates: Unfinished and finished OpenList task candidates.
+            now: Current synchronization timestamp.
 
         Returns:
-            The recovered or still-uncertain task snapshots.
+            Recovered or still-uncertain task snapshots.
         """
         snapshots = []
         for job in jobs:
@@ -445,11 +445,11 @@ class OpenListCoordinator:
         """Wait for transfer completion and a stable remote result manifest.
 
         Args:
-            jobs: The jobs waiting for OpenList result files to settle.
-            now: The current synchronization timestamp.
+            jobs: Jobs waiting for OpenList result files to settle.
+            now: Current synchronization timestamp.
 
         Returns:
-            The settling, pulling, or failed task snapshots.
+            Settling, pulling, or failed task snapshots.
         """
         # track OpenList transfer tasks for its internal move into mounted storage
         active = await self.client.transfer_undone()
@@ -499,6 +499,7 @@ class OpenListCoordinator:
                         changed_at=job.manifest_changed_at,
                         now=now,
                     )
+
                     # refresh mounted storage only when needed and rate-limit the call
                     if (
                         observation.needs_refresh or incomplete
@@ -555,6 +556,7 @@ class OpenListCoordinator:
                             job.manifest = manifest
                             job.manifest_fingerprint = observation.fingerprint
                             job.manifest_changed_at = observation.changed_at
+
                         # pull only after one unchanged stability window
                         state = (
                             DownloadState.PULLING
@@ -624,8 +626,8 @@ class OpenListCoordinator:
         """Defer one job after an API error scoped to its remote result.
 
         Args:
-            job: The affected persisted offline download job.
-            current: The current synchronization timestamp.
+            job: Affected persisted offline download job.
+            current: Current synchronization timestamp.
         """
         error_kind = OfflineDownloadErrorKind.INSTANCE_TRANSIENT
         previous = job.retry_count if job.last_error_kind is error_kind else 0
@@ -642,8 +644,8 @@ class OpenListCoordinator:
         """Persist instance-level authentication, rate-limit, or transient failure.
 
         Args:
-            identities: The tasks affected by the failed OpenList request.
-            error: The classified instance request failure.
+            identities: Tasks affected by the failed OpenList request.
+            error: Classified instance request failure.
         """
         task_ids = tuple(
             identity.task_id for identity in identities if identity.task_id is not None

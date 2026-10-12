@@ -32,21 +32,45 @@ abstract class AbstractConstraintBuilder<T> {
     required: true
   };
 
+  /**
+   * Set whether the field is required.
+   *
+   * @param required - Whether the field must have a value.
+   * @returns This builder for further constraints.
+   */
   required(required: boolean): this {
     this.constraint.required = required;
     return this;
   }
 
+  /**
+   * Set browser completion hint.
+   *
+   * @param autocomplete - Browser completion token.
+   * @returns This builder for further constraints.
+   */
   autocomplete(autocomplete: AutoFill): this {
     this.constraint.autocomplete = autocomplete;
     return this;
   }
 
+  /**
+   * Set initial form value.
+   *
+   * @param value - Initial field value.
+   * @returns This builder for further constraints.
+   */
   value(value: T): this {
     this.constraint.value = value;
     return this;
   }
 
+  /**
+   * Bind the constraints to a form field.
+   *
+   * @param name - Form field name.
+   * @returns Form constraints.
+   */
   build(name: string): Constraint {
     this.constraint.name = name;
     return this.constraint;
@@ -57,11 +81,23 @@ abstract class AbstractConstraintBuilder<T> {
  * Builder for string constraints.
  */
 class StringConstraintBuilder extends AbstractConstraintBuilder<string> {
+  /**
+   * Set minimum text length.
+   *
+   * @param minlength - Minimum number of characters.
+   * @returns This builder for further constraints.
+   */
   minlength(minlength: number): this {
     this.constraint.minlength = minlength;
     return this;
   }
 
+  /**
+   * Set maximum text length.
+   *
+   * @param maxlength - Maximum number of characters.
+   * @returns This builder for further constraints.
+   */
   maxlength(maxlength: number): this {
     this.constraint.maxlength = maxlength;
     return this;
@@ -77,6 +113,12 @@ class PatternConstraintBuilder extends StringConstraintBuilder {
     this.constraint.type = type;
   }
 
+  /**
+   * Set input validation pattern.
+   *
+   * @param pattern - Regular expression used by browser validation.
+   * @returns This builder for further constraints.
+   */
   pattern(pattern: string): this {
     this.constraint.pattern = pattern;
     return this;
@@ -92,16 +134,34 @@ class NumberConstraintBuilder extends AbstractConstraintBuilder<number> {
     this.constraint.type = type;
   }
 
+  /**
+   * Set minimum allowed value.
+   *
+   * @param min - Minimum value in the input's native format.
+   * @returns This builder for further constraints.
+   */
   min(min: number): this {
     this.constraint.min = min;
     return this;
   }
 
+  /**
+   * Set maximum allowed value.
+   *
+   * @param max - Maximum value in the input's native format.
+   * @returns This builder for further constraints.
+   */
   max(max: number): this {
     this.constraint.max = max;
     return this;
   }
 
+  /**
+   * Set interval between allowed values.
+   *
+   * @param step - Step size, or any for unrestricted date and time values.
+   * @returns This builder for further constraints.
+   */
   step(step: number): this {
     this.constraint.step = step;
     return this;
@@ -117,16 +177,34 @@ class DatetimeConstraintBuilder extends AbstractConstraintBuilder<string> {
     this.constraint.type = type;
   }
 
+  /**
+   * Set minimum allowed value.
+   *
+   * @param min - Minimum value in the input's native format.
+   * @returns This builder for further constraints.
+   */
   min(min: string): this {
     this.constraint.min = min;
     return this;
   }
 
+  /**
+   * Set maximum allowed value.
+   *
+   * @param max - Maximum value in the input's native format.
+   * @returns This builder for further constraints.
+   */
   max(max: string): this {
     this.constraint.max = max;
     return this;
   }
 
+  /**
+   * Set interval between allowed values.
+   *
+   * @param step - Step size, or any for unrestricted date and time values.
+   * @returns This builder for further constraints.
+   */
   step(step: number | 'any'): this {
     this.constraint.step = step;
     return this;
@@ -179,9 +257,9 @@ export function createLoading() {
   const { set, update, subscribe } = writable<boolean | null>(null);
 
   /**
-   * Set the loading state to `false` immediately and then to `true` after a delay.
+   * Set loading state to `false` immediately and then to `true` after a delay.
    *
-   * @param delay - The number of milliseconds to wait before setting the loading state to `true`.
+   * @param delay - Number of milliseconds to wait before setting the loading state to `true`.
    */
   function start(delay: number = 500) {
     set(false);
@@ -193,7 +271,7 @@ export function createLoading() {
   }
 
   /**
-   * Set the loading state to `null`.
+   * Set loading state to `null`.
    */
   function end() {
     set(null);
@@ -213,12 +291,15 @@ export function createSortField() {
   /**
    * Bind a field to the sort field store.
    *
-   * @param field - The field name to bind.
+   * @param field - Field name to bind.
    * @returns An object with methods to toggle the sort order.
    */
   function bind(field: string) {
     const asc = field;
     const desc = `-${field}`;
+    /**
+     * Cycle through descending, ascending and unsorted states.
+     */
     const toggle = () => {
       update((ordering) => {
         if (ordering === desc) {

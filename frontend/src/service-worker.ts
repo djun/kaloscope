@@ -14,7 +14,7 @@ declare let self: ServiceWorkerGlobalScope;
 /**
  * Validate a notification payload before using it in the service worker.
  *
- * @param value - The value to validate.
+ * @param value - Value to validate.
  * @returns Whether the value is a service worker notification payload.
  */
 function isNotificationPayload(value: unknown): value is ServiceWorkerNotificationPayload {
@@ -33,7 +33,7 @@ function isNotificationPayload(value: unknown): value is ServiceWorkerNotificati
 /**
  * Check whether a message from the app shell is a notification display request.
  *
- * @param data - The message data received by the service worker.
+ * @param data - Message data received by the service worker.
  * @returns Whether the data is a service worker notification message.
  */
 function isNotificationMessage(data: unknown): data is ServiceWorkerNotificationMessage {
@@ -51,7 +51,7 @@ function isNotificationMessage(data: unknown): data is ServiceWorkerNotification
 /**
  * Display app notifications through the service worker registration.
  *
- * @param message - The notification message posted from the app shell.
+ * @param message - Notification message posted from the app shell.
  */
 async function showNotifications(message: ServiceWorkerNotificationMessage) {
   await Promise.all(
@@ -77,14 +77,14 @@ self.addEventListener('message', (event) => {
 
 // keep mutable app shell files on the network so deployment cache headers can take effect
 const mutableFrontendPaths = new Set(['/', '/index.html', '/404.html', '/manifest.webmanifest', '/_app/version.json']);
-// filter the injected Workbox manifest before precaching
+// select build assets from the injected Workbox manifest
 const precacheManifest = self.__WB_MANIFEST.filter((entry) => {
   const url = typeof entry === 'string' ? entry : entry.url;
   const { pathname } = new URL(url, self.location.origin);
   return !mutableFrontendPaths.has(pathname) && !pathname.endsWith('.html');
 });
 
-// precache immutable build assets only
+// cache only immutable build assets during installation
 precacheAndRoute(precacheManifest);
 
 // clean up incompatible Workbox caches

@@ -32,12 +32,12 @@ def reading_companions(
 ) -> dict[Path, tuple[int, ...]]:
     """Find exclusive metadata and covers in an owned reading container.
 
-    The caller validates library boundaries, ancestor identities, selected bodies and
+    Caller validates library boundaries, ancestor identities, selected bodies and
     database ownership. Covers precede XML so interrupted cleanup retains references.
     Unknown metadata makes cover ownership uncertain; those covers stay untouched.
 
     Args:
-        source: The validated reading source whose companions will be removed.
+        source: Validated reading source whose companions will be removed.
         bodies: Selected body files permitted in the container; None requires their
             absence for missing-body cleanup.
         chapters: Selected chapter containers permitted below a collection; None
@@ -143,11 +143,11 @@ def reading_files(
     """Snapshot selected reading bodies and exclusive companions without recursion.
 
     Missing sources are allowed so explicit deletion can resume after partial writes.
-    The library root must remain accessible. Image directories contribute visible
+    Library root must remain accessible. Image directories contribute visible
     direct pages; archives stay intact and collections only contribute companions.
 
     Args:
-        root: The validated absolute library root, which must never be deleted.
+        root: Validated absolute library root, which must never be deleted.
         sources: Sources whose database ownership was checked under the library lock.
 
     Returns:
@@ -250,11 +250,11 @@ def video_files(
     dict[Path, tuple[int, ...]],
     dict[Path, tuple[int, ...]],
 ]:
-    """Snapshot selected videos and their exclusive NFOs, subtitles and artwork.
+    """Snapshot selected videos and their exclusive NFO files, subtitles and artwork.
 
     Args:
-        root: The absolute library root, which must remain accessible.
-        items: The selected current rows, including any selected directory parents.
+        root: Absolute library root, which must remain accessible.
+        items: Selected current rows, including any selected directory parents.
         others: Other registered items used to protect shared files.
 
     Returns:
@@ -312,7 +312,7 @@ def video_files(
             raise ContentError("media_source_unavailable")
         bodies[path] = file_state(info)
 
-    # inspect unindexed videos and aliases as well as registered ownership
+    # inspect videos without index records and aliases as well as registered ownership
     videos = {Path(item.path) for item in others if item.path != item.dir}
     aliases = []
     for path in root.rglob("*"):
@@ -331,7 +331,7 @@ def video_files(
         """Check whether an unselected file or directory alias refers to a path.
 
         Args:
-            path: The proposed deletion candidate.
+            path: Proposed deletion candidate.
 
         Returns:
             Whether removing the candidate would break a surviving alias.

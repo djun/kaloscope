@@ -15,6 +15,11 @@
 
   // the modal dialog instance
   let modal: Modal;
+  /**
+   * Load selected graph logs and open the dialog.
+   *
+   * @param id - Flow graph ID.
+   */
   export const showModal = (id: number) => {
     getLogs(id);
     modal.show();
@@ -27,6 +32,12 @@
   let document: string = $state('');
   let refreshKey: number = $state(0);
 
+  /**
+   * Display a log document as text or formatted JSON.
+   *
+   * @param doc - Log document to inspect.
+   * @param title - Dialog title.
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const showDocModal = (doc: any, title: string) => {
     documentTitle = title;
@@ -42,9 +53,9 @@
   };
 
   /**
-   * Get the flow logs.
+   * Get flow logs.
    *
-   * @param graphId - The flow graph ID.
+   * @param graphId - Flow graph ID.
    */
   function getLogs(graphId: number) {
     groups = [];
@@ -61,9 +72,9 @@
   }
 
   /**
-   * Format the date to a string in the format of `MM/dd HH:mm:ss.SSS`.
+   * Format date to a string in the format of `MM/dd HH:mm:ss.SSS`.
    *
-   * @param value - The date value to format.
+   * @param value - Date value to format.
    */
   function formatDate(value: number | string | Date): string {
     const date = new Date(value);

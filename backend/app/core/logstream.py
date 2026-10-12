@@ -58,7 +58,14 @@ def create_log_snapshot() -> LogSnapshot:
 
 
 def _record_message(record: logging.LogRecord) -> str:
-    """Build the plain-text message for a monitoring record."""
+    """Build plain-text message for a monitoring record.
+
+    Args:
+        record: Log record to process.
+
+    Returns:
+        Plain text within the configured UTF-8 size limit.
+    """
     message = record.getMessage()
     if not message and record.name == "sanic.access":
         values = (
@@ -83,19 +90,23 @@ def _record_message(record: logging.LogRecord) -> str:
 
 
 class LogQueueHandler(logging.Handler):
-    """Copy compact log records into a bounded non-blocking queue."""
+    """Copy compact log records into a bounded queue that never blocks the caller."""
 
     def __init__(self, log_queue: Any):
         """Initialize the handler.
 
         Args:
-            log_queue: The shared queue that receives compact log records.
+            log_queue: Shared queue that receives compact log records.
         """
         super().__init__()
         self.log_queue = log_queue
 
     def emit(self, record: logging.LogRecord):
-        """Attempt to enqueue a monitoring copy without affecting the caller."""
+        """Attempt to enqueue a monitoring copy without affecting the caller.
+
+        Args:
+            record: Log record to process.
+        """
         with suppress(Exception):
             self.log_queue.put_nowait(
                 {
@@ -110,14 +121,25 @@ class LogQueueHandler(logging.Handler):
             )
 
     def handleError(self, record: logging.LogRecord):  # noqa: N802
-        """Suppress standard-library `Handler` diagnostics."""
+        """Suppress standard-library `Handler` diagnostics.
+
+        Args:
+            record: Log record to process.
+        """
 
 
 class MonitorAccessFilter(logging.Filter):
     """Suppress only successful access records for the monitor stream."""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        """Return whether an access record should continue to its handlers."""
+        """Return whether an access record should continue to its handlers.
+
+        Args:
+            record: Log record to process.
+
+        Returns:
+            Whether the record should reach its handlers.
+        """
         request = str(getattr(record, "request", "")).split("?", 1)[0]
         return not (
             getattr(record, "status", None) == 200
@@ -132,13 +154,18 @@ class LogBuffer:
         """Initialize the bounded record buffer.
 
         Args:
-            limit: The maximum number of records to retain.
+            limit: Maximum number of records to retain. Defaults to
+                `LOG_RECORD_LIMIT`.
         """
         self._records: deque[dict[str, Any]] = deque(maxlen=limit)
         self._last_id = 0
 
     def append(self, record: dict[str, Any]):
-        """Assign an ID and append a monitoring record."""
+        """Assign an ID and append a monitoring record.
+
+        Args:
+            record: Log record to process.
+        """
         self._last_id += 1
         stored = dict(record)
         stored["id"] = self._last_id
@@ -168,11 +195,12 @@ class LogCollector:
         """Initialize the main-process collector.
 
         Args:
-            log_queue: The shared queue containing worker log records.
-            log_actions: The shared queue containing monitor actions.
-            shared_snapshot: The shared holder for detached snapshots.
-            snapshot_revision: The shared snapshot publication revision.
-            publish_interval: The maximum delay between snapshot publications.
+            log_queue: Shared queue containing worker log records.
+            log_actions: Shared queue containing monitor actions.
+            shared_snapshot: Shared holder for detached snapshots.
+            snapshot_revision: Shared snapshot publication revision.
+            publish_interval: Maximum delay between snapshot publications. Defaults
+                to `LOG_PUBLISH_INTERVAL`.
         """
         self._queue = log_queue
         self._actions = log_actions
@@ -255,7 +283,14 @@ class LogCollector:
                 self._publish()
 
     def _store(self, item: Any) -> bool:
-        """Store one eligible record and return whether the buffer changed."""
+        """Store one eligible record and return whether the buffer changed.
+
+        Args:
+            item: Queued log record to validate and retain.
+
+        Returns:
+            Whether the retained log buffer changed.
+        """
         if self._paused or not isinstance(item, dict):
             return False
         record = dict(item)
@@ -332,7 +367,14 @@ class LogMonitor:
 
 
 def register_log_monitor(log_queue: Any) -> LogMonitor | None:
-    """Register one monitor `Handler` and access `Filter` with worker loggers."""
+    """Register one monitor `Handler` and access `Filter` with worker loggers.
+
+    Args:
+        log_queue: Shared queue receiving compact log records.
+
+    Returns:
+        Registration to remove later, or `None` if setup fails.
+    """
     attached: list[logging.Logger] = []
     access_logger: logging.Logger | None = None
     access_filter: MonitorAccessFilter | None = None
@@ -371,7 +413,11 @@ def register_log_monitor(log_queue: Any) -> LogMonitor | None:
 
 
 def unregister_log_monitor(monitor: LogMonitor | None):
-    """Unregister logging objects owned by one monitor registration."""
+    """Unregister logging objects owned by one monitor registration.
+
+    Args:
+        monitor: Registration to remove; `None` requires no cleanup.
+    """
     if monitor is None:
         return
     for logger in monitor.loggers:

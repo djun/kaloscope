@@ -9,7 +9,14 @@ notification = Blueprint("notification", url_prefix="/notification")
 
 @notification.get("/list")
 async def list_notifications(_) -> HTTPResponse:
-    """List the notifications."""
+    """List the notifications.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Response containing the requested data.
+    """
     notifications = await Notifications.list()
     return json(
         [
@@ -28,7 +35,15 @@ async def list_notifications(_) -> HTTPResponse:
 @notification.post("/delete")
 @validate(json=IDs)
 async def delete_notifications(_, body: IDs) -> HTTPResponse:
-    """Delete the notifications."""
+    """Delete the notifications.
+
+    Args:
+        _: Unused request.
+        body: Record IDs to act on.
+
+    Returns:
+        Empty response on success.
+    """
     for id in body.ids:
         await Notifications.delete(int(id))
     return empty()
@@ -36,13 +51,27 @@ async def delete_notifications(_, body: IDs) -> HTTPResponse:
 
 @notification.post("/clear")
 async def clear_notifications(_) -> HTTPResponse:
-    """Clear all notifications."""
+    """Clear all notifications.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Empty response on success.
+    """
     await Notifications.delete()
     return empty()
 
 
 @notification.post("/read")
 async def read_notifications(_) -> HTTPResponse:
-    """Mark all notifications as read."""
+    """Mark all notifications as read.
+
+    Args:
+        _: Unused request.
+
+    Returns:
+        Empty response on success.
+    """
     await Notifications.read()
     return empty()

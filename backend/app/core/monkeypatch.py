@@ -62,6 +62,13 @@ def _patch_tortoise_sqlite_migrations():
     original = SqliteSchemaEditor._alter_field
 
     async def _alter_field(self, model, old_field, new_field):
+        """Skip schema changes that only update field descriptions.
+
+        Args:
+            model: Model whose schema is being changed.
+            old_field: Existing field definition.
+            new_field: Replacement field definition.
+        """
         old_definition = old_field.describe(serializable=True)
         new_definition = new_field.describe(serializable=True)
         old_definition.pop("description", None)
@@ -74,12 +81,9 @@ def _patch_tortoise_sqlite_migrations():
 
 
 def _patch_hishel_headers():
-    """Patch hishel's `_httpx_to_internal` and `_internal_to_httpx` to
-    preserve request timeouts and multi-value `Set-Cookie` headers through the
-    cache layer.
+    """Preserve request timeouts and separate cookie headers.
 
-    hishel's `Headers.__getitem__` joins values with `, ` which RFC 7230
-    explicitly forbids for `Set-Cookie`.
+    Keep `Set-Cookie` values separate as required by RFC 7230.
     """
     import hishel._async_httpx as _async
     from hishel import Request as _HishelRequest
@@ -87,7 +91,14 @@ def _patch_hishel_headers():
     from hishel._core._headers import Headers as _HishelHeaders
 
     def _httpx_to_hishel_headers(httpx_headers) -> _HishelHeaders:
-        """Convert httpx Headers → hishel Headers, preserving multi-value."""
+        """Preserve repeated headers when converting cache data.
+
+        Args:
+            httpx_headers: HTTPX headers to convert.
+
+        Returns:
+            Cache headers without transfer encoding.
+        """
         raw: dict[str, list[str]] = {}
         for k, v in httpx_headers.multi_items():
             raw.setdefault(k.lower(), []).append(v)
@@ -95,7 +106,14 @@ def _patch_hishel_headers():
         return _HishelHeaders(raw)
 
     def _hishel_to_header_tuples(h: _HishelHeaders) -> list[tuple[str, str]]:
-        """Convert hishel Headers → list of individual (key, value) tuples."""
+        """Expand cache headers into separate name and value pairs.
+
+        Args:
+            h: Cache header mapping.
+
+        Returns:
+            Individual header pairs with repeated values preserved.
+        """
         pairs: list[tuple[str, str]] = []
         for key in h:
             for v in h.get_list(key) or []:
@@ -106,6 +124,14 @@ def _patch_hishel_headers():
     _orig_httpx_to_internal = _async._httpx_to_internal
 
     def _httpx_to_internal(value):
+        """Convert HTTP data without losing timeouts or cookie headers.
+
+        Args:
+            value: HTTPX request, response or other supported value.
+
+        Returns:
+            Equivalent cache value with transport metadata preserved.
+        """
         if isinstance(value, httpx.Request):
             request = _orig_httpx_to_internal(value)
             if "timeout" in value.extensions:
@@ -149,6 +175,14 @@ def _patch_hishel_headers():
     _orig_internal_to_httpx = _async._internal_to_httpx
 
     def _internal_to_httpx(value):
+        """Restore HTTP data with separate repeated headers.
+
+        Args:
+            value: Cache request, response or other supported value.
+
+        Returns:
+            Equivalent HTTPX value.
+        """
         from hishel._async_httpx import _IteratorStream
 
         if isinstance(value, _HishelRequest):
@@ -174,18 +208,23 @@ def _patch_hishel_headers():
 
 
 def _patch_hishel_force_cache():
-    """Patch hishel to force-cache responses when `hishel_ttl` is explicitly set
-    on the request, even if the origin server returns `Cache-Control: no-cache`
-    or `no-store`.
+    """Honor an explicit cache TTL despite origin cache headers.
 
-    Replaces the response's `Cache-Control` header with `max-age=<ttl>` so
-    the RFC 9111 state machine handles caching naturally without further patches.
+    Set `Cache-Control` from `hishel_ttl` before the cache policy runs.
     """
     from hishel._async_httpx import AsyncCacheTransport
 
     _orig_request_sender = AsyncCacheTransport.request_sender
 
     async def _patched_request_sender(self, request):
+        """Apply an explicit cache TTL to the origin response.
+
+        Args:
+            request: Cache request with optional TTL metadata.
+
+        Returns:
+            Response with the requested cache policy.
+        """
         response = await _orig_request_sender(self, request)
         ttl = request.metadata.get("hishel_ttl")
         if ttl is not None:

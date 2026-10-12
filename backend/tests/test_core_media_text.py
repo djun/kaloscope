@@ -36,11 +36,11 @@ def _source(tmp_path: Path, data: bytes) -> ReadingSource:
     """Discover a real TXT fixture using the reading handler.
 
     Args:
-        tmp_path: The isolated test directory.
-        data: The source file bytes.
+        tmp_path: Isolated test directory.
+        data: Source file bytes.
 
     Returns:
-        The discovered reading source.
+        Discovered reading source.
     """
     path = tmp_path / "library/Book/book.TXT"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -54,7 +54,7 @@ def _cached_text(cache: Path) -> str:
     """Reconstruct the normalized body through individual chapter reads.
 
     Args:
-        cache: The completed cache directory.
+        cache: Completed cache directory.
 
     Returns:
         All chapter content in reading order.
@@ -69,11 +69,11 @@ def _paragraphs(cache: Path, chapter_id: str) -> list[str]:
     """Read TXT through the shared novel entry point and verify its result type.
 
     Args:
-        cache: The completed TXT cache directory.
-        chapter_id: The requested fixture chapter ID.
+        cache: Completed TXT cache directory.
+        chapter_id: Requested fixture chapter ID.
 
     Returns:
-        The unchanged TXT paragraph representation.
+        Unchanged TXT paragraph representation.
     """
     content = read_text_chapter(cache, chapter_id)
     assert isinstance(content, list)
@@ -117,7 +117,7 @@ def test_legacy_content_size(tmp_path):
     """Read existing TXT caches without changing their version or chapter IDs.
 
     Args:
-        tmp_path: The isolated source and cache root.
+        tmp_path: Isolated source and cache root.
     """
     body = "Chapter 1\nFirst\nChapter 2\nSecond"
     cache = tmp_path / "cache"
@@ -263,10 +263,10 @@ def test_bounded_reads():
             """Reject an unbounded source read.
 
             Args:
-                size: The byte limit; the default is rejected.
+                size: Byte limit; the default is rejected.
 
             Returns:
-                The next bounded source bytes.
+                Next bounded source bytes.
             """
             assert 0 <= size <= text._READ_BYTES
             return super().read(size)
@@ -276,10 +276,10 @@ def test_bounded_reads():
             """Reject an unbounded line read.
 
             Args:
-                size: The character limit; the default is rejected.
+                size: Character limit; the default is rejected.
 
             Returns:
-                The next bounded text fragment.
+                Next bounded text fragment.
             """
             assert 0 < size <= text._READ_CHARS
             return super().readline(size)
@@ -326,11 +326,11 @@ def test_cache_write_failure(tmp_path, monkeypatch):
         """Simulate a full disk while saving the new cache index.
 
         Args:
-            path: The target file.
-            data: The bytes to write.
+            path: Target file.
+            data: Bytes to write.
 
         Returns:
-            The real write result for other files.
+            Real write result for other files.
 
         Raises:
             OSError: When publishing the new index file.
@@ -356,11 +356,11 @@ def test_source_changed(tmp_path, monkeypatch, change):
         """Mutate the source immediately after its content has been read.
 
         Args:
-            text: The decoded source stream.
-            output: The new cache stream.
+            text: Decoded source stream.
+            output: New cache stream.
 
         Returns:
-            The original parser's chapter ranges.
+            Original parser's chapter ranges.
         """
         chapters = write_text(text, output)
         if change == "append":

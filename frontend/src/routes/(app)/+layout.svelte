@@ -39,7 +39,7 @@
   /**
    * Pull down to refresh the page.
    *
-   * @param pixels - The number of pixels to pull down.
+   * @param pixels - Number of pixels to pull down.
    */
   function pullDown(pixels: number) {
     if (scrollY === 0) {
@@ -57,9 +57,9 @@
   }
 
   /**
-   * Pull up to show the overscroll effect.
+   * Pull up to show the bottom pull effect.
    *
-   * @param pixels - The number of pixels to pull up.
+   * @param pixels - Number of pixels to pull up.
    */
   function pullUp(pixels: number) {
     overscrollH.target = Math.min(pixels, 100);
@@ -71,7 +71,7 @@
     if (!fromUrl || !toUrl) {
       return;
     }
-    // normalize pathnames to ensure consistent keys regardless of trailing slashes
+    // normalize paths so trailing slashes do not change storage keys
     const fromPath = normalizePathname(fromUrl.pathname);
     const toPath = normalizePathname(toUrl.pathname);
     if (fromPath === toPath) {
@@ -87,6 +87,7 @@
     } else {
       delete _urlparams[fromPath];
     }
+
     // restore the URL parameters for the next page
     // eslint-disable-next-line svelte/prefer-svelte-reactivity
     const toSearchParams = new URLSearchParams(toUrl.search);
@@ -166,7 +167,7 @@
 
 <svelte:window bind:scrollY />
 
-<!-- The top navigation bar. -->
+<!-- the top navigation bar -->
 <Navbar
   appMode
   navs={data.navs}
@@ -175,7 +176,7 @@
   shadow={navbarShadow || scrollY > 0 || frozenScrollY > 0}
 />
 
-<!-- The loading spinner for the pull-to-refresh feature. -->
+<!-- the loading spinner for the pull-to-refresh feature -->
 <div
   class="max-h-48 justify-center bg-base-125 {refresherH.current ? 'flex' : 'hidden'}"
   style:height={`${refresherH.current | 0}px`}
@@ -187,7 +188,7 @@
   </span>
 </div>
 
-<!-- The main content of the page. -->
+<!-- the main content of the page -->
 {#key refreshKey}
   <main
     class="min-h-(--ks-svh) bg-base-125 pb-(--ks-dock-h) sm:min-h-(--ks-lvh) sm:pb-0"
@@ -215,11 +216,11 @@
   </main>
 {/key}
 
-<!-- The overscroll effect at the bottom of the page. -->
+<!-- the bottom pull effect at the bottom of the page -->
 <div
   class="max-h-24 bg-base-125 {overscrollH.current ? 'flex' : 'hidden'}"
   style:height={`${overscrollH.current | 0}px`}
 ></div>
 
-<!-- The bottom navigation dock. -->
+<!-- the bottom navigation dock -->
 <Dock navs={data.navs} />

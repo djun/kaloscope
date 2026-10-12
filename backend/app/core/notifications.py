@@ -27,9 +27,10 @@ class Notifications:
         """Send a notification with the given template and parameters.
 
         Args:
-            template: The notification template to use.
-            user_id: The ID of the user to send the notification to.
-            **kwargs: The parameters to fill in the template.
+            template: Notification template to use.
+            user_id: The ID of the user to send the notification to. `None` targets
+                administrators.
+            **kwargs: Parameters to fill in the template.
         """
         await Notification.create(
             user_id=user_id,
@@ -43,9 +44,10 @@ class Notifications:
         """Send a raw notification with the given title and content.
 
         Args:
-            title: The title of the notification.
-            content: The content of the notification.
-            user_id: The ID of the user to send the notification to.
+            title: Title of the notification.
+            content: Content of the notification.
+            user_id: The ID of the user to send the notification to. `None` targets
+                administrators.
         """
         await Notification.create(
             user_id=user_id,
@@ -56,13 +58,13 @@ class Notifications:
 
     @classmethod
     def _filter(cls) -> Q:
-        """Get the filter for querying notifications based on the current user.
+        """Get filter for querying notifications based on the current user.
 
         Raises:
             UnauthorizedException: If the user is not logged in.
 
         Returns:
-            The filter for querying notifications.
+            Filter for querying notifications.
         """
         request = Request.get_current()
         if not hasattr(request.ctx, "user") or not request.ctx.user:
@@ -79,7 +81,7 @@ class Notifications:
         """List all notifications for the current user.
 
         Returns:
-            The list of notifications.
+            List of notifications.
         """
         return (
             await Notification.filter(cls._filter()).order_by("-created_at").limit(200)
@@ -90,7 +92,8 @@ class Notifications:
         """Mark one or all notifications as read for the current user.
 
         Args:
-            notification_id: The ID of the notification to mark as read.
+            notification_id: The ID of the notification to mark as read. `None` marks
+                all notifications as read.
         """
         filter = cls._filter()
         if notification_id is not None:
@@ -102,7 +105,8 @@ class Notifications:
         """Delete one or all notifications for the current user.
 
         Args:
-            notification_id: The ID of the notification to delete.
+            notification_id: The ID of the notification to delete. `None` deletes all
+                matching notifications.
         """
         filter = cls._filter()
         if notification_id is not None:

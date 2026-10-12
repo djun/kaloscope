@@ -7,8 +7,8 @@ def query_param(url: str, param: str) -> str:
     """Append a query parameter to a URL if the key is not already present.
 
     Args:
-        url: The original URL.
-        param: The query parameter in `key=value` format.
+        url: Original URL.
+        param: Query parameter in `key=value` format.
 
     Returns:
         The URL with the query parameter appended when applicable.

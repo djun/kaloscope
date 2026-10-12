@@ -83,7 +83,7 @@ class MetadataRead:
         """Retain the owning source for the selected, unresolved cover hint.
 
         Returns:
-            The external or embedded source supplying a cover, or None if absent.
+            External or embedded source supplying a cover, or None if absent.
         """
         return next(
             (
@@ -114,11 +114,11 @@ def _find_external(directory: Path, names: tuple[str, ...]) -> Path | None:
     """Select one direct metadata file by filename priority without following links.
 
     Args:
-        directory: The already validated work or chapter container.
+        directory: Already validated work or chapter container.
         names: Preferred case-insensitive filenames in priority order.
 
     Returns:
-        The selected path, or None when all candidates are absent.
+        Selected path, or None when all candidates are absent.
 
     Raises:
         ContentError: If the selected filename has ambiguous case variants.
@@ -145,7 +145,7 @@ def _read_local(
     """Read and parse bounded XML while checking the open file and current path.
 
     Args:
-        path: The selected metadata file in a caller-validated container.
+        path: Selected metadata file in a caller-validated container.
         parser: The OPF or ComicInfo byte parser.
 
     Returns:
@@ -192,8 +192,8 @@ def _read_external(
 
     Args:
         directory: A caller-validated work or chapter container.
-        names: Preferred filenames in casefolded form.
-        parser: The parser for all candidate files.
+        names: Preferred filenames in case-insensitive form.
+        parser: Parser for all candidate files.
 
     Returns:
         A parsed source, a controlled error or None for a stable absence.
@@ -297,7 +297,7 @@ def read_metadata(source: ReadingSource) -> MetadataRead:
     previous metadata result is consulted, and no source or cache is written.
 
     Args:
-        source: The current item source with an optional verified direct comic parent.
+        source: Current item source with an optional verified direct comic parent.
 
     Returns:
         Fresh transient details, a local-title fallback and each attempted source.

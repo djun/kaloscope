@@ -175,7 +175,7 @@
   /**
    * Mount the image viewer with the given image resource.
    *
-   * @param options - The image viewer options.
+   * @param options - Image viewer options.
    */
   export async function mount(options: ImageViewerOptions) {
     if (!options) {
@@ -221,7 +221,7 @@
   }
 
   /**
-   * Get the visible image and its relative position within the current chapter.
+   * Get visible image and its relative position within the current chapter.
    *
    * @returns The current position, or null while the viewer is unavailable.
    */
@@ -282,7 +282,7 @@
   /**
    * Select a chapter and notify the parent page.
    *
-   * @param chapter - The chapter to select.
+   * @param chapter - Chapter to select.
    */
   function selectChapter(chapter: Chapter) {
     chaptersOpen = false;
@@ -342,7 +342,7 @@
   /**
    * Add image URLs to either end of the loaded range, skipping duplicates.
    *
-   * @param urls - The image URLs returned by the content source.
+   * @param urls - Image URLs returned by the content source.
    * @param before - Prepend an earlier batch; defaults to appending.
    * @returns The number of images added.
    */
@@ -402,7 +402,7 @@
   }
 
   /**
-   * Update the current image index according to scroll position.
+   * Update current image index according to scroll position.
    */
   function updateImageIndex() {
     const el = scrollEl;
@@ -424,7 +424,7 @@
   /**
    * Restore the selected image after it finishes loading.
    *
-   * @param event - The load event from the currently mounted paged image.
+   * @param event - Load event from the currently mounted paged image.
    */
   function handleImageLoad(event: Event) {
     if (event.currentTarget !== pagedImage || readSignal?.aborted) return;
@@ -435,7 +435,7 @@
   /**
    * Retry failed images while preserving local asset query parameters.
    *
-   * @param e - The image error event.
+   * @param e - Image error event.
    */
   function handleImageError(e: Event) {
     const img = e.target as HTMLImageElement;
@@ -477,7 +477,7 @@
   /**
    * Handle keyboard navigation in paged mode.
    *
-   * @param e - The keyboard event.
+   * @param e - Keyboard event.
    */
   function handleKeyDown(e: KeyboardEvent) {
     if (settingsOpen || chaptersOpen || $settings?.readMode !== 'paged') {
@@ -496,7 +496,7 @@
   /**
    * Handle paged reader click zones.
    *
-   * @param e - The click event.
+   * @param e - Click event.
    */
   function handleClick(e: MouseEvent) {
     if (settingsOpen || chaptersOpen || $settings?.readMode !== 'paged') {

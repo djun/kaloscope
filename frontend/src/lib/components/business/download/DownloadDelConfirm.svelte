@@ -11,6 +11,11 @@
 
   // the modal dialog instance
   let modal: Modal;
+  /**
+   * Select download tasks and open the deletion dialog.
+   *
+   * @param ids - Download task IDs to delete.
+   */
   export const showModal = (ids: number | number[]) => {
     taskIds = Array.isArray(ids) ? ids : [ids];
     modal.show();
@@ -27,8 +32,8 @@
   /**
    * Delete download tasks by ID.
    *
-   * @param form - The form element.
-   * @param data - The form data.
+   * @param form - Form element.
+   * @param data - Form data.
    */
   function del(form: HTMLFormElement, data: FormData) {
     loading.start();
