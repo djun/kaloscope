@@ -1340,7 +1340,9 @@ def test_consume_mixed_chapter(tmp_path, monkeypatch, format):
             assert current.parent is not None
             assert current.parent.path == str(destination.parent)
             assert current.original == original.original
+            assert current.original is not None
             assert current.original["path"] == str(source.path)
+            assert current.parent.original is not None
             assert current.parent.original["path"] == str(destination.parent)
             assert current.parent.original["type"] == "directory"
             assert current.parent.original["size"] is None
@@ -1723,6 +1725,7 @@ def test_create_preserves(tmp_path, monkeypatch, state, legacy):
         async with _database():
             lib, source = await _source(tmp_path, MediaFormat.DIR)
             item = await MediaItemService.create_reading(lib.id, source)
+            assert item.original is not None
             original = {**item.original, "path": str(tmp_path / "Original")}
             await MediaItem.filter(id=item.id).update(
                 original=None if legacy else original,
@@ -1972,6 +1975,7 @@ def test_move_reading_file(tmp_path, monkeypatch, format, chapter, cross_contain
             assert current is not None and current.id == first.id
             assert current.path == str(destination) and current.name == "Renamed"
             assert current.original == first.original
+            assert current.original is not None
             assert current.original["path"] == str(source.path)
             assert current.dir == str(destination.parent)
             assert current.parent_id == first.parent_id
@@ -4966,6 +4970,7 @@ def test_create_concurrent(tmp_path):
             )
             assert first.id == second.id
             assert first.original == second.original
+            assert first.original is not None
             assert first.original["path"] == str(source.path)
             assert await MediaItem.all().count() == 1
 
@@ -6096,7 +6101,10 @@ def test_reading_ingest_workflow(tmp_path, monkeypatch, format, chapter, asynchr
             items = await MediaItem.all()
             versions = {item.id: item.index_version for item in items}
             snapshots = {item.id: item.original for item in items}
-            assert all(item.original["path"] == item.path for item in items)
+            assert all(
+                item.original is not None and item.original["path"] == item.path
+                for item in items
+            )
             events = await MediaEvent.filter(event_type="ingest")
             assert len(events) == len(items)
             for event in events:

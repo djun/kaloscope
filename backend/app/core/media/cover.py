@@ -9,7 +9,7 @@ from urllib.parse import unquote, urlsplit
 from zipfile import ZipFile, ZipInfo
 
 from app.core.media.archive import normalize_member_path, open_archive, read_member
-from app.core.media.common import ContentError, file_state
+from app.core.media.common import ContentError
 from app.core.media.epub.package import locate_epub_package, resolve_epub_reference
 from app.core.media.handlers.reading import (
     COVER_NAMES,
@@ -23,6 +23,7 @@ from app.core.media.metadata import METADATA_BYTES
 from app.core.media.raster import IMAGE_BYTES, ImageMime, image_mime, read_image_file
 from app.core.media.reader import MetadataRead, MetadataSource
 from app.models.media import MediaFormat
+from app.utils.disk import file_state
 from app.utils.text import natural_key
 
 

@@ -37,7 +37,7 @@ from app.core.exceptions import (
     KaloscopeException,
     NotFoundException,
 )
-from app.core.media.common import ContentError, file_state, original_file_info
+from app.core.media.common import ContentError
 from app.core.media.coordination import (
     index_lock_path,
     library_lock,
@@ -82,7 +82,7 @@ from app.models.user import (
 from app.services.base import BaseService
 from app.services.flow import FlowTriggerService
 from app.utils.asyncio import write_in_thread
-from app.utils.disk import delete_path, rename_exclusive
+from app.utils.disk import delete_path, file_state, original_file_info, rename_exclusive
 from app.utils.text import natural_key
 
 if TYPE_CHECKING:
@@ -135,9 +135,9 @@ async def _running_ingests() -> tuple[set[int], set[int]]:
     """
     instances = [
         params
-        for params in await FlowInstance.filter(
+        for (params,) in await FlowInstance.filter(
             graph__category=GraphCategory.INGEST
-        ).values_list("bootparams", flat=True)
+        ).values_list("bootparams")
         if isinstance(params, dict) and params.get("$manual") is not True
     ]
     return (

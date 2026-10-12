@@ -174,3 +174,24 @@ class TrackableDict[K, V](dict[K, V]):
     def reset_modified(self):
         """Reset the modified flag to False."""
         self._modified = False
+
+
+def get_raw(dictionary: dict, key: str, default: Any = None) -> Any:
+    """Get a nested dictionary value using a dot-separated key.
+
+    Args:
+        dictionary: The dictionary to get the key from.
+        key: The nested key to get, separated by dots.
+        default: The value returned when the key is missing; defaults to `None`.
+
+    Returns:
+        The value of the nested key, or the default value if not found.
+    """
+    keys = key.split(".")
+    data = dictionary
+    for k in keys:
+        if isinstance(data, dict) and k in data:
+            data = data[k]
+        else:
+            return default
+    return data

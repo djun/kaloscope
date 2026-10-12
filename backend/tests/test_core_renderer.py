@@ -10,14 +10,12 @@ from app.core.renderer import (
     ENV,
     b64decode,
     b64encode,
-    duration,
     json_escape,
     jsonpath_all,
     jsonpath_first,
     ltrim,
     parent_path,
     prefix,
-    query_param,
     regex_all,
     regex_first,
     render,
@@ -76,6 +74,12 @@ class TestJsonPathAll:
 
 
 class TestJsonPath:
+    def test_comments(self):
+        data = '{/* response */ "items": [{"title": "Alpha"}, {"title": "Beta"},]}'
+
+        assert jsonpath_first(data, "$.items[*].title") == "Alpha"
+        assert jsonpath_all(data, "$.items[*].title") == ["Alpha", "Beta"]
+
     def test_auto_none(self):
         data = {"items": [{"title": "Alpha"}]}
         assert ENV.filters["jsonpath"](data, "$.items[*].year") is None
@@ -191,14 +195,6 @@ class TestChinese:
         assert t2s("繁體中文") == "繁体中文"
 
 
-class TestDuration:
-    def test_default(self):
-        assert duration(3723000) == "01:02:03"
-
-    def test_seconds(self):
-        assert duration(125, "seconds") == "02:05"
-
-
 class TestBase64:
     def test_encode_string(self):
         assert b64encode("你好") == "5L2g5aW9"
@@ -280,53 +276,6 @@ class TestQuote:
 
     def test_safe(self):
         assert ENV.filters["quote"]("a/b", safe="") == "a%2Fb"
-
-
-class TestQueryParam:
-    def test_append_without_query(self):
-        assert query_param("https://example.com/video", "lang=zh-CN") == (
-            "https://example.com/video?lang=zh-CN"
-        )
-
-    def test_append_with_query(self):
-        assert query_param("https://example.com/video?page=1", "lang=zh-CN") == (
-            "https://example.com/video?page=1&lang=zh-CN"
-        )
-
-    def test_skip_existing_key(self):
-        assert query_param("https://example.com/video?lang=en", "lang=zh-CN") == (
-            "https://example.com/video?lang=en"
-        )
-
-    def test_keep_fragment(self):
-        assert query_param("https://example.com/video#player", "lang=zh-CN") == (
-            "https://example.com/video?lang=zh-CN#player"
-        )
-
-    def test_empty_url(self):
-        assert query_param("", "lang=zh-CN") == ""
-
-    def test_empty_param(self):
-        assert (
-            query_param("https://example.com/video", "") == "https://example.com/video"
-        )
-
-    def test_invalid_param(self):
-        assert query_param("https://example.com/video", "lang") == (
-            "https://example.com/video"
-        )
-
-    def test_empty_key(self):
-        assert query_param("https://example.com/video", "=zh-CN") == (
-            "https://example.com/video"
-        )
-
-    def test_render_uses_filter(self):
-        result = render(
-            "{{ url | query_param('lang=zh-CN') }}",
-            {"url": "https://example.com/video?page=1"},
-        )
-        assert result == "https://example.com/video?page=1&lang=zh-CN"
 
 
 class TestRender:
@@ -473,3 +422,12 @@ class TestRenderFilters:
 
     def test_kwargs(self):
         assert render("{{ value | duration(unit='minutes') }}", {"value": 2}) == "02:00"
+
+
+class TestQueryParam:
+    def test_render_uses_filter(self):
+        result = render(
+            "{{ url | query_param('lang=zh-CN') }}",
+            {"url": "https://example.com/video?page=1"},
+        )
+        assert result == "https://example.com/video?page=1&lang=zh-CN"

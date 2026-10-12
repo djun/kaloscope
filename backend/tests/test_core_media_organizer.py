@@ -21,7 +21,6 @@ from tortoise import Tortoise
 from app.core.config import KaloscopeConfig
 from app.core.constants import NFO_MIME_TYPE
 from app.core.media import organizer
-from app.core.media.common import original_file_info
 from app.core.media.coordination import library_lock
 from app.core.media.shelver import gen_nfo, update_metadata
 from app.core.media.watcher import LibWatcher, consume_event
@@ -36,6 +35,7 @@ from app.services.danmaku import (
     DanmakuWrapper,
 )
 from app.services.flow import FlowTriggerService
+from app.utils.disk import original_file_info
 
 
 @asynccontextmanager
@@ -458,6 +458,7 @@ def test_journal_cancellation(tmp_path, monkeypatch, cancel_count, failure):
                 await organizer.recover_organizing(lib)
             await item.refresh_from_db()
             assert item.path == str(tmp_path / "New Movie.mkv")
+            assert item.original is not None
             assert item.original["path"] == str(tmp_path / "original.mkv")
             assert Path(item.path).read_bytes() == b"video"
             assert not await MediaEvent.filter(id=journal.id).exists()
@@ -626,6 +627,7 @@ def test_movie_hierarchy(tmp_path):
             parent_id = item.parent_id
             parent = await MediaItem.get(id=parent_id)
             assert parent.path == str(tmp_path / "New Movie")
+            assert parent.original is not None
             assert parent.original["path"] == parent.path
             assert parent.original["type"] == "directory"
             assert parent.original["size"] is None

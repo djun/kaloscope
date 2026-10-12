@@ -2,7 +2,24 @@
 
 import pytest
 
-from app.utils.dict import TrackableDict
+from app.utils.dict import TrackableDict, get_raw
+
+
+@pytest.mark.parametrize(
+    ("key", "expected"),
+    [
+        ("nested.value", 0),
+        ("nested.empty", None),
+        ("nested.disabled", False),
+        ("nested.missing", "missing"),
+        ("nested.value.child", "missing"),
+        ("items.0", "missing"),
+    ],
+)
+def test_get_raw(key, expected):
+    data = {"nested": {"value": 0, "empty": None, "disabled": False}, "items": [1]}
+
+    assert get_raw(data, key, default="missing") == expected
 
 
 def test_setdefault():

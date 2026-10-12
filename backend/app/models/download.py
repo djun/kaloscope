@@ -34,10 +34,10 @@ from tortoise.fields import (
 )
 
 from app.core.dl.driver import DownloadState
-from app.core.renderer import duration
 from app.models.base import IDs, Pageable, RequestFilesMixin, TortoiseModel
 from app.models.flow import FlowGraph
 from app.models.media import MediaLib
+from app.utils.datetime import duration
 from app.utils.disk import format_bytes
 
 

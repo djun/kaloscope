@@ -5,7 +5,8 @@ import stat
 from pathlib import Path
 from typing import Literal
 
-from app.core.media.common import ContentError, FileSnapshot, file_state
+from app.core.media.common import ContentError, FileSnapshot
+from app.utils.disk import file_state
 
 IMAGE_BYTES = 64 * 1024 * 1024
 type ImageMime = Literal["image/jpeg", "image/png", "image/webp", "image/gif"]

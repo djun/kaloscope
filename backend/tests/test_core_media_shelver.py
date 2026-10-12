@@ -89,6 +89,13 @@ def test_nfo_empty_fields(tmp_path):
     [
         (None, None),
         (b"broken", "invalid_metadata"),
+        (b"<!DOCTYPE movie><movie/>", "invalid_metadata"),
+        (b"<!DOCTYPE movie []><movie/>", "invalid_metadata"),
+        (b'<!DOCTYPE movie SYSTEM "missing.dtd"><movie/>', "invalid_metadata"),
+        (
+            b'<!DOCTYPE movie PUBLIC "public-id" "missing.dtd"><movie/>',
+            "invalid_metadata",
+        ),
         (
             b'<!DOCTYPE movie [<!ENTITY x "test">]><movie><title>&x;</title></movie>',
             "invalid_metadata",

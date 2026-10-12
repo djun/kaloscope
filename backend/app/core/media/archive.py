@@ -10,7 +10,8 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
-from app.core.media.common import ContentError, FileSnapshot, file_state
+from app.core.media.common import ContentError, FileSnapshot
+from app.utils.disk import file_state
 
 _MAX_MEMBERS = 20_000
 _MAX_EXPANDED_BYTES = 4 * 1024**3

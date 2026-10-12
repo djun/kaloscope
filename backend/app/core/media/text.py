@@ -22,7 +22,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.core.media.common import INDEX_BYTES, ContentError, FileSnapshot, file_state
+from app.core.media.common import INDEX_BYTES, ContentError, FileSnapshot
 from app.core.media.epub.cache import (
     EpubContent,
     EpubIndex,
@@ -31,6 +31,7 @@ from app.core.media.epub.cache import (
     read_epub_resource,
 )
 from app.models.media import MediaFormat
+from app.utils.disk import file_state
 
 if TYPE_CHECKING:
     from app.core.media.handlers.reading import ReadingSource

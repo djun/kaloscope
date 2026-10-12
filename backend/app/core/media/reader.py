@@ -10,7 +10,7 @@ from pathlib import Path, PurePosixPath
 from typing import Literal
 
 from app.core.media.archive import normalize_member_path, open_archive, read_member
-from app.core.media.common import ContentError, file_state
+from app.core.media.common import ContentError
 from app.core.media.epub.package import read_epub_opf
 from app.core.media.handlers.reading import ReadingSource, is_ignored_name
 from app.core.media.metadata import (
@@ -23,6 +23,7 @@ from app.core.media.metadata import (
     parse_opf,
 )
 from app.models.media import MediaFormat
+from app.utils.disk import file_state
 
 
 @dataclass(frozen=True)

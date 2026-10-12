@@ -18,7 +18,7 @@ from pydantic import (
 )
 
 from app.core.media.archive import normalize_member_path, open_archive, read_member
-from app.core.media.common import INDEX_BYTES, ContentError, FileSnapshot, file_state
+from app.core.media.common import INDEX_BYTES, ContentError, FileSnapshot
 from app.core.media.handlers.reading import (
     COVER_NAMES,
     IMAGE_EXTENSIONS,
@@ -35,6 +35,7 @@ from app.core.media.raster import (
     read_image_file,
 )
 from app.models.media import MediaFormat
+from app.utils.disk import file_state
 from app.utils.text import natural_key
 
 _IMAGE_BYTES = IMAGE_BYTES

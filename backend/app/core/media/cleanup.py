@@ -9,7 +9,7 @@ from urllib.parse import unquote, urlsplit
 
 from lxml import etree
 
-from app.core.media.common import INDEX_BYTES, ContentError, file_state
+from app.core.media.common import INDEX_BYTES, ContentError
 from app.core.media.epub.package import resolve_epub_reference
 from app.core.media.handlers.reading import (
     COVER_NAMES,
@@ -21,6 +21,7 @@ from app.core.media.handlers.reading import (
 from app.core.media.metadata import parse_opf
 from app.core.media.reader import _read_local
 from app.models.media import MediaFormat, MediaItem
+from app.utils.disk import file_state
 
 
 def reading_companions(

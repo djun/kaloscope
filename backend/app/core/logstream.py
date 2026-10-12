@@ -10,6 +10,8 @@ from time import monotonic
 from typing import Any, Literal
 from uuid import uuid4
 
+from app.utils.text import truncate_utf8
+
 LOG_QUEUE_CAPACITY = 1024
 LOG_ACTIONS_CAPACITY = 32
 LOG_RECORD_LIMIT = 500
@@ -55,16 +57,6 @@ def create_log_snapshot() -> LogSnapshot:
     return LogSnapshot(run_id=uuid4().hex)
 
 
-def _truncate_utf8(value: str, limit: int = LOG_MESSAGE_LIMIT) -> str:
-    """Truncate a string to a maximum UTF-8 byte length."""
-    encoded = value.encode()
-    if len(encoded) <= limit:
-        return value
-    marker = _TRUNCATION_MARKER.encode()
-    prefix = encoded[: limit - len(marker)].decode(errors="ignore")
-    return prefix + _TRUNCATION_MARKER
-
-
 def _record_message(record: logging.LogRecord) -> str:
     """Build the plain-text message for a monitoring record."""
     message = record.getMessage()
@@ -85,7 +77,9 @@ def _record_message(record: logging.LogRecord) -> str:
             message = f"{message}\n{exception}" if message else exception
     elif record.exc_text:
         message = f"{message}\n{record.exc_text}" if message else record.exc_text
-    return _truncate_utf8(_ANSI_PATTERN.sub("", message))
+    return truncate_utf8(
+        _ANSI_PATTERN.sub("", message), LOG_MESSAGE_LIMIT, marker=_TRUNCATION_MARKER
+    )
 
 
 class LogQueueHandler(logging.Handler):

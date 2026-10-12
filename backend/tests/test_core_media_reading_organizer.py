@@ -187,6 +187,7 @@ def test_standalone(tmp_path, format, legacy):
             await history.refresh_from_db()
             assert item.path == str(target) and item.dir == str(target_dir)
             assert item.original == snapshot
+            assert item.original is not None
             assert item.original["path"] == str(source)
             assert item.index_state == IndexState.PENDING
             assert mapping[str(source)] == str(target)

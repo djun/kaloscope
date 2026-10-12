@@ -10,12 +10,12 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.media.common import ContentError, file_state
+from app.core.media.common import ContentError
 from app.core.media.handlers.reading import ReadingSource
 from app.core.media.metadata import ReadingMetadata, parse_comicinfo, parse_opf
 from app.core.media.reader import _read_local, read_metadata
 from app.models.media import MediaFormat
-from app.utils.disk import rename_exclusive
+from app.utils.disk import file_state, rename_exclusive
 
 
 class MetadataWrite(BaseModel):

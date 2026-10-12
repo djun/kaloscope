@@ -2,7 +2,6 @@ import asyncio
 import mimetypes
 import os
 import stat
-from contextlib import suppress
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
@@ -24,6 +23,7 @@ from app.core.media.handlers.base import MediaMeta, get_handler
 from app.core.media.metadata import METADATA_BYTES
 from app.core.renderer import render
 from app.models.media import LibType, MediaEvent, MediaItem, MediaLib, NFOType
+from app.utils.asyncio import write_in_thread
 from app.utils.disk import rename_exclusive
 from app.utils.extractor import extract_title
 from app.utils.xml import get_text
@@ -275,21 +275,10 @@ async def _write_nfo(
             await f.write(rendered)
         if overwrite and path.exists() and not path.is_symlink():
             temporary.chmod(path.stat().st_mode & 0o777)
-        publication = asyncio.create_task(
-            asyncio.to_thread(os.replace, temporary, path)
-            if overwrite
-            else asyncio.to_thread(rename_exclusive, temporary, path)
-        )
-        try:
-            await asyncio.shield(publication)
-        except asyncio.CancelledError:
-            # wait for publication before removing the temporary file
-            while not publication.done():
-                with suppress(asyncio.CancelledError, Exception):
-                    await asyncio.shield(publication)
-            with suppress(asyncio.CancelledError, Exception):
-                publication.result()
-            raise
+        if overwrite:
+            await write_in_thread(os.replace, temporary, path)
+        else:
+            await write_in_thread(rename_exclusive, temporary, path)
     except asyncio.CancelledError:
         cancelled = True
         raise
@@ -362,7 +351,7 @@ def _parse_nfo_data(
         raise ContentError("invalid_metadata") from error
     roots = ("movie",) if lib_type == LibType.MOVIE else ("tvshow", "episodedetails")
     data = root.getroottree()
-    if root.tag not in roots or data.docinfo.doctype:
+    if root.tag not in roots or data.docinfo.internalDTD is not None:
         raise ContentError("invalid_metadata")
     meta = get_handler(lib_type).extract_meta(data)
     meta.nfo_path = path

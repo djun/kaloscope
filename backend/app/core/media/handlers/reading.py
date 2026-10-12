@@ -17,9 +17,10 @@ from watchdog.events import (
     FileSystemEvent,
 )
 
-from app.core.media.common import ContentError, file_state
+from app.core.media.common import ContentError
 from app.core.media.handlers.base import _HANDLERS, MediaHandler
 from app.models.media import LibType, MediaFormat
+from app.utils.disk import file_state
 from app.utils.text import natural_key
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}

@@ -4,7 +4,7 @@ import re
 from functools import lru_cache, partial
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import parse_qsl, quote, urlsplit, urlunsplit
+from urllib.parse import quote
 
 import jinja2
 import opencc
@@ -21,8 +21,11 @@ from lxml import etree
 
 from app.core.constants import ENCODING
 from app.utils import json
+from app.utils.datetime import duration
 from app.utils.deep import deep_strip
+from app.utils.dict import get_raw
 from app.utils.disk import format_bytes
+from app.utils.url import query_param
 
 # create a new Jinja2 environment
 # https://jinja.palletsprojects.com/en/stable/api/#jinja2.Environment
@@ -388,31 +391,6 @@ def t2s(string: str) -> str:
     return T2S_CONVERTER.convert(string)
 
 
-def duration(
-    value: float, unit: Literal["milliseconds", "seconds", "minutes"] = "milliseconds"
-) -> str:
-    """Convert a duration to a human-readable format.
-
-    Args:
-        value: The duration value.
-        unit: The unit of the duration value.
-
-    Returns:
-        The human-readable duration string, e.g. "01:23:45".
-    """
-    match unit:
-        case "milliseconds":
-            d = datetime.timedelta(milliseconds=value)
-        case "seconds":
-            d = datetime.timedelta(seconds=value)
-        case "minutes":
-            d = datetime.timedelta(minutes=value)
-    total_seconds = int(d.total_seconds())
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    return (f"{hours:02}:" if hours else "") + f"{minutes:02}:{seconds:02}"
-
-
 def b64decode(s: str | bytes) -> str:
     """Decode the Base64 encoded bytes or string.
 
@@ -611,32 +589,6 @@ def suffix(value: Any, suffix: Any, strict: bool = True) -> str:
     return f"{_str(value)}{_str(suffix)}"
 
 
-def query_param(url: str, param: str) -> str:
-    """Append a query parameter to a URL if the key is not already present.
-
-    Args:
-        url: The original URL.
-        param: The query parameter in `key=value` format.
-
-    Returns:
-        The URL with the query parameter appended when applicable.
-    """
-    if not url or not param:
-        return url
-
-    key, separator, _ = param.partition("=")
-    if not separator or not key:
-        return url
-
-    parts = urlsplit(url)
-    existing_params = parse_qsl(parts.query, keep_blank_values=True)
-    if any(existing_key == key for existing_key, _ in existing_params):
-        return url
-
-    query = param if not parts.query else f"{parts.query}&{param}"
-    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
-
-
 # register custom filters
 # https://jinja.palletsprojects.com/en/stable/api/#custom-filters
 ENV.filters["trim"] = trim
@@ -825,27 +777,6 @@ def raw_key(dictionary: dict, string: str) -> str | None:
         else:
             return None
     return key
-
-
-def get_raw(dictionary: dict, key: str, default=None):
-    """Get a nested key from a dictionary without rendering.
-
-    Args:
-        dictionary: The dictionary to get the key from.
-        key: The nested key to get, separated by dots.
-        default: The default value to return if the key is not found.
-
-    Returns:
-        The value of the nested key, or the default value if not found.
-    """
-    keys = key.split(".")
-    data = dictionary
-    for k in keys:
-        if isinstance(data, dict) and k in data:
-            data = data[k]
-        else:
-            return default
-    return data
 
 
 def is_template(string: str) -> bool:

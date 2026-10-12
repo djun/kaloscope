@@ -16,6 +16,7 @@ from app.core.constants import ENCODING
 from app.core.media.coordination import library_lock
 from app.models.media import Language, LibType, MediaItem, MediaResource
 from app.utils import json
+from app.utils.asyncio import write_in_thread
 
 # the display mode of the danmaku
 type Mode = Literal["scroll", "top", "bottom"]
@@ -169,16 +170,7 @@ class DanmakuService:
         """
         path = cls._cache_path(media)
         content = json.dumps([comment.model_dump() for comment in comments])
-        write = asyncio.create_task(asyncio.to_thread(path.write_bytes, content))
-        try:
-            await asyncio.shield(write)
-        except asyncio.CancelledError:
-            while not write.done():
-                with contextlib.suppress(asyncio.CancelledError, Exception):
-                    await asyncio.shield(write)
-            with contextlib.suppress(asyncio.CancelledError, Exception):
-                write.result()
-            raise
+        await write_in_thread(path.write_bytes, content)
         return path
 
     @classmethod

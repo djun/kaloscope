@@ -13,7 +13,13 @@ from app.core.flow.nodes.metadata.movie import MovieNode
 from app.core.flow.nodes.metadata.tvshow import TVShowNode
 from app.core.media import watcher
 from app.core.media.common import ContentError
-from app.models.flow import FlowGraph, FlowInstance, FlowTrigger
+from app.models.flow import (
+    FlowGraph,
+    FlowInstance,
+    FlowTrigger,
+    GraphCategory,
+    GraphState,
+)
 from app.models.media import LibType, MediaEvent, MediaFormat, MediaItem, MediaLib
 from app.services import media as media_service
 from app.services.media import MediaItemService
@@ -46,6 +52,7 @@ def test_manual_recovery(tmp_path, monkeypatch, asynchronous):
             lib, source = await _source(tmp_path, MediaFormat.TXT)
             graph = await _ingest_trigger(lib, asynchronous=asynchronous)
             definition = graph.definition
+            assert definition is not None
             definition["nodes"][1]["data"]["response"] = "invalid"
             await FlowGraph.filter(id=graph.id).update(definition=definition)
             engine = _ingest_engine(monkeypatch)
@@ -154,6 +161,7 @@ def test_workflow_chain(tmp_path, monkeypatch, failure):
             first = await _ingest_trigger(lib, asynchronous=True)
             await FlowTrigger.filter(graph_id=first.id).update(priority=0)
             definition = first.definition
+            assert definition is not None
             definition["nodes"][1]["data"]["response"] = "invalid" if failure else "[]"
             await FlowGraph.filter(id=first.id).update(
                 name="First ingest", definition=definition
@@ -210,7 +218,7 @@ def test_save_status(tmp_path, pending):
                     "error_code": "workflow_failed",
                 },
             )
-            payload = {"item_id": item.id}
+            payload: dict[str, int | str] = {"item_id": item.id}
             if not pending:
                 payload["error_code"] = "metadata_write_failed"
             await MediaEvent.create(
@@ -285,6 +293,7 @@ def test_completed_dispatch(tmp_path, monkeypatch):
             lib, source = await _source(tmp_path, MediaFormat.TXT)
             graph = await _ingest_trigger(lib, asynchronous=True)
             definition = graph.definition
+            assert definition is not None
             definition["nodes"][1]["data"]["response"] = "[]"
             await FlowGraph.filter(id=graph.id).update(definition=definition)
             engine = _ingest_engine(monkeypatch)
@@ -364,6 +373,35 @@ def test_reserved_dispatch_recovery(tmp_path, monkeypatch):
     asyncio.run(run())
 
 
+def test_running_ingests():
+    async def run():
+        async with _database():
+            graph = await FlowGraph.create(
+                name="Ingest",
+                category=GraphCategory.INGEST,
+                state=GraphState.PUBLISHED,
+                definition={},
+            )
+            for params in (
+                {"$media_ingest_event": 10, "item_id": 20},
+                {"$manual": True, "$media_ingest_event": 30, "item_id": 40},
+                {"$manual": False, "item_id": 50},
+                {"$media_ingest_event": True, "item_id": True},
+                {"$media_ingest_event": "10", "item_id": "20"},
+                {"item_id": 0},
+                {"item_id": -1},
+                None,
+                [],
+            ):
+                await FlowInstance.create(
+                    graph=graph, definition={}, context={}, bootparams=params
+                )
+
+            assert await media_service._running_ingests() == ({10}, {20, 50})
+
+    asyncio.run(run())
+
+
 def test_running_unbound(tmp_path, monkeypatch):
     async def run():
         async with _database():
@@ -400,6 +438,7 @@ def test_existing_workflow(tmp_path, monkeypatch, empty):
             graph = await _ingest_trigger(lib, asynchronous=True)
             if empty:
                 definition = graph.definition
+                assert definition is not None
                 definition["nodes"][1]["data"]["response"] = "[]"
                 await FlowGraph.filter(id=graph.id).update(definition=definition)
             engine = _ingest_engine(monkeypatch)
@@ -408,6 +447,7 @@ def test_existing_workflow(tmp_path, monkeypatch, empty):
             item = await MediaItem.get(lib_id=lib.id)
             assert await MediaItemService.consume_ingest(event.id)
             instance = await FlowInstance.get()
+            assert instance.bootparams is not None
             instance.bootparams.pop("$media_ingest_event")
             await instance.save(update_fields=["bootparams"])
             event.payload = {"bootparams": [{"item_id": item.id}]}
@@ -441,6 +481,7 @@ def test_obsolete_failure(tmp_path, deleted):
             await _ingest_trigger(lib)
             item = await MediaItemService.create_reading(lib.id, source)
             event = await MediaEvent.get(event_type="ingest")
+            assert event.payload is not None
             event.payload = {**event.payload, "error_code": "workflow_failed"}
             await event.save(update_fields=["payload"])
             if deleted:

@@ -1,4 +1,4 @@
-"""Text comparison utilities."""
+"""Text comparison and truncation utilities."""
 
 import re
 import unicodedata
@@ -17,3 +17,28 @@ def natural_key(name: str) -> tuple:
     return tuple(
         int(part) if index % 2 else part for index, part in enumerate(parts)
     ), name
+
+
+def truncate_utf8(value: str, limit: int, *, marker: str = "…") -> str:
+    """Truncate text to a UTF-8 byte limit without splitting characters.
+
+    Args:
+        value: The text to truncate.
+        limit: The maximum encoded length, including the truncation marker.
+        marker: The suffix for truncated text; defaults to an ellipsis.
+            Markers larger than the limit are also truncated at character boundaries.
+
+    Returns:
+        The original text when it fits, otherwise a bounded prefix and marker.
+
+    Raises:
+        ValueError: If the byte limit is negative.
+    """
+    if limit < 0:
+        raise ValueError("The UTF-8 byte limit must not be negative")
+    encoded = value.encode()
+    if len(encoded) <= limit:
+        return value
+    suffix = marker.encode()[:limit].decode(errors="ignore")
+    prefix = encoded[: limit - len(suffix.encode())].decode(errors="ignore")
+    return prefix + suffix

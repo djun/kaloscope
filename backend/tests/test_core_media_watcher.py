@@ -863,6 +863,7 @@ def test_synchronous_ingest(tmp_path, monkeypatch, state, lib_type, relative_pat
             if original_ids:
                 assert sorted(current_ids) == sorted(original_ids)
             for item in await MediaItem.all():
+                assert item.original is not None
                 assert item.original["path"] == item.path
                 assert item.original["type"] == (
                     "file" if item.path == str(video) else "directory"
@@ -2421,6 +2422,7 @@ def test_organization_rescan(
             item = await MediaItem.get(lib_id=lib.id, path=str(source))
             original_id = item.id
             original = item.original
+            assert original is not None
             assert original["path"] == str(source)
             assert original["size"] == len(b"video")
             fire.reset_mock()
@@ -2830,6 +2832,7 @@ def test_hash_recovery(tmp_path, monkeypatch, restart):
             item = await MediaItem.get(lib=lib)
             original_id = item.id
             original = item.original
+            assert original is not None
             assert original["path"] == str(source)
             assert original["size"] == len(b"video")
             assert item.hash is None and item.size is None

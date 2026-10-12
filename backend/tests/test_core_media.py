@@ -10,83 +10,12 @@ import pytest
 from tortoise import Tortoise
 
 from app.core.config import KaloscopeConfig
-from app.core.media.common import original_file_info
 from app.core.media.coordination import library_lock
 from app.core.media.handlers.base import MediaPathInfo, get_handler
 from app.core.media.handlers.tvshow import TVShowMediaHandler
 from app.core.media.shelver import update_metadata
 from app.models.media import Language, LibType, MediaItem, MediaLib
 from app.services.media import MediaItemService
-
-
-@pytest.mark.parametrize("kind", ["file", "directory", "symlink", "broken_symlink"])
-def test_original_info(tmp_path, monkeypatch, kind):
-    target = tmp_path / "原始.mkv"
-    if kind == "directory":
-        target.mkdir()
-    elif kind != "broken_symlink":
-        target.write_bytes(b"video")
-    if target.exists():
-        os.utime(target, (1_700_000_000, 1_700_000_000))
-    path = target
-    if "symlink" in kind:
-        path = tmp_path / "link.mkv"
-        path.symlink_to("./原始.mkv")
-    monkeypatch.chdir(tmp_path)
-
-    original = original_file_info(path.name)
-
-    assert original == {
-        "path": str(path),
-        "type": "symlink" if kind == "broken_symlink" else kind,
-        "size": 5 if kind in ("file", "symlink") else None,
-        "mtime": None if kind == "broken_symlink" else "2023-11-14T22:13:20+00:00",
-        "link_target": "./原始.mkv" if "symlink" in kind else None,
-    }
-
-
-@pytest.mark.parametrize("error", [FileNotFoundError, PermissionError])
-def test_original_unavailable(tmp_path, monkeypatch, error):
-    path = tmp_path / "original.mkv"
-
-    def unavailable(self):
-        """Simulate unavailable source attributes.
-
-        Raises:
-            OSError: With the selected filesystem access error.
-        """
-        raise error(str(self))
-
-    monkeypatch.setattr(Path, "lstat", unavailable)
-
-    original = original_file_info(path)
-
-    assert original == {
-        "path": str(path),
-        "type": None,
-        "size": None,
-        "mtime": None,
-        "link_target": None,
-    }
-
-
-@pytest.mark.parametrize("mtime", [253_402_300_800.0, -62_135_596_801.0, float("inf")])
-def test_original_timestamp(tmp_path, monkeypatch, mtime):
-    path = tmp_path / "source.mkv"
-    path.write_bytes(b"video")
-    info = list(path.stat())
-    info[8] = mtime
-    monkeypatch.setattr(Path, "lstat", Mock(return_value=os.stat_result(info)))
-
-    original = original_file_info(path)
-
-    assert original == {
-        "path": str(path),
-        "type": "file",
-        "size": 5,
-        "mtime": None,
-        "link_target": None,
-    }
 
 
 @pytest.mark.parametrize(
@@ -142,7 +71,10 @@ def test_original(tmp_path, monkeypatch, lib_type, relative, legacy):
             handler = get_handler(lib_type)
             await handler.gen_items(lib, path)
             items = await MediaItem.all()
-            assert all(item.original["path"] == item.path for item in items)
+            assert all(
+                item.original is not None and item.original["path"] == item.path
+                for item in items
+            )
             item = next(item for item in items if item.path == str(path))
             original = {
                 "path": str(path),
@@ -154,6 +86,7 @@ def test_original(tmp_path, monkeypatch, lib_type, relative, legacy):
             assert item.original == original
             for parent in items:
                 if parent.id != item.id:
+                    assert parent.original is not None
                     assert parent.original["type"] == "directory"
                     assert parent.original["size"] is None
             if legacy:
